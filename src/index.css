@@ -1,19 +1,18 @@
 @import "tailwindcss";
 
-/* Define animación directamente con @keyframes */
 @keyframes marquee {
   0% {
-    transform: translateX(100%);
+    transform: translateX(0);
   }
   100% {
-    transform: translateX(-100%);
+    transform: translateX(-50%);
   }
 }
 
-/* Agrega una clase con la animación aplicada */
 @layer utilities {
   .animate-marquee {
+    display: inline-flex;
     animation: marquee 20s linear infinite;
+    min-width: 200%;
   }
 }
-
