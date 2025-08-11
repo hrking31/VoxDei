@@ -43,6 +43,7 @@ export default function DisplayView() {
       <div className="h-screen w-screen bg-black text-white text-[3rem] flex items-center justify-center text-center p-5 ">
         {text}
       </div >
+      
       <TickerMessage message={ticker} />
     </div>
   );

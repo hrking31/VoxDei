@@ -13,10 +13,38 @@ export default function ViewSelector() {
       </button>
 
       <button
+        onClick={() => navigate("/ViewTicker")}
+        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
+      >
+        Gestión Ticker
+      </button>
+
+      <button
+        onClick={() => navigate("/ViewMessage")}
+        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
+      >
+        Gestión Mensaje
+      </button>
+
+      <button
         onClick={() => navigate("/ViewPanel")}
         className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
       >
-        Gestión
+        Gestión Imagen
+      </button>
+
+      <button
+        onClick={() => navigate("/ViewPanel")}
+        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
+      >
+        Gestión Video
+      </button>
+
+      <button
+        onClick={() => navigate("/ViewVersiculo")}
+        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
+      >
+        Gestión Versiculo
       </button>
     </div>
   );

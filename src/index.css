@@ -12,7 +12,7 @@
 @layer utilities {
   .animate-marquee {
     display: inline-flex;
-    animation: marquee 20s linear infinite;
+    animation: marquee 15s linear infinite;
     min-width: 200%;
   }
 }

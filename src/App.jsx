@@ -1,12 +1,14 @@
 import { Routes, Route } from "react-router-dom";
-import { ViewPanel, ViewDisplay, ViewSelector } from "./Views/index";
+import { ViewTicker, ViewMessage, ViewVersiculo, ViewDisplay, ViewSelector } from "./Views/index";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<ViewSelector />} />
-      <Route path="/viewpanel" element={<ViewPanel />} />
       <Route path="/viewdisplay" element={<ViewDisplay />} />
+      <Route path="/viewTicker" element={<ViewTicker />} />
+      <Route path="/ViewMessage" element={<ViewMessage />} />
+      <Route path="/ViewVersiculo" element={<ViewVersiculo />} />
     </Routes>
   );
 }
