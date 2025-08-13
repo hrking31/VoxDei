@@ -1,19 +1,28 @@
-import React, { useState } from "react";
-import { librosAntiguo, librosNuevo } from "../LibrosBiblia/LibrosBiblia";
+import { useMemo } from "react";
+import {
+  librosAntiguo,
+  librosNuevo,
+} from "../LibrosBiblia/LibrosBiblia";
 
-export default function LibrosModal({ open, onClose, tipo, onLibro}) {
-  if (!open) return null;
+export default function LibrosModal({ open, onClose, tipo, onLibro }) {
+  if (open !== "libro") return null;
 
-const TipoLibros = tipo === "antiguo" ? librosAntiguo : librosNuevo;
+  const TipoLibros = useMemo(
+    () => (tipo === "antiguo" ? librosAntiguo : librosNuevo),
+    [tipo]
+  );
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="titulo-libros"
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-auto"
       onClick={onClose}
     >
       <div
         className="bg-white rounded-lg shadow-lg max-w-4xl w-full p-6 max-h-[80vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()} // Evita cerrar al clicar
+        onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-2xl font-bold mb-4">
           {tipo === "antiguo"
@@ -26,7 +35,7 @@ const TipoLibros = tipo === "antiguo" ? librosAntiguo : librosNuevo;
             <li
               key={index}
               className="border-b py-2 cursor-pointer hover:bg-gray-200 rounded"
-              onClick={() => onLibro(libro.sigla)} // envía el libro seleccionado al padre
+              onClick={() => onLibro(libro)}
             >
               <span className="font-semibold">{libro.nombre}</span>
             </li>
