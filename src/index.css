@@ -2,17 +2,32 @@
 
 @keyframes marquee {
   0% {
-    transform: translateX(0);
+    transform: translateX(100%);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translateX(-100%);
   }
 }
 
 @layer utilities {
   .animate-marquee {
     display: inline-flex;
-    animation: marquee 15s linear infinite;
+    animation: marquee var(--animation-speed, 15s) linear infinite;
     min-width: 200%;
+  }
+}
+
+@keyframes message {
+  0% {
+    transform: translateY(50%);
+  }
+  100% {
+    transform: translateY(-100%);
+  }
+}
+
+@layer utilities {
+  .animate-message {
+    animation: message var(--animation-speed, 15s) linear infinite;
   }
 }

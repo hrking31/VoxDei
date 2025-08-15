@@ -8,6 +8,7 @@ export default function ControlMenssage() {
   const handleMessage = () => {
     set(ref(database, "displayMessage"), {
       text: message,
+      display:"mensaje",
       timestamp: Date.now(),
     });
   };

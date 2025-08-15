@@ -80,6 +80,7 @@ export default function ControlVersiculo() {
   const [modalActivo, setModalActivo] = useState(null);
   const [tipoLibros, setTipoLibros] = useState("antiguo");
   const [tipoConsulta, setTipoConsulta] = useState(null);
+  const [velocidad, setVelocidad] = useState(10);
 
   const abrirModalConTipo = (tipo) => {
     setTipoLibros(tipo);
@@ -119,8 +120,6 @@ export default function ControlVersiculo() {
     setModalActivo("false");
   };
 
-  // console.log("libro hasta versiculo", libro);
-
   const consultaVersiculo = async (sigla, capitulo, versiculo) => {
     try {
       const data = await obtenerVersiculo(sigla, capitulo, versiculo);
@@ -153,12 +152,22 @@ export default function ControlVersiculo() {
     }
   };
 
-  const handleProject = () => {
-    const citaCompleta = `${resultado.libro} ${resultado.capitulo}:${resultado.numero}`;
-    set(ref(database, "displayMessage"), {
+  const handleProjectar = () => {
+    const citaCompleta = `${resultado.libro} ${resultado.capitulo}:${
+      resultado.numero || resultado.rango
+    }`;
+    set(ref(database, "displayVersiculo"), {
       text: resultado.texto,
       cita: citaCompleta,
+      display: "versiculo",
       timestamp: Date.now(),
+    });
+  };
+
+  const configSpeed = (nuevoValor) => {
+    setVelocidad(nuevoValor);
+    set(ref(database, "speedVersiculo"), {
+      velocidad: nuevoValor,
     });
   };
 
@@ -194,8 +203,7 @@ export default function ControlVersiculo() {
             {resultado && !tipoConsulta ? (
               <>
                 <strong className="block mb-2">
-                  {resultado.libro} {resultado.capitulo}:
-                  {resultado.numero || resultado.rango}
+                  {resultado.libro} {resultado.capitulo}:{resultado.numero}
                 </strong>
                 <p>{resultado.texto}</p>
               </>
@@ -205,7 +213,7 @@ export default function ControlVersiculo() {
           </div>
 
           <button
-            onClick={handleProject}
+            onClick={handleProjectar}
             className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
           >
             Proyectar
@@ -247,8 +255,7 @@ export default function ControlVersiculo() {
             {resultado && tipoConsulta ? (
               <>
                 <strong className="block mb-2">
-                  {resultado.libro} {resultado.capitulo}:
-                  {resultado.numero || resultado.rango}
+                  {resultado.libro} {resultado.capitulo}:{resultado.rango}
                 </strong>
                 <p>{resultado.texto}</p>
               </>
@@ -260,11 +267,24 @@ export default function ControlVersiculo() {
           </div>
 
           <button
-            onClick={handleProject}
+            onClick={handleProjectar}
             className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
           >
             Proyectar
           </button>
+
+          <div className="flex items-center space-x-2">
+            <label className="text-black">Velocidad lectura</label>
+            <input
+              type="range"
+              min="10"
+              max="50"
+              value={velocidad}
+              onChange={(e) => configSpeed(Number(e.target.value))}
+              className="w-48 accent-blue-500"
+            />
+            <span className="text-black">{velocidad}s</span>
+          </div>
         </div>
 
         {error && <p className="text-red-600 mt-4 font-medium">{error}</p>}

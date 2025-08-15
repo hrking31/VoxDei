@@ -1,51 +1,98 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { onValue, ref } from "firebase/database";
 import { database } from "../Firebase/Firebase";
 import TickerMessage from "../TickerMessage/TickerMessage";
 
 export default function DisplayView() {
-  const navigate = useNavigate();
-  const [text, setText] = useState("");
-  const [cita, setCita]= useState("");
+  const [display, setDisplay] = useState("");
+  const [mensaje, setMensaje] = useState("");
+  const [versiculo, setVersiculo] = useState("");
+  const [cita, setCita] = useState("");
   const [ticker, setTicker] = useState("");
+  const [velocidad, setVelocidad] = useState(10);
 
   useEffect(() => {
-    const textRef = ref(database, "displayMessage");
-    onValue(textRef, (snapshot) => {
+    const messageRef = ref(database, "displayMessage");
+    const unsubscribe = onValue(messageRef, (snapshot) => {
       const data = snapshot.val();
-      if (data) {
-        setText(data.text);
-        setCita(data.cita);
+      if (
+        data &&
+        typeof data.text === "string" &&
+        typeof data.display === "string"
+      ) {
+        setMensaje(data.text);
+        setDisplay(data.display);
       }
     });
+    return () => unsubscribe();
   }, []);
 
-    useEffect(() => {
-      const textRef = ref(database, "displayTicker");
-      onValue(textRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          setTicker(data.text);
-        }
-      });
-    }, []);
+  useEffect(() => {
+    const versiculoRef = ref(database, "displayVersiculo");
+    const unsubscribe = onValue(versiculoRef, (snapshot) => {
+      const data = snapshot.val();
+      if (
+        data &&
+        typeof data.text === "string" &&
+        typeof data.cita === "string" &&
+        typeof data.display === "string"
+      ) {
+        setVersiculo(data.text);
+        setCita(data.cita);
+        setDisplay(data.display);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
-    
+  useEffect(() => {
+    const speedRef = ref(database, "speedVersiculo");
+    const unsubscribe = onValue(speedRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && data.velocidad !== undefined) {
+        setVelocidad(data.velocidad);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const tickerRef = ref(database, "displayTicker");
+
+    const unsubscribe = onValue(tickerRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && typeof data.text === "string") {
+        setTicker(data.text);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const versos = versiculo.match(/\d+\.\s[^]+?(?=(?:\s\d+\.|$))/g) || [
+    versiculo,
+  ];
+  const activarAnimacion = versos.length > 1 || versiculo.length > 200;
 
   return (
-    <div className="relative h-screen w-screen bg-black text-white  flex items-center justify-center text-center p-5">
-      <button
-        onClick={() => navigate("/")}
-        className="absolute top-4 left-4 mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
-      >
-        Volver
-      </button>
-
-      <div className="h-screen w-screen bg-black flex flex-col items-center justify-center p-5 text-white">
-        <div className="text-[3rem] text-center">{text}</div>
-
-        <div className="text-[1.5rem] self-end mt-4 text-right">{cita}</div>
+    <div className="relative h-screen w-screen bg-black text-white  flex items-center justify-center text-center p-5 overflow-hidden">
+      <div className=" flex flex-col items-center justify-center p-5 text-white">
+        {display === "mensaje" ? (
+          <div className="text-[3rem] text-center">{mensaje}</div>
+        ) : (
+          <>
+            <div
+              className={` text-[3rem] leading-snug whitespace-pre-wrap ${
+                activarAnimacion ? "animate-message" : ""
+              }`}
+              style={{ "--animation-speed": `${velocidad}s` }}
+            >
+              {versos.map((vers, i) => (
+                <p key={i}>{vers.trim()}</p>
+              ))}
+            </div>
+            <div className="text-[1.5rem] self-end mt-4 text-right">{cita}</div>
+          </>
+        )}
       </div>
       <TickerMessage message={ticker} />
     </div>
