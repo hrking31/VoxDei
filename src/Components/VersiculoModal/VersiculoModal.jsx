@@ -1,6 +1,4 @@
-
-
-export default function CapituloModal({ open, onClose, selecLibro, onVersiculo}) {
+export default function VersiculoModal({ open, onClose, selecLibro, onVersiculo}) {
   if (open !== "versiculo" || !selecLibro) return null;
 
   return (
@@ -13,12 +11,12 @@ export default function CapituloModal({ open, onClose, selecLibro, onVersiculo})
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-2xl font-bold mb-4">
-          Capitulo {selecLibro.capitulos}
+          Capitulo {selecLibro.capitulo}
         </h2>
 
         <ul className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {Array.from(
-            { length: selecLibro[`capitulo${selecLibro.capitulos}`] },
+            { length: selecLibro[`capitulo${selecLibro.capitulo}`] },
             (_, i) => i + 1
           ).map((capitulo) => (
             <li

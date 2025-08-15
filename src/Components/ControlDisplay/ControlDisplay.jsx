@@ -7,6 +7,7 @@ import TickerMessage from "../TickerMessage/TickerMessage";
 export default function DisplayView() {
   const navigate = useNavigate();
   const [text, setText] = useState("");
+  const [cita, setCita]= useState("");
   const [ticker, setTicker] = useState("");
 
   useEffect(() => {
@@ -15,6 +16,7 @@ export default function DisplayView() {
       const data = snapshot.val();
       if (data) {
         setText(data.text);
+        setCita(data.cita);
       }
     });
   }, []);
@@ -28,7 +30,7 @@ export default function DisplayView() {
         }
       });
     }, []);
-    console.log(ticker);
+
     
 
   return (
@@ -40,10 +42,11 @@ export default function DisplayView() {
         Volver
       </button>
 
-      <div className="h-screen w-screen bg-black text-white text-[3rem] flex items-center justify-center text-center p-5 ">
-        {text}
-      </div >
-      
+      <div className="h-screen w-screen bg-black flex flex-col items-center justify-center p-5 text-white">
+        <div className="text-[3rem] text-center">{text}</div>
+
+        <div className="text-[1.5rem] self-end mt-4 text-right">{cita}</div>
+      </div>
       <TickerMessage message={ticker} />
     </div>
   );

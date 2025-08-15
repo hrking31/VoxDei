@@ -1,21 +1,85 @@
 import { useState, useEffect } from "react";
-import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
-import { db } from "../Firebase/Firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { database, db } from "../Firebase/Firebase";
+import { ref, set } from "firebase/database";
 import LibrosModal from "../../Components/LibrosModal/LibrosModal";
 import CapituloModal from "../../Components/CapituloModal/CapituloModal";
 import VersiculoModal from "../../Components/VersiculoModal/VersiculoModal";
+import VersiculoFinalModal from "../../Components/VersiculoFinalModal/VersiculoFinalModal";
+
+const obtenerVersiculo = async (sigla, capitulo, numeroVersiculo) => {
+  const docId = `${sigla.toUpperCase()}_${capitulo}`;
+  const ref = doc(db, "biblia", docId);
+  const snapshot = await getDoc(ref);
+
+  if (!snapshot.exists()) {
+    throw new Error("❌ Documento no encontrado");
+  }
+
+  const data = snapshot.data();
+  const texto = data.versiculos?.[numeroVersiculo.toString()];
+
+  if (!texto) {
+    throw new Error("⚠️ Versículo no encontrado");
+  }
+
+  return {
+    texto,
+    libro: data.libro,
+    capitulo: data.capitulo,
+    numero: numeroVersiculo,
+  };
+};
+
+const obtenerVersiculos = async (
+  sigla,
+  capitulo,
+  versiculoInicial,
+  versiculoFinal
+) => {
+  const docId = `${sigla.toUpperCase()}_${capitulo}`;
+  const refDoc = doc(db, "biblia", docId);
+  const snapshot = await getDoc(refDoc);
+
+  if (!snapshot.exists()) {
+    throw new Error("❌ Documento no encontrado");
+  }
+
+  const data = snapshot.data();
+  const versiculos = [];
+
+  for (let i = versiculoInicial; i <= versiculoFinal; i++) {
+    const texto = data.versiculos?.[i.toString()];
+    if (!texto) {
+      throw new Error(`⚠️ Versículo ${i} no encontrado`);
+    }
+    versiculos.push(`${i}. ${texto}`);
+  }
+
+  const textoCompleto = versiculos.join(" ");
+
+  return {
+    texto: textoCompleto,
+    libro: data.libro,
+    capitulo: data.capitulo,
+    rango: `${versiculoInicial}-${versiculoFinal}`,
+  };
+};
 
 export default function ControlVersiculo() {
   const [libro, setLibro] = useState({
     sigla: null,
     nombre: null,
     capitulos: null,
+    capitulo: null,
     versiculo: null,
+    versiculoFinal: null,
   });
-  const [capitulo, setCapitulo] = useState(null);
-  const [versiculo, setVersiculo] = useState(null);
+  const [resultado, setResultado] = useState(null);
+  const [error, setError] = useState("");
   const [modalActivo, setModalActivo] = useState(null);
   const [tipoLibros, setTipoLibros] = useState("antiguo");
+  const [tipoConsulta, setTipoConsulta] = useState(null);
 
   const abrirModalConTipo = (tipo) => {
     setTipoLibros(tipo);
@@ -26,38 +90,185 @@ export default function ControlVersiculo() {
     setLibro(libro);
     setModalActivo("capitulo");
   };
-  console.log("todo el libro:", libro);
 
   const CapituloSeleccionado = (capitulo) => {
-    setCapitulo(capitulo);
     setLibro((prevLibro) => ({
       ...prevLibro,
-      capitulos: capitulo,
+      capitulo: capitulo,
     }));
     setModalActivo("versiculo");
   };
-  console.log("capitulo seleccionado:", capitulo);
-  console.log("estado modal:", modalActivo);
 
   const VersiculoSeleccionado = (versiculo) => {
-    setVersiculo(capitulo);
+    setLibro((prevLibro) => ({
+      ...prevLibro,
+      versiculo: versiculo,
+    }));
+    consultaVersiculo(libro.sigla, libro.capitulo, versiculo);
+    {
+      tipoConsulta ? setModalActivo("versiculoFinal") : setModalActivo("false");
+    }
+  };
+
+  const VersiculoFinalSeleccionado = (versiculo) => {
+    setLibro((prevLibro) => ({
+      ...prevLibro,
+      versiculoFinal: versiculo,
+    }));
+    consultaVersiculos(libro.sigla, libro.capitulo, libro.versiculo, versiculo);
     setModalActivo("false");
   };
-  return (
-    <div className="flex  justify-center  gap-4 p-4">
-      <button
-        onClick={() => abrirModalConTipo("antiguo")}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >
-        Antiguo Testamento
-      </button>
 
-      <button
-        onClick={() => abrirModalConTipo("nuevo")}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >
-        Nuevo Testamento
-      </button>
+  // console.log("libro hasta versiculo", libro);
+
+  const consultaVersiculo = async (sigla, capitulo, versiculo) => {
+    try {
+      const data = await obtenerVersiculo(sigla, capitulo, versiculo);
+      setResultado(data);
+      setError("");
+    } catch (err) {
+      setResultado(null);
+      setError(err.message);
+    }
+  };
+
+  const consultaVersiculos = async (
+    sigla,
+    capitulo,
+    versiculo,
+    versiculoFinal
+  ) => {
+    try {
+      const data = await obtenerVersiculos(
+        sigla,
+        capitulo,
+        versiculo,
+        versiculoFinal
+      );
+      setResultado(data);
+      setError("");
+    } catch (err) {
+      setResultado(null);
+      setError(err.message);
+    }
+  };
+
+  const handleProject = () => {
+    const citaCompleta = `${resultado.libro} ${resultado.capitulo}:${resultado.numero}`;
+    set(ref(database, "displayMessage"), {
+      text: resultado.texto,
+      cita: citaCompleta,
+      timestamp: Date.now(),
+    });
+  };
+
+  return (
+    <div className="flex flex-col justify-center  gap-4 p-4">
+      <div className="max-w-xl mx-auto p-8 font-sans">
+        <h2 className="text-xl font-bold mb-4">🔎 Consultar un versículo</h2>
+
+        <div className="flex flex-row gap-2">
+          <button
+            onClick={() => {
+              abrirModalConTipo("antiguo");
+              setTipoConsulta(false);
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Antiguo Testamento
+          </button>
+
+          <button
+            onClick={() => {
+              abrirModalConTipo("nuevo");
+              setTipoConsulta(false);
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Nuevo Testamento
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <div className="mt-6 p-4 border border-gray-300 rounded-lg bg-white text-black shadow min-h-[6rem]">
+            {resultado && !tipoConsulta ? (
+              <>
+                <strong className="block mb-2">
+                  {resultado.libro} {resultado.capitulo}:
+                  {resultado.numero || resultado.rango}
+                </strong>
+                <p>{resultado.texto}</p>
+              </>
+            ) : (
+              <p className="text-gray-500">Selecciona un versículo.</p>
+            )}
+          </div>
+
+          <button
+            onClick={handleProject}
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
+          >
+            Proyectar
+          </button>
+        </div>
+
+        {error && <p className="text-red-600 mt-4 font-medium">{error}</p>}
+      </div>
+
+      <div className="max-w-xl mx-auto p-8 font-sans">
+        <h2 className="text-xl font-bold mb-4">
+          🔎 Consultar varios versículo
+        </h2>
+
+        <div className="flex flex-row gap-2">
+          <button
+            onClick={() => {
+              abrirModalConTipo("antiguo");
+              setTipoConsulta(true);
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Antiguo Testamento
+          </button>
+
+          <button
+            onClick={() => {
+              abrirModalConTipo("nuevo");
+              setTipoConsulta(true);
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Nuevo Testamento
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <div className="mt-6 p-4 border border-gray-300 rounded-lg bg-white text-black shadow min-h-[6rem]">
+            {resultado && tipoConsulta ? (
+              <>
+                <strong className="block mb-2">
+                  {resultado.libro} {resultado.capitulo}:
+                  {resultado.numero || resultado.rango}
+                </strong>
+                <p>{resultado.texto}</p>
+              </>
+            ) : (
+              <p className="text-gray-500">
+                Selecciona versículo inicial y final.
+              </p>
+            )}
+          </div>
+
+          <button
+            onClick={handleProject}
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
+          >
+            Proyectar
+          </button>
+        </div>
+
+        {error && <p className="text-red-600 mt-4 font-medium">{error}</p>}
+      </div>
 
       <LibrosModal
         open={modalActivo}
@@ -78,6 +289,13 @@ export default function ControlVersiculo() {
         onClose={() => setModalActivo(false)}
         selecLibro={libro}
         onVersiculo={VersiculoSeleccionado}
+      />
+
+      <VersiculoFinalModal
+        open={modalActivo}
+        onClose={() => setModalActivo(false)}
+        selecLibro={libro}
+        onVersiculo={VersiculoFinalSeleccionado}
       />
     </div>
   );
