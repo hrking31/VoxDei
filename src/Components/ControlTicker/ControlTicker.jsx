@@ -4,7 +4,7 @@ import { database } from "../Firebase/Firebase";
 
 export default function ControlTicker() {
   const [ticker, setTicker] = useState("");
-  const [velocidad, setVelocidad] = useState(10);
+  const [velocidad, setVelocidad] = useState(2);
 
   const handleTicker = () => {
     set(ref(database, "displayTicker"), {
@@ -27,8 +27,8 @@ export default function ControlTicker() {
       </h1>
 
       <div className="p-5 max-w-3xl mx-auto">
-        <input
-          className="w-full h-24 border border-gray-300 rounded p-2 mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <textarea
+          className="w-full h-60 border border-gray-300 rounded p-2 mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
           name="ticker"
           value={ticker}
           onChange={(e) => setTicker(e.target.value)}
@@ -46,8 +46,8 @@ export default function ControlTicker() {
             <label className="text-black">Velocidad lectura</label>
             <input
               type="range"
-              min="10"
-              max="50"
+              min="1"
+              max="10"
               value={velocidad}
               onChange={(e) => configSpeed(Number(e.target.value))}
               className="w-48 accent-blue-500"

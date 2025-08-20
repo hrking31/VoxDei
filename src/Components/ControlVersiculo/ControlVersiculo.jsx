@@ -6,9 +6,11 @@ import LibrosModal from "../../Components/LibrosModal/LibrosModal";
 import CapituloModal from "../../Components/CapituloModal/CapituloModal";
 import VersiculoModal from "../../Components/VersiculoModal/VersiculoModal";
 import VersiculoFinalModal from "../../Components/VersiculoFinalModal/VersiculoFinalModal";
+import TodoCapituloModal from "../../Components/TodoCapituloModal/TodoCapituloModal";
 
 const obtenerVersiculo = async (sigla, capitulo, numeroVersiculo) => {
   const docId = `${sigla.toUpperCase()}_${capitulo}`;
+  console.log("solo versiculo", docId);
   const ref = doc(db, "biblia", docId);
   const snapshot = await getDoc(ref);
 
@@ -66,6 +68,29 @@ const obtenerVersiculos = async (
   };
 };
 
+const obtenerCapitulo = async (sigla, capitulo) => {
+  const docId = `${sigla.toUpperCase()}_${capitulo}`;
+  const ref = doc(db, "biblia", docId);
+  const snapshot = await getDoc(ref);
+
+  if (!snapshot.exists()) {
+    throw new Error("❌ Documento no encontrado");
+  }
+
+  const data = snapshot.data();
+  const texto = data.chapter_html || null;
+
+  if (!texto) {
+    throw new Error("⚠️ Capitulo no encontrado");
+  }
+
+  return {
+    texto,
+    libro: data.libro,
+    capitulo: data.capitulo,
+  };
+};
+
 export default function ControlVersiculo() {
   const [libro, setLibro] = useState({
     sigla: null,
@@ -97,7 +122,13 @@ export default function ControlVersiculo() {
       ...prevLibro,
       capitulo: capitulo,
     }));
-    setModalActivo("versiculo");
+
+    consultaCapitulo(libro.sigla, capitulo);
+    if (tipoConsulta === "todoCapitulo") {
+      setModalActivo("false");
+    } else {
+      setModalActivo("versiculo");
+    }
   };
 
   const VersiculoSeleccionado = (versiculo) => {
@@ -106,8 +137,10 @@ export default function ControlVersiculo() {
       versiculo: versiculo,
     }));
     consultaVersiculo(libro.sigla, libro.capitulo, versiculo);
-    {
-      tipoConsulta ? setModalActivo("versiculoFinal") : setModalActivo("false");
+    if (tipoConsulta === "versiculoFinal") {
+      setModalActivo("versiculoFinal");
+    } else {
+      setModalActivo("false");
     }
   };
 
@@ -152,6 +185,17 @@ export default function ControlVersiculo() {
     }
   };
 
+  const consultaCapitulo = async (sigla, capitulo) => {
+    try {
+      const data = await obtenerCapitulo(sigla, capitulo);
+      setResultado(data);
+      setError("");
+    } catch (err) {
+      setResultado(null);
+      setError(err.message);
+    }
+  };
+
   const handleProjectar = () => {
     const citaCompleta = `${resultado.libro} ${resultado.capitulo}:${
       resultado.numero || resultado.rango
@@ -160,6 +204,17 @@ export default function ControlVersiculo() {
       text: resultado.texto,
       cita: citaCompleta,
       display: "versiculo",
+      timestamp: Date.now(),
+    });
+  };
+
+  const handleProjectarTodoCapitulo = () => {
+    const citaCompleta = `${resultado.libro} ${resultado.capitulo}
+    `;
+    set(ref(database, "displayCapitulo"), {
+      text: resultado.texto,
+      cita: citaCompleta,
+      display: "capitulo",
       timestamp: Date.now(),
     });
   };
@@ -232,7 +287,7 @@ export default function ControlVersiculo() {
           <button
             onClick={() => {
               abrirModalConTipo("antiguo");
-              setTipoConsulta(true);
+              setTipoConsulta("versiculoFinal");
             }}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
@@ -242,7 +297,7 @@ export default function ControlVersiculo() {
           <button
             onClick={() => {
               abrirModalConTipo("nuevo");
-              setTipoConsulta(true);
+              setTipoConsulta("versiculoFinal");
             }}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
@@ -252,7 +307,7 @@ export default function ControlVersiculo() {
 
         <div className="flex flex-col gap-4">
           <div className="mt-6 p-4 border border-gray-300 rounded-lg bg-white text-black shadow min-h-[6rem]">
-            {resultado && tipoConsulta ? (
+            {resultado && tipoConsulta === "versiculoFinal" ? (
               <>
                 <strong className="block mb-2">
                   {resultado.libro} {resultado.capitulo}:{resultado.rango}
@@ -290,6 +345,57 @@ export default function ControlVersiculo() {
         {error && <p className="text-red-600 mt-4 font-medium">{error}</p>}
       </div>
 
+      <div className="max-w-xl mx-auto p-8 font-sans">
+        <h2 className="text-xl font-bold mb-4">🔎 Consultar Capitulo</h2>
+
+        <div className="flex flex-row gap-2">
+          <button
+            onClick={() => {
+              abrirModalConTipo("antiguo");
+              setTipoConsulta("todoCapitulo");
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Antiguo Testamento
+          </button>
+
+          <button
+            onClick={() => {
+              abrirModalConTipo("nuevo");
+              setTipoConsulta("todoCapitulo");
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Nuevo Testamento
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <div className="mt-6 p-4 border border-gray-300 rounded-lg bg-white text-black shadow min-h-[6rem]">
+            {resultado && tipoConsulta === "todoCapitulo" ? (
+              <>
+                <strong className="block mb-2">
+                  {resultado.libro} {resultado.capitulo}
+                </strong>
+                <div dangerouslySetInnerHTML={{ __html: resultado.texto }} />
+                {/* <p>{resultado.texto}</p> */}
+              </>
+            ) : (
+              <p className="text-gray-500">Selecciona un versículo.</p>
+            )}
+          </div>
+
+          <button
+            onClick={handleProjectarTodoCapitulo}
+            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
+          >
+            Proyectar
+          </button>
+        </div>
+
+        {error && <p className="text-red-600 mt-4 font-medium">{error}</p>}
+      </div>
+
       <LibrosModal
         open={modalActivo}
         onClose={() => setModalActivo(false)}
@@ -316,6 +422,13 @@ export default function ControlVersiculo() {
         onClose={() => setModalActivo(false)}
         selecLibro={libro}
         onVersiculo={VersiculoFinalSeleccionado}
+      />
+
+      <TodoCapituloModal
+        open={modalActivo}
+        onClose={() => setModalActivo(false)}
+        selecLibro={libro}
+        onCapitulo={CapituloSeleccionado}
       />
     </div>
   );

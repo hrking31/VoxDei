@@ -7,6 +7,7 @@ export default function DisplayView() {
   const [display, setDisplay] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [versiculo, setVersiculo] = useState("");
+  const [capitulo, setCapitulo] = useState("");
   const [cita, setCita] = useState("");
   const [ticker, setTicker] = useState("");
   const [velocidad, setVelocidad] = useState(10);
@@ -38,6 +39,24 @@ export default function DisplayView() {
         typeof data.display === "string"
       ) {
         setVersiculo(data.text);
+        setCita(data.cita);
+        setDisplay(data.display);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const capituloRef = ref(database, "displayCapitulo");
+    const unsubscribe = onValue(capituloRef, (snapshot) => {
+      const data = snapshot.val();
+      if (
+        data &&
+        typeof data.text === "string" &&
+        typeof data.cita === "string" &&
+        typeof data.display === "string"
+      ) {
+        setCapitulo(data.text);
         setCita(data.cita);
         setDisplay(data.display);
       }
@@ -78,7 +97,7 @@ export default function DisplayView() {
       <div className=" flex flex-col items-center justify-center p-5 text-white">
         {display === "mensaje" ? (
           <div className="text-[3rem] text-center">{mensaje}</div>
-        ) : (
+        ) : display === "versiculo" ? (
           <>
             <div
               className={` text-[3rem] leading-snug whitespace-pre-wrap ${
@@ -92,7 +111,14 @@ export default function DisplayView() {
             </div>
             <div className="text-[1.5rem] self-end mt-4 text-right">{cita}</div>
           </>
-        )}
+        ) : display === "capitulo" ? (
+          <div
+            className={` text-[3rem] leading-snug whitespace-pre-wrap ${
+              activarAnimacion ? "animate-message" : ""
+            }`}
+            dangerouslySetInnerHTML={{ __html: capitulo }}
+          />
+        ) : null}
       </div>
       <TickerMessage message={ticker} />
     </div>
