@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { database, db } from "../Firebase/Firebase";
 import { ref, set } from "firebase/database";
+import { PlayIcon, PauseIcon } from "@heroicons/react/24/solid";
+import { PlusIcon } from "@heroicons/react/24/solid";
+import { MinusIcon } from "@heroicons/react/24/solid";
 import LibrosModal from "../../Components/LibrosModal/LibrosModal";
 import CapituloModal from "../../Components/CapituloModal/CapituloModal";
 import VersiculoModal from "../../Components/VersiculoModal/VersiculoModal";
@@ -10,7 +13,6 @@ import TodoCapituloModal from "../../Components/TodoCapituloModal/TodoCapituloMo
 
 const obtenerVersiculo = async (sigla, capitulo, numeroVersiculo) => {
   const docId = `${sigla.toUpperCase()}_${capitulo}`;
-  console.log("solo versiculo", docId);
   const ref = doc(db, "biblia", docId);
   const snapshot = await getDoc(ref);
 
@@ -105,7 +107,38 @@ export default function ControlVersiculo() {
   const [modalActivo, setModalActivo] = useState(null);
   const [tipoLibros, setTipoLibros] = useState("antiguo");
   const [tipoConsulta, setTipoConsulta] = useState(null);
-  const [velocidad, setVelocidad] = useState(10);
+  const [velocidad, setVelocidad] = useState(1);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const handlePlayPause = () => {
+    const nuevoEstado = !isPlaying;
+    setIsPlaying(nuevoEstado);
+
+    set(ref(database, "speedVersiculo"), {
+      velocidad,
+      estado: nuevoEstado,
+    });
+  };
+
+  const aumentarVelocidad = () => {
+    const nuevaVelocidad = Math.min(5, velocidad + 1);
+    setVelocidad(nuevaVelocidad);
+
+    set(ref(database, "speedVersiculo"), {
+      velocidad: nuevaVelocidad,
+      estado: isPlaying,
+    });
+  };
+
+  const disminuirVelocidad = () => {
+    const nuevaVelocidad = Math.max(1, velocidad - 1);
+    setVelocidad(nuevaVelocidad);
+
+    set(ref(database, "speedVersiculo"), {
+      velocidad: nuevaVelocidad,
+      estado: isPlaying,
+    });
+  };
 
   const abrirModalConTipo = (tipo) => {
     setTipoLibros(tipo);
@@ -196,7 +229,7 @@ export default function ControlVersiculo() {
     }
   };
 
-  const handleProjectar = () => {
+  const handleProjectarVersiculo = () => {
     const citaCompleta = `${resultado.libro} ${resultado.capitulo}:${
       resultado.numero || resultado.rango
     }`;
@@ -208,7 +241,19 @@ export default function ControlVersiculo() {
     });
   };
 
-  const handleProjectarTodoCapitulo = () => {
+    const handleProjectarVersiculos = () => {
+      const citaCompleta = `${resultado.libro} ${resultado.capitulo}:${
+        resultado.numero || resultado.rango
+      }`;
+      set(ref(database, "displayVersiculos"), {
+        text: resultado.texto,
+        cita: citaCompleta,
+        display: "versiculos",
+        timestamp: Date.now(),
+      });
+    };
+
+  const handleProjectarCapitulo = () => {
     const citaCompleta = `${resultado.libro} ${resultado.capitulo}
     `;
     set(ref(database, "displayCapitulo"), {
@@ -219,16 +264,10 @@ export default function ControlVersiculo() {
     });
   };
 
-  const configSpeed = (nuevoValor) => {
-    setVelocidad(nuevoValor);
-    set(ref(database, "speedVersiculo"), {
-      velocidad: nuevoValor,
-    });
-  };
-
   return (
-    <div className="flex flex-col justify-center  gap-4 p-4">
-      <div className="max-w-xl mx-auto p-8 font-sans">
+    <div className="flex flex-col justify-center  gap-4 ">
+      {/* Consultar un versículo */}
+      <div className="max-w-xl mx-auto p-4 font-sans">
         <h2 className="text-xl font-bold mb-4">🔎 Consultar un versículo</h2>
 
         <div className="flex flex-row gap-2">
@@ -268,7 +307,7 @@ export default function ControlVersiculo() {
           </div>
 
           <button
-            onClick={handleProjectar}
+            onClick={handleProjectarVersiculo}
             className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
           >
             Proyectar
@@ -278,7 +317,8 @@ export default function ControlVersiculo() {
         {error && <p className="text-red-600 mt-4 font-medium">{error}</p>}
       </div>
 
-      <div className="max-w-xl mx-auto p-8 font-sans">
+      {/* Consultar varios versículos */}
+      <div className="max-w-xl mx-auto p-4 font-sans">
         <h2 className="text-xl font-bold mb-4">
           🔎 Consultar varios versículo
         </h2>
@@ -321,31 +361,38 @@ export default function ControlVersiculo() {
             )}
           </div>
 
+          <div className="flex items-center space-x-2">
+            <label className="text-black">Velocidad lectura</label>
+            <button onClick={handlePlayPause}>
+              {isPlaying ? (
+                <PauseIcon className="h-6 w-6 text-blue-600" />
+              ) : (
+                <PlayIcon className="h-6 w-6 text-blue-600" />
+              )}
+            </button>
+
+            <button onClick={disminuirVelocidad}>
+              <MinusIcon className="w-6 h-6 text-blue-600" />
+            </button>
+            <span>{velocidad}</span>
+            <button onClick={aumentarVelocidad}>
+              <PlusIcon className="w-6 h-6 text-blue-600" />
+            </button>
+          </div>
+
           <button
-            onClick={handleProjectar}
+            onClick={handleProjectarVersiculos}
             className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
           >
             Proyectar
           </button>
-
-          <div className="flex items-center space-x-2">
-            <label className="text-black">Velocidad lectura</label>
-            <input
-              type="range"
-              min="10"
-              max="50"
-              value={velocidad}
-              onChange={(e) => configSpeed(Number(e.target.value))}
-              className="w-48 accent-blue-500"
-            />
-            <span className="text-black">{velocidad}s</span>
-          </div>
         </div>
 
         {error && <p className="text-red-600 mt-4 font-medium">{error}</p>}
       </div>
 
-      <div className="max-w-xl mx-auto p-8 font-sans">
+      {/* Consultar Capitulo */}
+      <div className="max-w-xl mx-auto p-4 font-sans">
         <h2 className="text-xl font-bold mb-4">🔎 Consultar Capitulo</h2>
 
         <div className="flex flex-row gap-2">
@@ -378,19 +425,59 @@ export default function ControlVersiculo() {
                   {resultado.libro} {resultado.capitulo}
                 </strong>
                 <div dangerouslySetInnerHTML={{ __html: resultado.texto }} />
-                {/* <p>{resultado.texto}</p> */}
               </>
             ) : (
               <p className="text-gray-500">Selecciona un versículo.</p>
             )}
           </div>
 
+          <div className="flex items-center space-x-2">
+            <label className="text-black">Velocidad lectura</label>
+            <button onClick={handlePlayPause}>
+              {isPlaying ? (
+                <PauseIcon className="h-6 w-6 text-blue-600" />
+              ) : (
+                <PlayIcon className="h-6 w-6 text-blue-600" />
+              )}
+            </button>
+
+            <button onClick={disminuirVelocidad}>
+              <MinusIcon className="w-6 h-6 text-blue-600" />
+            </button>
+            <span>{velocidad}</span>
+            <button onClick={aumentarVelocidad}>
+              <PlusIcon className="w-6 h-6 text-blue-600" />
+            </button>
+          </div>
+
           <button
-            onClick={handleProjectarTodoCapitulo}
+            onClick={handleProjectarCapitulo}
             className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded shadow"
           >
             Proyectar
           </button>
+
+          {/* <div className="flex items-center space-x-2">
+            <label className="text-black">Velocidad lectura</label>
+
+            <button onClick={handleClick}>
+              {isPlaying ? (
+                <PauseIcon className="h-6 w-6 text-blue-600" />
+              ) : (
+                <PlayIcon className="h-6 w-6 text-blue-600" />
+              )}
+            </button>
+
+            <input
+              type="range"
+              min="1"
+              max="10"
+              value={velocidad}
+              onChange={(e) => configSpeed(Number(e.target.value))}
+              className="w-48 accent-blue-500"
+            />
+            <span className="text-black">{velocidad}s</span>
+          </div> */}
         </div>
 
         {error && <p className="text-red-600 mt-4 font-medium">{error}</p>}
