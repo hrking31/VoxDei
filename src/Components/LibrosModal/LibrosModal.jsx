@@ -1,8 +1,6 @@
 import { useMemo } from "react";
-import {
-  librosAntiguo,
-  librosNuevo,
-} from "../LibrosBiblia/LibrosBiblia";
+import { XMarkIcon } from "@heroicons/react/24/solid";
+import { librosAntiguo, librosNuevo } from "../LibrosBiblia/LibrosBiblia";
 
 export default function LibrosModal({ open, onClose, tipo, onLibro }) {
   if (open !== "libro") return null;
@@ -24,13 +22,18 @@ export default function LibrosModal({ open, onClose, tipo, onLibro }) {
         className="bg-white rounded-lg shadow-lg max-w-4xl w-full p-6 max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-2xl font-bold mb-4">
-          {tipo === "antiguo"
-            ? "Libros Antiguo Testamento"
-            : "Libros Nuevo Testamento"}
-        </h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold ">
+            {tipo === "antiguo"
+              ? "Libros Antiguo Testamento"
+              : "Libros Nuevo Testamento"}
+          </h2>
+          <button onClick={onClose} className=" text-red-500 hover:text-red-700">
+            <XMarkIcon className="h-8 w-8 " />
+          </button>
+        </div>
 
-        <ul className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <ul className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
           {TipoLibros.map((libro, index) => (
             <li
               key={index}
@@ -41,13 +44,6 @@ export default function LibrosModal({ open, onClose, tipo, onLibro }) {
             </li>
           ))}
         </ul>
-
-        <button
-          onClick={onClose}
-          className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-        >
-          Cerrar
-        </button>
       </div>
     </div>
   );

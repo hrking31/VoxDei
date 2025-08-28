@@ -1,4 +1,11 @@
-export default function VersiculoFinalModal({ open, onClose, selecLibro, onVersiculo}) {
+import { XMarkIcon } from "@heroicons/react/24/solid";
+
+export default function VersiculoFinalModal({
+  open,
+  onClose,
+  selecLibro,
+  onVersiculo,
+}) {
   if (open !== "versiculoFinal" || !selecLibro) return null;
 
   return (
@@ -10,11 +17,20 @@ export default function VersiculoFinalModal({ open, onClose, selecLibro, onVersi
         className="bg-white rounded-lg shadow-lg max-w-4xl w-full p-6 max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-2xl font-bold mb-4">
-          Versiculo {selecLibro.versiculo} al ...
-        </h2>
+        <div className="flex justify-between items-center ">
+          <h2 className="text-2xl font-bold">
+            Versiculo {selecLibro.versiculo} al ...
+          </h2>
 
-        <ul className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <button
+            onClick={onClose}
+            className=" text-red-500 hover:text-red-700"
+          >
+            <XMarkIcon className="h-8 w-8 " />
+          </button>
+        </div>
+
+        <ul className="grid grid-cols-6 sm:grid-cols-6 md:grid-cols-4 lg:grid-cols-4 gap-4">
           {Array.from(
             { length: selecLibro[`capitulo${selecLibro.capitulo}`] },
             (_, i) => i + 1
@@ -28,13 +44,6 @@ export default function VersiculoFinalModal({ open, onClose, selecLibro, onVersi
             </li>
           ))}
         </ul>
-
-        <button
-          onClick={onClose}
-          className="mt-6 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-        >
-          Cerrar
-        </button>
       </div>
     </div>
   );
