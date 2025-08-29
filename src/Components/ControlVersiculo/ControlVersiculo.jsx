@@ -108,7 +108,7 @@ export default function ControlVersiculo() {
   const [tipoLibros, setTipoLibros] = useState("antiguo");
   const [tipoConsulta, setTipoConsulta] = useState(null);
   const [velocidad, setVelocidad] = useState(1);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(null);
 
   const handlePlayPause = () => {
     const nuevoEstado = !isPlaying;
@@ -241,17 +241,17 @@ export default function ControlVersiculo() {
     });
   };
 
-    const handleProjectarVersiculos = () => {
-      const citaCompleta = `${resultado.libro} ${resultado.capitulo}:${
-        resultado.numero || resultado.rango
-      }`;
-      set(ref(database, "displayVersiculos"), {
-        text: resultado.texto,
-        cita: citaCompleta,
-        display: "versiculos",
-        timestamp: Date.now(),
-      });
-    };
+  const handleProjectarVersiculos = () => {
+    const citaCompleta = `${resultado.libro} ${resultado.capitulo}:${
+      resultado.numero || resultado.rango
+    }`;
+    set(ref(database, "displayVersiculos"), {
+      text: resultado.texto,
+      cita: citaCompleta,
+      display: "versiculos",
+      timestamp: Date.now(),
+    });
+  };
 
   const handleProjectarCapitulo = () => {
     const citaCompleta = `${resultado.libro} ${resultado.capitulo}

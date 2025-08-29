@@ -46,6 +46,13 @@ export default function ViewSelector() {
       >
         Gestión Versiculo
       </button>
+
+      <button
+        onClick={() => navigate("/ViewVersiculos")}
+        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
+      >
+        Gestión Versiculos
+      </button>
     </div>
   );
 }

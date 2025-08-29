@@ -12,8 +12,8 @@ export default function DisplayView() {
   const [capitulo, setCapitulo] = useState("");
   const [cita, setCita] = useState("");
   const [ticker, setTicker] = useState("");
-  const [velocidad, setVelocidad] = useState(0);
-  const [estado, setEstado] = useState("false");
+  const [velocidad, setVelocidad] = useState("");
+  const [estado, setEstado] = useState("");
 
   useEffect(() => {
     const messageRef = ref(database, "displayMessage");
