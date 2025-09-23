@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import { ViewTicker, ViewMessage, ViewVersiculo, ViewVersiculos, ViewDisplay, ViewSelector } from "./Views/index";
+import { ViewTicker, ViewMessage, ViewVersiculo, ViewVersiculos, ViewDisplay, ViewSelector, ViewPredica } from "./Views/index";
 
 export default function App() {
   return (
@@ -10,6 +10,7 @@ export default function App() {
       <Route path="/ViewMessage" element={<ViewMessage />} />
       <Route path="/ViewVersiculo" element={<ViewVersiculo />} />
       <Route path="/ViewVersiculos" element={<ViewVersiculos />} />
+      <Route path="/ViewPredica" element={<ViewPredica />} />
     </Routes>
   );
 }
