@@ -41,6 +41,13 @@ export default function ViewSelector() {
       </button>
 
       <button
+        onClick={() => navigate("/ViewPredica")}
+        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
+      >
+        Gestión Predica
+      </button>
+
+      <button
         onClick={() => navigate("/ViewVersiculo")}
         className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
       >
