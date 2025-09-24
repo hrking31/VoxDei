@@ -444,7 +444,9 @@ export default function ControlVersiculo() {
             <button onClick={disminuirVelocidad}>
               <MinusIcon className="w-6 h-6 text-blue-600" />
             </button>
+            
             <span>{velocidad}</span>
+
             <button onClick={aumentarVelocidad}>
               <PlusIcon className="w-6 h-6 text-blue-600" />
             </button>
@@ -456,29 +458,7 @@ export default function ControlVersiculo() {
           >
             Proyectar
           </button>
-
-          {/* <div className="flex items-center space-x-2">
-            <label className="text-black">Velocidad lectura</label>
-
-            <button onClick={handleClick}>
-              {isPlaying ? (
-                <PauseIcon className="h-6 w-6 text-blue-600" />
-              ) : (
-                <PlayIcon className="h-6 w-6 text-blue-600" />
-              )}
-            </button>
-
-            <input
-              type="range"
-              min="1"
-              max="10"
-              value={velocidad}
-              onChange={(e) => configSpeed(Number(e.target.value))}
-              className="w-48 accent-blue-500"
-            />
-            <span className="text-black">{velocidad}s</span>
-          </div> */}
-        </div>
+       </div>
 
         {error && <p className="text-red-600 mt-4 font-medium">{error}</p>}
       </div>

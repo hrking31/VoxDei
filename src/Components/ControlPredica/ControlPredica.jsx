@@ -1,12 +1,49 @@
 import { useState } from "react";
-import { addDoc, collection } from "firebase/firestore";
-import { db } from "../Firebase/Firebase";
-import VersiculoModal from "../VersiculoModal/VersiculoModal";
+import { doc, getDoc } from "firebase/firestore";
+import { database, db } from "../Firebase/Firebase";
+import { ref, set } from "firebase/database";
 import LibrosModal from "../LibrosModal/LibrosModal";
+import CapituloModal from "../../Components/CapituloModal/CapituloModal";
 import TodoCapituloModal from "../TodoCapituloModal/TodoCapituloModal";
-import { librosAntiguo, librosNuevo } from "../LibrosBiblia/LibrosBiblia";
+import VersiculoModal from "../VersiculoModal/VersiculoModal";
+
+const obtenerVersiculo = async (sigla, capitulo, numeroVersiculo) => {
+  const docId = `${sigla.toUpperCase()}_${capitulo}`;
+  const ref = doc(db, "biblia", docId);
+  const snapshot = await getDoc(ref);
+
+  if (!snapshot.exists()) {
+    throw new Error("❌ Documento no encontrado");
+  }
+
+  const data = snapshot.data();
+  const texto = data.versiculos?.[numeroVersiculo.toString()];
+
+  if (!texto) {
+    throw new Error("⚠️ Versículo no encontrado");
+  }
+
+  return {
+    texto,
+    libro: data.libro,
+    capitulo: data.capitulo,
+    numero: numeroVersiculo,
+  };
+};
 
 export default function Predica() {
+  const [libro, setLibro] = useState({
+    sigla: null,
+    nombre: null,
+    capitulo: null,
+    versiculo: null,
+  });
+  const [resultado, setResultado] = useState(null);
+  const [error, setError] = useState("");
+  const [tabValue, setTabValue] = useState(0);
+  const [tipoLibros, setTipoLibros] = useState("antiguo");
+  const [modalActivo, setModalActivo] = useState(null);
+
   const [predicaItems, setPredicaItems] = useState([]);
   const [tipo, setTipo] = useState("mensaje"); // 'mensaje' o 'versiculo'
   const [mensaje, setMensaje] = useState("");
@@ -16,11 +53,53 @@ export default function Predica() {
   const [libroSeleccionado, setLibroSeleccionado] = useState(null);
   const [capituloSeleccionado, setCapituloSeleccionado] = useState(null);
   const [versiculoTemp, setVersiculoTemp] = useState("");
+  const [versiculoNuevo, setVersiculoNuevo] = useState("");
+  const [versiculoAntiguo, setVersiculoAntiguo] = useState("");
+
+  const abrirModalConTipo = (tipo) => {
+    setTipoLibros(tipo);
+    setModalActivo("libro");
+  };
+
+  const LibroSeleccionado = (libro) => {
+    setLibro(libro);
+    setModalActivo("capitulo");
+  };
+
+  const CapituloSeleccionado = (capitulo) => {
+    setLibro((prevLibro) => ({
+      ...prevLibro,
+      capitulo: capitulo,
+    }));
+    setModalActivo("versiculo");
+  };
+
+  const VersiculoSeleccionado = (versiculo) => {
+    setLibro((prevLibro) => ({
+      ...prevLibro,
+      versiculo: versiculo,
+    }));
+    consultaVersiculo(libro.sigla, libro.capitulo, versiculo);
+    setModalActivo("false");
+  };
+
+  const consultaVersiculo = async (sigla, capitulo, versiculo) => {
+    try {
+      const data = await obtenerVersiculo(sigla, capitulo, versiculo);
+      setResultado(data);
+      setError("");
+    } catch (err) {
+      setResultado(null);
+      setError(err.message);
+    }
+  };
+
 
   const agregarElemento = async (e) => {
     e.preventDefault();
     if (!mensaje && tipo === "mensaje") return;
-    if (!versiculoTemp && tipo === "versiculo") return;
+    if (!versiculoAntiguo && tipo === "versiculo") return;
+    if (!versiculoNuevo && tipo === "versiculo") return;
 
     const nuevoElemento = {
       tipo: tipo,
@@ -42,7 +121,6 @@ export default function Predica() {
     setVersiculoTemp("");
     setLibroSeleccionado(null);
     setCapituloSeleccionado(null);
-    setTestamentoSeleccionado("antiguo");
   };
 
   const handleLibroSelect = (libro) => {
@@ -104,44 +182,70 @@ export default function Predica() {
           </select>
 
           {tipo === "mensaje" ? (
-            <input
-              type="text"
-              value={mensaje}
-              onChange={(e) => setMensaje(e.target.value)}
-              placeholder="Escribe tu mensaje..."
-              className="flex-1 p-2 border rounded"
-            />
+            <>
+              <input
+                type="text"
+                value={mensaje}
+                onChange={(e) => setMensaje(e.target.value)}
+                placeholder="Escribe tu mensaje..."
+                className="flex-1 p-2 border rounded"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-green-500 text-white rounded"
+                disabled={tipo === "mensaje" && !mensaje}
+              >
+                Agregar
+              </button>
+            </>
           ) : (
-            <button
-              type="button"
-              onClick={() => setModalAbierto("libros")}
-              className="p-2 bg-blue-500 text-white rounded flex-1 text-left px-4"
-            >
-              {versiculoTemp || "Seleccionar Versículo"}
-            </button>
-          )}
+            <>
+              <h2 className="text-2xl font-bold mb-4">Antiguo Testamento</h2>
 
-          {tipo === "versiculo" && (
-            <select
-              value={testamentoSeleccionado}
-              onChange={(e) => setTestamentoSeleccionado(e.target.value)}
-              className="p-2 border rounded"
-            >
-              <option value="antiguo">Antiguo Testamento</option>
-              <option value="nuevo">Nuevo Testamento</option>
-            </select>
-          )}
+              <button
+                type="button"
+                onClick={() => {
+                  abrirModalConTipo("antiguo");
+                }}
+                className="p-2 bg-blue-500 text-white rounded flex-1 text-left px-4"
+              >
+                {versiculoAntiguo || "Seleccionar Versículo"}
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-green-500 text-white rounded"
+                // disabled={
+                //   (tipo === "mensaje" && !mensaje) ||
+                //   (tipo === "versiculo" && !versiculoTemp)
+                // }
+              >
+                Agregar
+              </button>
 
-          <button
-            type="submit"
-            className="px-4 py-2 bg-green-500 text-white rounded"
-            disabled={
-              (tipo === "mensaje" && !mensaje) ||
-              (tipo === "versiculo" && !versiculoTemp)
-            }
-          >
-            Agregar
-          </button>
+              <h2 className="text-2xl font-bold mb-4">Nuevo Testamento</h2>
+
+              <button
+                type="button"
+                onClick={() => {
+                  abrirModalConTipo("nuevo");
+                }}
+                className="p-2 bg-blue-500 text-white rounded flex-1 text-left px-4"
+              >
+                {versiculoNuevo || "Seleccionar Versículo"}
+              </button>
+
+              <button
+                type="submit"
+                className="px-4 py-2 bg-green-500 text-white rounded"
+                // disabled={
+                //   (tipo === "mensaje" && !mensaje) ||
+                //   (tipo === "versiculo" && !versiculoTemp)
+                // }
+              >
+                Agregar
+              </button>
+            </>
+          )}
         </div>
       </form>
 
@@ -173,10 +277,24 @@ export default function Predica() {
 
       {/* Modales para selección de versículos */}
       <LibrosModal
-        open={modalAbierto === "libros" ? "libro" : ""}
-        onClose={() => setModalAbierto("")}
-        tipo={testamentoSeleccionado}
-        onLibro={handleLibroSelect}
+        open={modalActivo}
+        onClose={() => setModalActivo(false)}
+        tipo={tipoLibros}
+        onLibro={LibroSeleccionado}
+      />
+
+      <CapituloModal
+        open={modalActivo}
+        onClose={() => setModalActivo(false)}
+        selecLibro={libro}
+        onCapitulo={CapituloSeleccionado}
+      />
+
+      <VersiculoModal
+        open={modalActivo}
+        onClose={() => setModalActivo(false)}
+        selecLibro={libro}
+        onVersiculo={VersiculoSeleccionado}
       />
 
       <TodoCapituloModal
