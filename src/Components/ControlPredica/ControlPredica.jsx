@@ -2,9 +2,9 @@ import { useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { database, db } from "../Firebase/Firebase";
 import { ref, set } from "firebase/database";
+import EmojiButton from "../EmojiButton/EmojiButton";
 import LibrosModal from "../LibrosModal/LibrosModal";
 import CapituloModal from "../../Components/CapituloModal/CapituloModal";
-import TodoCapituloModal from "../TodoCapituloModal/TodoCapituloModal";
 import VersiculoModal from "../VersiculoModal/VersiculoModal";
 
 const obtenerVersiculo = async (sigla, capitulo, numeroVersiculo) => {
@@ -40,21 +40,11 @@ export default function Predica() {
   });
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState("");
-  const [tabValue, setTabValue] = useState(0);
   const [tipoLibros, setTipoLibros] = useState("antiguo");
   const [modalActivo, setModalActivo] = useState(null);
-
-  const [predicaItems, setPredicaItems] = useState([]);
-  const [tipo, setTipo] = useState("mensaje"); // 'mensaje' o 'versiculo'
   const [mensaje, setMensaje] = useState("");
-  const [modalAbierto, setModalAbierto] = useState("");
-  const [testamentoSeleccionado, setTestamentoSeleccionado] =
-    useState("antiguo");
-  const [libroSeleccionado, setLibroSeleccionado] = useState(null);
-  const [capituloSeleccionado, setCapituloSeleccionado] = useState(null);
   const [versiculoTemp, setVersiculoTemp] = useState("");
-  const [versiculoNuevo, setVersiculoNuevo] = useState("");
-  const [versiculoAntiguo, setVersiculoAntiguo] = useState("");
+  const [predicaItems, setPredicaItems] = useState([]);
 
   const abrirModalConTipo = (tipo) => {
     setTipoLibros(tipo);
@@ -87,6 +77,13 @@ export default function Predica() {
     try {
       const data = await obtenerVersiculo(sigla, capitulo, versiculo);
       setResultado(data);
+
+      // const citaCompleta = `${data.libro} ${data.capitulo}:${data.numero}`;
+
+      setVersiculoTemp({
+        cita: `${data.libro} ${data.capitulo}:${data.numero}`,
+        texto: data.texto,
+      });
       setError("");
     } catch (err) {
       setResultado(null);
@@ -94,222 +91,159 @@ export default function Predica() {
     }
   };
 
-
-  const agregarElemento = async (e) => {
-    e.preventDefault();
-    if (!mensaje && tipo === "mensaje") return;
-    if (!versiculoAntiguo && tipo === "versiculo") return;
-    if (!versiculoNuevo && tipo === "versiculo") return;
+  const agregarElemento = (tipo) => {
+    // Validaciones
+    if (tipo === "mensaje" && !mensaje) return;
+    if (tipo === "versiculo" && !versiculoTemp) return;
 
     const nuevoElemento = {
-      tipo: tipo,
+      tipo,
       contenido: tipo === "mensaje" ? mensaje : versiculoTemp,
       timestamp: Date.now(),
-      libro: tipo === "versiculo" ? libroSeleccionado.nombre : null,
-      capitulo: tipo === "versiculo" ? capituloSeleccionado : null,
-      versiculo: tipo === "versiculo" ? versiculoTemp.split(":")[1] : null,
-      texto:
-        tipo === "versiculo"
-          ? libroSeleccionado[`capitulo${capituloSeleccionado}`][
-              parseInt(versiculoTemp.split(":")[1]) - 1
-            ]
-          : null,
     };
 
-    setPredicaItems([...predicaItems, nuevoElemento]);
-    setMensaje("");
-    setVersiculoTemp("");
-    setLibroSeleccionado(null);
-    setCapituloSeleccionado(null);
+    // Agregarlo a la lista
+    setPredicaItems((prev) => [...prev, nuevoElemento]);
+
+    // Limpiar solo lo que tenga sentido
+    if (tipo === "mensaje") setMensaje("");
+    if (tipo === "versiculo") setVersiculoTemp("");
   };
 
-  const handleLibroSelect = (libro) => {
-    setLibroSeleccionado(libro);
-    setModalAbierto("capitulo");
-  };
-
-  const handleCapituloSelect = (capitulo) => {
-    setCapituloSeleccionado(capitulo);
-    setModalAbierto("versiculo");
-  };
-
-  const handleVersiculoSelect = (versiculo) => {
-    if (libroSeleccionado && capituloSeleccionado) {
-      const versiculoCompleto = `${libroSeleccionado.nombre} ${capituloSeleccionado}:${versiculo}`;
-      setVersiculoTemp(versiculoCompleto);
-      setModalAbierto("");
-    }
-    const versiculoCompleto = `${libroSeleccionado.nombre} ${capituloSeleccionado}:${versiculo}`;
-    setVersiculoTemp(versiculoCompleto);
-    setModalAbierto("");
-  };
-
-  const enviarAProyeccion = async (elemento) => {
-    try {
-      if (elemento.tipo === "mensaje") {
-        await addDoc(collection(db, "mensaje"), {
-          mensaje: elemento.contenido,
-          timestamp: Date.now(),
-        });
-      } else if (elemento.tipo === "versiculo") {
-        await addDoc(collection(db, "versiculo"), {
-          libro: elemento.libro,
-          capitulo: elemento.capitulo,
-          versiculo: parseInt(elemento.versiculo),
-          texto: elemento.texto,
-          timestamp: Date.now(),
-        });
-      }
-    } catch (error) {
-      console.error("Error al enviar a proyección:", error);
+  const enviarAProyeccion = (elemento) => {
+    if (elemento.tipo === "mensaje") {
+      set(ref(database, "displayMessage"), {
+        text: elemento.contenido,
+        display: "mensaje",
+        timestamp: Date.now(),
+      });
+    } else if (elemento.tipo === "versiculo") {
+      set(ref(database, "displayVersiculo"), {
+        text: elemento.contenido.texto,
+        cita: elemento.contenido.cita,
+        display: "versiculo",
+        timestamp: Date.now(),
+      });
     }
   };
 
-  return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Asistente de Prédica</h2>
+ return (
+   <div className="p-2 max-w-6xl mx-auto">
+     {/* agregar elementos */}
+     <div className="sticky top-0 shadow-app-main shadow-md p-4 z-10 bg-app-light">
+       <h2 className="text-2xl font-bold text-app-main mb-2 text-center sm:text-left">
+         Asistente de Prédica
+       </h2>
 
-      {/* Formulario para agregar elementos */}
-      <form onSubmit={agregarElemento} className="mb-4">
-        <div className="flex gap-4 mb-4">
-          <select
-            value={tipo}
-            onChange={(e) => setTipo(e.target.value)}
-            className="p-2 border rounded"
-          >
-            <option value="mensaje">Mensaje</option>
-            <option value="versiculo">Versículo</option>
-          </select>
+       {/* Input de mensaje */}
+       <div className="flex flex-col sm:flex-row gap-4 mb-2">
+         <input
+           type="text"
+           value={mensaje}
+           onChange={(e) => setMensaje(e.target.value)}
+           placeholder="Escribe tu mensaje..."
+           className="flex-1 p-2 border rounded w-full"
+         />
 
-          {tipo === "mensaje" ? (
-            <>
-              <input
-                type="text"
-                value={mensaje}
-                onChange={(e) => setMensaje(e.target.value)}
-                placeholder="Escribe tu mensaje..."
-                className="flex-1 p-2 border rounded"
-              />
-              <button
-                type="submit"
-                className="px-4 py-2 bg-green-500 text-white rounded"
-                disabled={tipo === "mensaje" && !mensaje}
-              >
-                Agregar
-              </button>
-            </>
-          ) : (
-            <>
-              <h2 className="text-2xl font-bold mb-4">Antiguo Testamento</h2>
+         <div className="flex gap-2 sm:gap-4">
+           <EmojiButton
+             onSelect={(emoji) => setMensaje((prev) => prev + emoji)}
+           />
 
-              <button
-                type="button"
-                onClick={() => {
-                  abrirModalConTipo("antiguo");
-                }}
-                className="p-2 bg-blue-500 text-white rounded flex-1 text-left px-4"
-              >
-                {versiculoAntiguo || "Seleccionar Versículo"}
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-green-500 text-white rounded"
-                // disabled={
-                //   (tipo === "mensaje" && !mensaje) ||
-                //   (tipo === "versiculo" && !versiculoTemp)
-                // }
-              >
-                Agregar
-              </button>
+           <button
+             type="button"
+             onClick={() => agregarElemento("mensaje")}
+             className="px-4 py-2 bg-green-500 text-white rounded w-full sm:w-auto"
+             disabled={!mensaje}
+           >
+             Agregar
+           </button>
+         </div>
+       </div>
 
-              <h2 className="text-2xl font-bold mb-4">Nuevo Testamento</h2>
+       {/* Selección de testamento y versículo */}
+       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center mb-2">
+         <button
+           type="button"
+           onClick={() => abrirModalConTipo("antiguo")}
+           className="p-2 bg-blue-500 text-white rounded flex-1 text-left px-4"
+         >
+           Antiguo Testamento
+         </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  abrirModalConTipo("nuevo");
-                }}
-                className="p-2 bg-blue-500 text-white rounded flex-1 text-left px-4"
-              >
-                {versiculoNuevo || "Seleccionar Versículo"}
-              </button>
+         <button
+           type="button"
+           onClick={() => abrirModalConTipo("nuevo")}
+           className="p-2 bg-blue-500 text-white rounded flex-1 text-left px-4"
+         >
+           Nuevo Testamento
+         </button>
 
-              <button
-                type="submit"
-                className="px-4 py-2 bg-green-500 text-white rounded"
-                // disabled={
-                //   (tipo === "mensaje" && !mensaje) ||
-                //   (tipo === "versiculo" && !versiculoTemp)
-                // }
-              >
-                Agregar
-              </button>
-            </>
-          )}
-        </div>
-      </form>
+         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 flex-1">
+           <h2 className="text-lg font-bold mb-2 sm:mb-0">
+             {versiculoTemp.cita || "Versículo Seleccionado"}
+           </h2>
 
-      {/* Lista de elementos de la prédica */}
-      <div className="space-y-2">
-        {predicaItems.map((item, index) => (
-          <div
-            key={item.timestamp}
-            onClick={() => enviarAProyeccion(item)}
-            className="p-3 border rounded cursor-pointer hover:bg-gray-100"
-          >
-            <span className="font-bold">
-              {index + 1}. {item.tipo === "mensaje" ? "Mensaje" : "Versículo"}:{" "}
-            </span>
-            <span>
-              {item.tipo === "mensaje" ? (
-                item.contenido
-              ) : (
-                <>
-                  <span className="font-semibold">{item.contenido}</span>
-                  <br />
-                  <span className="text-gray-600">{item.texto}</span>
-                </>
-              )}
-            </span>
-          </div>
-        ))}
-      </div>
+           <button
+             type="button"
+             onClick={() => agregarElemento("versiculo")}
+             className="px-4 py-2 bg-green-500 text-white rounded w-full sm:w-auto"
+             disabled={!versiculoTemp}
+           >
+             Agregar
+           </button>
+         </div>
+       </div>
+     </div>
 
-      {/* Modales para selección de versículos */}
-      <LibrosModal
-        open={modalActivo}
-        onClose={() => setModalActivo(false)}
-        tipo={tipoLibros}
-        onLibro={LibroSeleccionado}
-      />
+     {/* Lista de elementos de la prédica */}
+     <div className="space-y-2 mt-2">
+       {predicaItems.map((item, index) => (
+         <div
+           key={item.timestamp}
+           onClick={() => enviarAProyeccion(item)}
+           className="p-3 border rounded cursor-pointer hover:bg-gray-100"
+         >
+           <span className="font-bold">
+             {index + 1}. {item.tipo === "mensaje" ? "Mensaje" : "Versículo"}:{" "}
+           </span>
+           <span>
+             {item.tipo === "mensaje" ? (
+               item.contenido
+             ) : (
+               <>
+                 <span className="font-semibold">{item.contenido.cita}</span>
+                 <br />
+                 <span className="text-gray-600">{item.contenido.texto}</span>
+               </>
+             )}
+           </span>
+         </div>
+       ))}
+     </div>
 
-      <CapituloModal
-        open={modalActivo}
-        onClose={() => setModalActivo(false)}
-        selecLibro={libro}
-        onCapitulo={CapituloSeleccionado}
-      />
+     {/* Modales para selección de versículos */}
+     <LibrosModal
+       open={modalActivo}
+       onClose={() => setModalActivo(false)}
+       tipo={tipoLibros}
+       onLibro={LibroSeleccionado}
+     />
 
-      <VersiculoModal
-        open={modalActivo}
-        onClose={() => setModalActivo(false)}
-        selecLibro={libro}
-        onVersiculo={VersiculoSeleccionado}
-      />
+     <CapituloModal
+       open={modalActivo}
+       onClose={() => setModalActivo(false)}
+       selecLibro={libro}
+       onCapitulo={CapituloSeleccionado}
+     />
 
-      <TodoCapituloModal
-        open={modalAbierto === "capitulo" ? "todoCapitulo" : ""}
-        onClose={() => setModalAbierto("")}
-        selecLibro={libroSeleccionado}
-        onCapitulo={handleCapituloSelect}
-      />
+     <VersiculoModal
+       open={modalActivo}
+       onClose={() => setModalActivo(false)}
+       selecLibro={libro}
+       onVersiculo={VersiculoSeleccionado}
+     />
+   </div>
+ );
 
-      <VersiculoModal
-        open={modalAbierto === "versiculo" ? "versiculo" : ""}
-        onClose={() => setModalAbierto("")}
-        selecLibro={{ ...libroSeleccionado, capitulo: capituloSeleccionado }}
-        onVersiculo={handleVersiculoSelect}
-      />
-    </div>
-  );
 }
