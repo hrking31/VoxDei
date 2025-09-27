@@ -9,7 +9,7 @@ const PredicaContext = createContext();
 export function PredicaProvider({ children }) {
   const [slots, setSlots] = useState([false, false, false, false, false]);
 
-  // 🔹 Cargar estado inicial de los botones desde Firestore
+  //Cargar estado inicial de los botones desde Firestore
   useEffect(() => {
     const loadSlots = async () => {
       const estados = [];
@@ -22,12 +22,22 @@ export function PredicaProvider({ children }) {
     loadSlots();
   }, []);
 
-  // 🔹 Guardar o sobrescribir una prédica en Firestore
+  // Guardar o sobrescribir una prédica en Firestore
   const guardarPredica = async (index, predicaItems) => {
-    await setDoc(doc(db, "predicas", `predica${index + 1}`), {
-      items: predicaItems,
-      updatedAt: new Date().toISOString(),
-    });
+    if (!predicaItems || predicaItems.length === 0) {
+      console.warn("⚠️ No hay items para guardar, operación cancelada.");
+      return; // no guarda nada
+    }
+
+    try {
+      await setDoc(doc(db, "predicas", `predica${index + 1}`), {
+        items: predicaItems,
+        updatedAt: new Date().toISOString(),
+      });
+      console.log(`✅ Predica ${index + 1} guardada correctamente`);
+    } catch (error) {
+      console.error("❌ Error al guardar la predica:", error);
+    }
 
     // Actualizar el estado local
     setSlots((prev) => {
@@ -44,5 +54,4 @@ export function PredicaProvider({ children }) {
   );
 }
 
-// Hook personalizado para consumir el contexto
 export const usePredica = () => useContext(PredicaContext);

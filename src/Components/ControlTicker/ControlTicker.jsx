@@ -28,8 +28,8 @@ export default function ControlTicker() {
 
       <div className="p-5 max-w-3xl mx-auto">
         <textarea
-          className="w-full h-60 border border-gray-300 rounded p-2 mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-          name="ticker"
+           className="w-full h-60 border border-gray-300 rounded p-2 mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 scrollbar-custom"
+           name="ticker"
           value={ticker}
           onChange={(e) => setTicker(e.target.value)}
         />

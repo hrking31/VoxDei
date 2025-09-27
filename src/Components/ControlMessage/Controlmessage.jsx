@@ -31,7 +31,7 @@ export default function ControlMenssage() {
       <div className="p-5 max-w-3xl mx-auto">
         <textarea
           ref={textareaRef}
-          className="w-full border border-gray-300 rounded p-2 mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full h-60 border border-gray-300 rounded p-2 mb-4 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 scrollbar-custom"
           name="message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
