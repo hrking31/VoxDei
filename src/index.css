@@ -25,12 +25,12 @@ body {
   }
 
   .scrollbar-custom::-webkit-scrollbar-track {
-    background: theme(--color-app-light); /* Gris Tailwind */
+    background: theme(--color-app-light); 
     border-radius: 4px;
   }
 
   .scrollbar-custom::-webkit-scrollbar-thumb {
-    background-color: theme(--color-app-border); /* Azul Tailwind */
+    background-color: theme(--color-app-border); 
     border-radius: 4px;
   }
 

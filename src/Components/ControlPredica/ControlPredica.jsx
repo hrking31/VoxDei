@@ -7,30 +7,36 @@ import EmojiButton from "../EmojiButton/EmojiButton";
 import LibrosModal from "../LibrosModal/LibrosModal";
 import CapituloModal from "../../Components/CapituloModal/CapituloModal";
 import VersiculoModal from "../VersiculoModal/VersiculoModal";
+import Notificaciones from "../../Components/Notificaciones/Notificaciones";
 import { usePredica } from "../../Components/PredicaContext/PredicaContext";
 
 const obtenerVersiculo = async (sigla, capitulo, numeroVersiculo) => {
-  const docId = `${sigla.toUpperCase()}_${capitulo}`;
-  const ref = doc(db, "biblia", docId);
-  const snapshot = await getDoc(ref);
+      if (!sigla || !capitulo || !numeroVersiculo) {
+        throw new Error(
+          "❌ Parámetros inválidos. Debes enviar sigla, capítulo y versículo."
+        );
+      }
+    const docId = `${sigla.toUpperCase()}_${capitulo}`;
+    const ref = doc(db, "biblia", docId);
+    const snapshot = await getDoc(ref);
 
-  if (!snapshot.exists()) {
-    throw new Error("❌ Documento no encontrado");
-  }
+    if (!snapshot.exists()) {
+      throw new Error("❌ Documento no encontrado");
+    }
 
-  const data = snapshot.data();
-  const texto = data.versiculos?.[numeroVersiculo.toString()];
+    const data = snapshot.data();
+    const texto = data.versiculos?.[numeroVersiculo.toString()];
 
-  if (!texto) {
-    throw new Error("⚠️ Versículo no encontrado");
-  }
+    if (!texto) {
+      throw new Error("🔎 Versículo no encontrado");
+    }
 
-  return {
-    texto,
-    libro: data.libro,
-    capitulo: data.capitulo,
-    numero: numeroVersiculo,
-  };
+    return {
+      texto,
+      libro: data.libro,
+      capitulo: data.capitulo,
+      numero: numeroVersiculo,
+    };
 };
 
 export default function Predica() {
@@ -47,35 +53,20 @@ export default function Predica() {
   const [modalActivo, setModalActivo] = useState(null);
   const [mensaje, setMensaje] = useState("");
   const [versiculoTemp, setVersiculoTemp] = useState("");
-  const [predicaItems, setPredicaItems] = useState([]);
-  const { slots, guardarPredica } = usePredica();
-  const [editar, setEditar] = useState(false);
-  const [numSlots, setNumSlots] = useState("");
 
-  // carga predica seleccionada
-  const handleSlotClick = async (index) => {
-    if (slots[index]) {
-      // Si está ocupado
-      if (editar) {
-        // 🔹 Guardar cambios (sobrescribir lo existente)
-        await guardarPredica(index, predicaItems);
-        setEditar(false);
-        console.log("✅ Predica actualizada en slot", index + 1);
-      } else {
-        // 🔹 Cargar desde BD
-        setNumSlots(index + 1);
-        const snap = await getDoc(doc(db, "predicas", `predica${index + 1}`));
-        if (snap.exists()) {
-          setPredicaItems(snap.data().items);
-          console.log("📥 Predica cargada:", snap.data().items);
-        }
-      }
-    } else {
-      // Si está vacío → guardar
-      await guardarPredica(index, predicaItems);
-      console.log("💾 Predica guardada en slot", index + 1);
-    }
-  };
+  const {
+    slots,
+    editar,
+    setEditar,
+    numSlots,
+    setNumSlots,
+    predicaItems,
+    setPredicaItems,
+    notif,
+    setNotif,
+    showNotif,
+    handleSlotClick,
+  } = usePredica();
 
   const abrirModalConTipo = (tipo) => {
     setTipoLibros(tipo);
@@ -88,18 +79,12 @@ export default function Predica() {
   };
 
   const CapituloSeleccionado = (capitulo) => {
-    setLibro((prevLibro) => ({
-      ...prevLibro,
-      capitulo: capitulo,
-    }));
+    setLibro((prev) => ({ ...prev, capitulo }));
     setModalActivo("versiculo");
   };
 
   const VersiculoSeleccionado = (versiculo) => {
-    setLibro((prevLibro) => ({
-      ...prevLibro,
-      versiculo: versiculo,
-    }));
+    setLibro((prev) => ({ ...prev, versiculo }));
     consultaVersiculo(libro.sigla, libro.capitulo, versiculo);
     setModalActivo("false");
   };
@@ -108,20 +93,20 @@ export default function Predica() {
     try {
       const data = await obtenerVersiculo(sigla, capitulo, versiculo);
       setResultado(data);
-
       setVersiculoTemp({
         cita: `${data.libro} ${data.capitulo}:${data.numero}`,
         texto: data.texto,
       });
-      setError("");
-    } catch (err) {
+      setError(null);
+    } catch (error) {
+      console.error("Error en consultaVersiculo:", error.message);
       setResultado(null);
-      setError(err.message);
+      setError(error.message);
+      showNotif("warning", error.message);
     }
   };
 
   const agregarElemento = (tipo) => {
-    // Validaciones
     if (tipo === "mensaje" && !mensaje) return;
     if (tipo === "versiculo" && !versiculoTemp) return;
 
@@ -131,10 +116,8 @@ export default function Predica() {
       timestamp: Date.now(),
     };
 
-    // Agregarlo a la lista
     setPredicaItems((prev) => [...prev, nuevoElemento]);
 
-    // Limpiar solo lo que tenga sentido
     if (tipo === "mensaje") setMensaje("");
     if (tipo === "versiculo") setVersiculoTemp("");
   };
@@ -178,11 +161,10 @@ export default function Predica() {
             {/* Input de mensaje */}
             <div className="flex flex-col sm:flex-row gap-4 mb-2 ">
               <textarea
-                type="text"
                 value={mensaje}
                 onChange={(e) => setMensaje(e.target.value)}
                 placeholder="Escribe tu mensaje..."
-                className="w-full border border-app-border rounded p-2  resize-none focus:outline-none focus:ring-2 focus:ring-app-main scrollbar-custom"
+                className="w-full border text-app-muted border-app-border rounded p-2  resize-none focus:outline-none focus:ring-2 focus:ring-app-main scrollbar-custom"
                 maxLength={600}
               />
 
@@ -202,10 +184,10 @@ export default function Predica() {
               </div>
             </div>
 
-            {/* Selección de testamento, versículo y predicas en memoria*/}
+            {/* Selección de testamento, versículo y slots */}
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center ">
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center ">
-                <h2 className="flex items-center justify-center text-center font-bold">
+                <h2 className="flex items-center justify-center text-center font-bold text-app-muted">
                   Predica {numSlots}
                 </h2>
 
@@ -240,7 +222,8 @@ export default function Predica() {
                 <button
                   type="button"
                   onClick={() => {
-                    setPredicaItems([]), setNumSlots("");
+                    setPredicaItems([]);
+                    setNumSlots("");
                   }}
                   className="p-1  text-app-border  hover:text-red-600"
                 >
@@ -265,7 +248,7 @@ export default function Predica() {
               </button>
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 flex-1">
-                <h2 className="w-64 h-12 flex items-center justify-center text-center font-bold">
+                <h2 className="w-64 h-12 flex items-center justify-center text-center font-bold text-app-muted">
                   {versiculoTemp.cita || "Versículo Seleccionado"}
                 </h2>
 
@@ -283,7 +266,7 @@ export default function Predica() {
         </>
       )}
 
-      {/* Lista de elementos de la prédica */}
+      {/* Lista de elementos */}
       <div className="space-y-2 mt-2">
         {predicaItems.map((item, index) => (
           <div
@@ -309,7 +292,7 @@ export default function Predica() {
         ))}
       </div>
 
-      {/* Modales para selección de versículos */}
+      {/* Modales */}
       <LibrosModal
         open={modalActivo}
         onClose={() => setModalActivo(false)}
@@ -329,6 +312,14 @@ export default function Predica() {
         onClose={() => setModalActivo(false)}
         selecLibro={libro}
         onVersiculo={VersiculoSeleccionado}
+      />
+
+      {/* Notificaciones */}
+      <Notificaciones
+        open={notif.open}
+        type={notif.type}
+        message={notif.message}
+        onClose={() => setNotif({ ...notif, open: false })}
       />
     </div>
   );

@@ -9,7 +9,6 @@ import LibrosModal from "../../Components/LibrosModal/LibrosModal";
 import CapituloModal from "../../Components/CapituloModal/CapituloModal";
 import VersiculoModal from "../../Components/VersiculoModal/VersiculoModal";
 import VersiculoFinalModal from "../../Components/VersiculoFinalModal/VersiculoFinalModal";
-import TodoCapituloModal from "../../Components/TodoCapituloModal/TodoCapituloModal";
 
 const obtenerVersiculo = async (sigla, capitulo, numeroVersiculo) => {
   const docId = `${sigla.toUpperCase()}_${capitulo}`;
@@ -489,13 +488,6 @@ export default function ControlVersiculo() {
         onClose={() => setModalActivo(false)}
         selecLibro={libro}
         onVersiculo={VersiculoFinalSeleccionado}
-      />
-
-      <TodoCapituloModal
-        open={modalActivo}
-        onClose={() => setModalActivo(false)}
-        selecLibro={libro}
-        onCapitulo={CapituloSeleccionado}
       />
     </div>
   );
