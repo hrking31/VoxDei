@@ -43,6 +43,7 @@ export default function ControlVersiculos() {
   const [tipoLibros, setTipoLibros] = useState("antiguo");
   const [versiculoNumero, setVersiculoNumero] = useState(null);
   const [versiculoTexto, setVersiculoTexto] = useState(null);
+  const [versiculoTitulo, setVersiculoTitulo] = useState(null);
 
   const abrirModalConTipo = (tipo) => {
     setTipoLibros(tipo);
@@ -77,9 +78,10 @@ export default function ControlVersiculos() {
     }
   };
 
-  const handleProjectarVersiculo = (versiculo, numero) => {
+  const handleProjectarVersiculo = (versiculo, numero, titulo) => {
     const citaCompleta = `${resultado.libro} ${resultado.capitulo}:${numero}`;
     set(ref(database, "displayVersiculo"), {
+      titulo: titulo,
       text: versiculo,
       cita: citaCompleta,
       display: "versiculo",
@@ -87,34 +89,41 @@ export default function ControlVersiculos() {
     });
   };
 
+  let currentTitulo = "";
   return (
     <div className="flex flex-col justify-center  gap-4 ">
-      <div className="max-w-xl mx-auto p-4 font-sans">
+      <div className="w-full max-w-xl mx-auto p-4">
         <div className="flex flex-col gap-4">
-          <div className="flex flex-row gap-2">
+          <div className="flex flex-row justify-center gap-2">
             <button
+              type="button"
               onClick={() => {
                 abrirModalConTipo("antiguo");
               }}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="w-28 sm:w-36 md:w-44 lg:w-52 
+    py-2 md:py-3 font-bold text-app-muted rounded border-2 bg-app-border hover:text-app-error hover:border-app-error"
             >
-              Antiguo 
+              Antiguo
             </button>
 
             <button
+              type="button"
               onClick={() => {
                 abrirModalConTipo("nuevo");
               }}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="w-28 sm:w-36 md:w-44 lg:w-52 
+    py-2 md:py-3 font-bold text-app-muted rounded border-2 bg-app-border hover:text-app-error hover:border-app-error"
             >
               Nuevo
             </button>
 
             <button
+              type="button"
               onClick={() => navigate("/")}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              className="w-28 sm:w-36 md:w-44 lg:w-52 
+    py-2 md:py-3 font-bold text-app-border rounded border-2 bg-transparent hover:text-app-error hover:border-app-error"
             >
-              Volver
+              Salida
             </button>
           </div>
 
@@ -122,13 +131,17 @@ export default function ControlVersiculos() {
             <div className="max-w-xl w-full text-black px-4">
               {resultado ? (
                 <>
-                  <strong className="block mb-2 text-lg sm:text-xl text-center">
+                  <strong className="block mb-2 text-lg sm:text-xl text-center text-app-main">
                     {resultado.libro} {resultado.capitulo}
                   </strong>
 
                   <div className="text-base sm:text-lg leading-relaxed text-justify space-y-2">
                     {parse(resultado.texto, {
                       replace: (domNode) => {
+                        if (domNode.name === "h2") {
+                          currentTitulo = domNode.children[0]?.data || "";
+                          return null;
+                        }
                         if (domNode.name === "p") {
                           const numero =
                             domNode.children[0]?.children?.[0]?.data || null;
@@ -138,28 +151,46 @@ export default function ControlVersiculos() {
                             .join(" ")
                             .trim();
 
-                          return (
-                            <div
-                              key={`${numero}-${texto}`}
-                              onClick={() => {
-                                setVersiculoNumero(numero);
-                                setVersiculoTexto(texto);
-                                handleProjectarVersiculo(texto, numero);
-                              }}
-                              className={`cursor-pointer rounded-lg px-2 py-2 transition-colors flex ${
-                                versiculoNumero === numero &&
-                                versiculoTexto === texto
-                                  ? "bg-yellow-200 shadow-md"
-                                  : "hover:bg-gray-200 active:bg-gray-300"
-                              }`}
-                            >
-                              <span className="w-8 text-right pr-3 font-bold text-gray-700 flex-shrink-0 flex items-center justify-end">
-                                {numero}
-                              </span>
+                          const tituloParaMostrar = currentTitulo;
+                          currentTitulo = "";
 
-                              <span className="flex-1 leading-relaxed">
-                                {texto}
-                              </span>
+                          return (
+                            <div className="p-4">
+                              {/* Encabezado del capítulo solo una vez */}
+                              {tituloParaMostrar && (
+                                <h2 className="font-bold sm:text-3xl text-app-muted mb-4 text-left">
+                                  {tituloParaMostrar}
+                                </h2>
+                              )}
+                              <div
+                                key={`${numero}-${texto}`}
+                                onClick={() => {
+                                  setVersiculoNumero(numero);
+                                  setVersiculoTexto(texto);
+                                  setVersiculoTitulo(tituloParaMostrar);
+                                  handleProjectarVersiculo(
+                                    texto,
+                                    numero,
+                                    tituloParaMostrar
+                                  );
+                                }}
+                                className={`cursor-pointer rounded-lg px-2 py-2 transition-colors flex ${
+                                  versiculoNumero === numero &&
+                                  versiculoTexto === texto
+                                    ? "bg-yellow-100 shadow-md"
+                                    : "hover:bg-app-border active:bg-app-light"
+                                }`}
+                              >
+                                <div className="flex">
+                                  <span className=" text-right pr-3 font-bold text-app-main flex-shrink-0 flex items-center justify-end">
+                                    {numero}
+                                  </span>
+
+                                  <span className="flex-1 leading-relaxed text-app-muted">
+                                    {texto}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           );
                         }
@@ -168,8 +199,8 @@ export default function ControlVersiculos() {
                   </div>
                 </>
               ) : (
-                <p className="text-gray-500 text-center">
-                  "proyección en tiempo real"
+                <p className="text-app-muted font-bold text-center">
+                  ✨ "Escudriñad las Escrituras…"
                 </p>
               )}
             </div>

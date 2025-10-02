@@ -3,43 +3,45 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { database, db } from "../Firebase/Firebase";
 import { ref, set } from "firebase/database";
 import { TrashIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
+import { usePredica } from "../../Components/PredicaContext/PredicaContext";
 import EmojiButton from "../EmojiButton/EmojiButton";
 import LibrosModal from "../LibrosModal/LibrosModal";
 import CapituloModal from "../../Components/CapituloModal/CapituloModal";
 import VersiculoModal from "../VersiculoModal/VersiculoModal";
 import Notificaciones from "../../Components/Notificaciones/Notificaciones";
-import { usePredica } from "../../Components/PredicaContext/PredicaContext";
 
 const obtenerVersiculo = async (sigla, capitulo, numeroVersiculo) => {
-      if (!sigla || !capitulo || !numeroVersiculo) {
-        throw new Error(
-          "❌ Parámetros inválidos. Debes enviar sigla, capítulo y versículo."
-        );
-      }
-    const docId = `${sigla.toUpperCase()}_${capitulo}`;
-    const ref = doc(db, "biblia", docId);
-    const snapshot = await getDoc(ref);
+  if (!sigla || !capitulo || !numeroVersiculo) {
+    throw new Error(
+      "❌ Parámetros inválidos. Debes enviar libro, capítulo y versículo."
+    );
+  }
+  const docId = `${sigla.toUpperCase()}_${capitulo}`;
+  const ref = doc(db, "biblia", docId);
+  const snapshot = await getDoc(ref);
 
-    if (!snapshot.exists()) {
-      throw new Error("❌ Documento no encontrado");
-    }
+  if (!snapshot.exists()) {
+    throw new Error("❌ Documento no encontrado");
+  }
 
-    const data = snapshot.data();
-    const texto = data.versiculos?.[numeroVersiculo.toString()];
+  const data = snapshot.data();
+  const texto = data.versiculos?.[numeroVersiculo.toString()];
 
-    if (!texto) {
-      throw new Error("🔎 Versículo no encontrado");
-    }
+  if (!texto) {
+    throw new Error("🔎 Versículo no encontrado");
+  }
 
-    return {
-      texto,
-      libro: data.libro,
-      capitulo: data.capitulo,
-      numero: numeroVersiculo,
-    };
+  return {
+    texto,
+    libro: data.libro,
+    capitulo: data.capitulo,
+    numero: numeroVersiculo,
+  };
 };
 
 export default function Predica() {
+  const navigate = useNavigate();
   const [libro, setLibro] = useState({
     sigla: null,
     nombre: null,
@@ -53,6 +55,8 @@ export default function Predica() {
   const [modalActivo, setModalActivo] = useState(null);
   const [mensaje, setMensaje] = useState("");
   const [versiculoTemp, setVersiculoTemp] = useState("");
+  const [itemSeleccionado, setItemSeleccionado] = useState(null);
+
 
   const {
     slots,
@@ -144,7 +148,7 @@ export default function Predica() {
       <div>
         <button
           onClick={() => setVisible(!visible)}
-          className={`"text-2xl font-bold text-center  border-b-2 ${
+          className={`"text-2xl font-bold text-center border-b-2 ${
             visible
               ? "text-app-main border-app-main"
               : "text-app-border border-app-border"
@@ -206,29 +210,40 @@ export default function Predica() {
 
                   <button
                     type="button"
-                    onClick={() => setEditar(true)}
+                    onClick={() => setEditar(!editar)}
                     disabled={!numSlots}
-                    className={`px-3.5 py-1.5 rounded border-2 bg-transparent
-                ${
-                  numSlots
-                    ? "border-app- main text-app-main"
-                    : "border-app-border text-app-border"
-                }`}
+                    className={`px-3.5 py-1.5 font-bold rounded border-2 bg-transparent"
+             ${
+               editar
+                 ? "border-app-error text-app-error"
+                 : numSlots
+                 ? "border-app-main text-app-main"
+                 : "border-app-border text-app-border"
+             }`}
                   >
                     {editar ? `Slots ${numSlots}` : "Editar"}
                   </button>
-                </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPredicaItems([]);
-                    setNumSlots("");
-                  }}
-                  className="p-1  text-app-border  hover:text-red-600"
-                >
-                  <TrashIcon className="h-6 w-6" />
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPredicaItems([]);
+                      setNumSlots("");
+                      setItemSeleccionado(null);
+                    }}
+                    className="px-3.5 py-1.5 font-bold text-app-border rounded border-2 bg-transparent hover:text-app-error hover:border-app-error"
+                  >
+                    Limpiar
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate("/")}
+                    className="px-3.5 py-1.5 font-bold text-app-border rounded border-2 bg-transparent hover:text-app-error hover:border-app-error"
+                  >
+                    Salida
+                  </button>
+                </div>
               </div>
 
               <button
@@ -271,23 +286,43 @@ export default function Predica() {
         {predicaItems.map((item, index) => (
           <div
             key={item.timestamp}
-            onClick={() => enviarAProyeccion(item)}
-            className="p-3 border rounded cursor-pointer hover:bg-gray-100"
+            onClick={() => {
+              enviarAProyeccion(item);
+              setItemSeleccionado(item.timestamp);
+            }}
+            className={`relative p-3 border-app-border rounded-lg cursor-pointer transition-colors ${
+              itemSeleccionado === item.timestamp
+                ? "bg-yellow-100 shadow-md"
+                : "hover:bg-app-border active:bg-app-light"
+            }`}
           >
-            <span className="font-bold">
+            <span className="font-bold text-app-main ">
               {index + 1}. {item.tipo === "mensaje" ? "Mensaje" : "Versículo"}:{" "}
             </span>
-            <span>
+            <span className="text-app-muted ">
               {item.tipo === "mensaje" ? (
                 item.contenido
               ) : (
                 <>
-                  <span className="font-semibold">{item.contenido.cita}</span>
+                  <span className="font-semibold text-app-muted border-b-2 ">
+                    {item.contenido.cita}
+                  </span>
                   <br />
-                  <span className="text-gray-600">{item.contenido.texto}</span>
+                  <span className="text-app-muted">{item.contenido.texto}</span>
                 </>
               )}
             </span>
+
+            <button
+              type="button"
+              onClick={() => {
+                setPredicaItems((prev) => prev.filter((_, i) => i !== index));
+                // setNumSlots("");
+              }}
+              className="absolute top-2 right-2  p-1  text-app-border  hover:text-red-600"
+            >
+              <TrashIcon className="h-6 w-6" />
+            </button>
           </div>
         ))}
       </div>

@@ -7,6 +7,7 @@ import TextAnimacion from "../TextAnimacion/TextAnimacion";
 export default function DisplayView() {
   const [display, setDisplay] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [titulo, setTitulo]= useState("")
   const [versiculo, setVersiculo] = useState("");
   const [versiculos, setVersiculos] = useState("");
   const [capitulo, setCapitulo] = useState("");
@@ -74,10 +75,12 @@ export default function DisplayView() {
       const data = snapshot.val();
       if (
         data &&
+        typeof data.titulo === "string" &&
         typeof data.text === "string" &&
         typeof data.cita === "string" &&
         typeof data.display === "string"
       ) {
+        setTitulo(data.titulo)
         setVersiculo(data.text);
         setCita(data.cita);
         setDisplay(data.display);
@@ -113,6 +116,7 @@ export default function DisplayView() {
     <div className="relative h-screen w-screen bg-black text-white  flex items-center justify-center text-center p-5 overflow-hidden">
       <TextAnimacion
         mensaje={mensaje}
+        titulo={titulo}
         versiculo={versiculo}
         versiculos={versiculos}
         capitulo={capitulo}

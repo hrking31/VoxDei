@@ -357,14 +357,15 @@
 import { useEffect, useRef } from "react";
 
 export default function TextAnimacion({
-  capitulo,
-  versiculos,
-  versiculo,
   mensaje,
-  display,
-  cita,
+  titulo,
+  versiculo,
+  versiculos,
+  capitulo,
   speed,
   estado,
+  display,
+  cita,
 }) {
   const containerRef = useRef(null);
   const textRef = useRef(null);
@@ -475,6 +476,9 @@ export default function TextAnimacion({
           </div>
         ) : display === "versiculo" ? (
           <>
+            <h2 className="font-bold sm:text-3xl  text-app-muted mb-6">
+         {titulo}
+            </h2>
             <div className="text-[3rem] text-center whitespace-pre-wrap break-words">
               {versiculo}
             </div>
