@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { database, db } from "../Firebase/Firebase";
@@ -6,8 +6,9 @@ import { ref, set } from "firebase/database";
 import parse from "html-react-parser";
 import LibrosModal from "../../Components/LibrosModal/LibrosModal";
 import CapituloModal from "../../Components/CapituloModal/CapituloModal";
+import VersiculoModal from "../../Components/VersiculoModal/VersiculoModal";
 
-const obtenerCapitulo = async (sigla, capitulo) => {
+const obtenerVersiculo = async (sigla, capitulo, versiculo) => {
   const docId = `${sigla.toUpperCase()}_${capitulo}`;
   const ref = doc(db, "biblia", docId);
   const snapshot = await getDoc(ref);
@@ -27,6 +28,7 @@ const obtenerCapitulo = async (sigla, capitulo) => {
     texto,
     libro: data.libro,
     capitulo: data.capitulo,
+    versiculo: versiculo,
   };
 };
 
@@ -36,6 +38,8 @@ export default function ControlVersiculos() {
     sigla: null,
     nombre: null,
     capitulo: null,
+    capitulos: null,
+    versiculo: null,
   });
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState("");
@@ -44,6 +48,8 @@ export default function ControlVersiculos() {
   const [versiculoNumero, setVersiculoNumero] = useState(null);
   const [versiculoTexto, setVersiculoTexto] = useState(null);
   const [versiculoTitulo, setVersiculoTitulo] = useState(null);
+
+  const versiculosRef = useRef({});
 
   const abrirModalConTipo = (tipo) => {
     setTipoLibros(tipo);
@@ -56,20 +62,26 @@ export default function ControlVersiculos() {
   };
 
   const CapituloSeleccionado = (capitulo) => {
-    setLibro((prevLibro) => {
-      consultaCapitulo(prevLibro.sigla, capitulo);
-      return {
-        ...prevLibro,
-        capitulo: capitulo,
-      };
-    });
+    setLibro((prevLibro) => ({
+      ...prevLibro,
+      capitulo: capitulo,
+    }));
+    setModalActivo("versiculo");
+  };
 
+  const VersiculoSeleccionado = (versiculo) => {
+    setLibro((prevLibro) => ({
+      ...prevLibro,
+      versiculo: versiculo,
+    }));
+    consultaVersiculo(libro.sigla, libro.capitulo, versiculo);
     setModalActivo("false");
   };
 
-  const consultaCapitulo = async (sigla, capitulo) => {
+  const consultaVersiculo = async (sigla, capitulo, versiculo) => {
     try {
-      const data = await obtenerCapitulo(sigla, capitulo);
+      const data = await obtenerVersiculo(sigla, capitulo, versiculo);
+      console.log("data", data);
       setResultado(data);
       setError("");
     } catch (err) {
@@ -89,49 +101,93 @@ export default function ControlVersiculos() {
     });
   };
 
+  console.log("ver", libro.versiculo);
+
+  useEffect(() => {
+    // if (libro.versiculo) {
+    if (!libro.versiculo || libro.versiculo === 1) return;
+    const elemento = versiculosRef.current[libro.versiculo];
+    console.log("versiculo", libro.versiculo);
+    if (elemento) {
+      const stickyOffset = window.innerWidth >= 1280 ? 150 : 120;
+      const elementPosition =
+        elemento.getBoundingClientRect().top + window.scrollY;
+      const offsetPosition = elementPosition - stickyOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+      });
+    }
+  }, [libro.versiculo, resultado?.texto]);
+
   let currentTitulo = "";
+
   return (
-    <div className="flex flex-col justify-center  gap-4 ">
-      <div className="w-full max-w-xl mx-auto p-4">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-row justify-center gap-2">
-            <button
-              type="button"
+    <div className="flex flex-col justify-center gap-3">
+      {/* BLOQUE STICKY */}
+      <div className="sticky top-0 z-10 bg-app-dark pt-3 pb-3">
+        {/* Fila de capítulos */}
+        <div
+          className="flex gap-2 overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden   
+        xl:[&::-webkit-scrollbar]:block scrollbar-custom mb-4"
+        >
+          {Array.from({ length: libro.capitulos }, (_, i) => (
+            <span
+              key={i + 1}
               onClick={() => {
-                abrirModalConTipo("antiguo");
+                setLibro((prevLibro) => ({
+                  ...prevLibro,
+                  versiculo: 1,
+                }));
+                consultaVersiculo(libro.sigla, i + 1, 1);
               }}
-              className="w-28 sm:w-36 md:w-44 lg:w-52 
-    py-2 md:py-3 font-bold text-app-muted rounded border-2 bg-app-border hover:text-app-error hover:border-app-error"
+              className="xl:mb-1 inline-block px-2 py-1 text-app-muted bg-app-border rounded cursor-pointer hover:text-app-main"
             >
-              Antiguo
-            </button>
+              {libro.nombre} {i + 1}
+            </span>
+          ))}
+        </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                abrirModalConTipo("nuevo");
-              }}
-              className="w-28 sm:w-36 md:w-44 lg:w-52 
-    py-2 md:py-3 font-bold text-app-muted rounded border-2 bg-app-border hover:text-app-error hover:border-app-error"
-            >
-              Nuevo
-            </button>
+        {/* Botones */}
+        <div className="flex flex-row justify-center gap-2 pb-2">
+          <button
+            type="button"
+            onClick={() => abrirModalConTipo("antiguo")}
+            className="w-28 sm:w-36 md:w-44 lg:w-52 
+          py-2 font-bold text-app-muted rounded border-2 bg-app-border hover:text-app-error hover:border-app-error"
+          >
+            Antiguo
+          </button>
 
-            <button
-              type="button"
-              onClick={() => navigate("/")}
-              className="w-28 sm:w-36 md:w-44 lg:w-52 
-    py-2 md:py-3 font-bold text-app-border rounded border-2 bg-transparent hover:text-app-error hover:border-app-error"
-            >
-              Salida
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => abrirModalConTipo("nuevo")}
+            className="w-28 sm:w-36 md:w-44 lg:w-52 
+          py-2 md:py-3 font-bold text-app-muted rounded border-2 bg-app-border hover:text-app-error hover:border-app-error"
+          >
+            Nuevo
+          </button>
 
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="w-28 sm:w-36 md:w-44 lg:w-52 
+          py-2 md:py-3 font-bold text-app-border rounded border-2 bg-transparent hover:text-app-error hover:border-app-error"
+          >
+            Salida
+          </button>
+        </div>
+      </div>
+      {/* FIN BLOQUE STICKY */}
+
+      {/* RESULTADOS */}
+      <div className="w-full max-w-xl mx-auto p-2">
+        <div className="flex flex-col">
           <div className="mt-6 flex justify-center">
             <div className="max-w-xl w-full text-black px-4">
               {resultado ? (
                 <>
-                  <strong className="block mb-2 text-lg sm:text-xl text-center text-app-main">
+                  <strong className="block mb-4 text-lg sm:text-xl text-center text-app-main">
                     {resultado.libro} {resultado.capitulo}
                   </strong>
 
@@ -140,7 +196,11 @@ export default function ControlVersiculos() {
                       replace: (domNode) => {
                         if (domNode.name === "h2") {
                           currentTitulo = domNode.children[0]?.data || "";
-                          return null;
+                          return (
+                            <h2 className="font-bold sm:text-3xl text-app-muted mb-4 text-left">
+                              {currentTitulo}
+                            </h2>
+                          );
                         }
                         if (domNode.name === "p") {
                           const numero =
@@ -151,45 +211,36 @@ export default function ControlVersiculos() {
                             .join(" ")
                             .trim();
 
-                          const tituloParaMostrar = currentTitulo;
+                          const titulo = currentTitulo;
                           currentTitulo = "";
 
                           return (
-                            <div className="p-4">
-                              {/* Encabezado del capítulo solo una vez */}
-                              {tituloParaMostrar && (
-                                <h2 className="font-bold sm:text-3xl text-app-muted mb-4 text-left">
-                                  {tituloParaMostrar}
-                                </h2>
-                              )}
-                              <div
-                                key={`${numero}-${texto}`}
-                                onClick={() => {
-                                  setVersiculoNumero(numero);
-                                  setVersiculoTexto(texto);
-                                  setVersiculoTitulo(tituloParaMostrar);
-                                  handleProjectarVersiculo(
-                                    texto,
-                                    numero,
-                                    tituloParaMostrar
-                                  );
-                                }}
-                                className={`cursor-pointer rounded-lg px-2 py-2 transition-colors flex ${
-                                  versiculoNumero === numero &&
-                                  versiculoTexto === texto
-                                    ? "bg-yellow-100 shadow-md"
-                                    : "hover:bg-app-border active:bg-app-light"
-                                }`}
-                              >
-                                <div className="flex">
-                                  <span className=" text-right pr-3 font-bold text-app-main flex-shrink-0 flex items-center justify-end">
-                                    {numero}
-                                  </span>
+                            <div
+                              key={`${numero}-${texto}`}
+                              ref={(el) => {
+                                if (numero) versiculosRef.current[numero] = el;
+                              }}
+                              onClick={() => {
+                                setVersiculoNumero(numero);
+                                setVersiculoTexto(texto);
+                                setVersiculoTitulo(titulo);
+                                handleProjectarVersiculo(texto, numero, titulo);
+                              }}
+                              className={`versiculo-scroll cursor-pointer rounded-lg px-2 py-2 transition-colors flex ${
+                                versiculoNumero === numero &&
+                                versiculoTexto === texto
+                                  ? "bg-yellow-100 shadow-md"
+                                  : "hover:bg-app-border active:bg-app-light"
+                              }`}
+                            >
+                              <div className="flex">
+                                <span className="text-right pr-3 font-bold text-app-main flex-shrink-0 flex items-center justify-end">
+                                  {numero}
+                                </span>
 
-                                  <span className="flex-1 leading-relaxed text-app-muted">
-                                    {texto}
-                                  </span>
-                                </div>
+                                <span className="flex-1 leading-relaxed text-app-muted overflow-hidden">
+                                  {texto}
+                                </span>
                               </div>
                             </div>
                           );
@@ -199,8 +250,8 @@ export default function ControlVersiculos() {
                   </div>
                 </>
               ) : (
-                <p className="text-app-muted font-bold text-center">
-                  ✨ "Escudriñad las Escrituras…"
+                <p className="text-app-muted font-bold text-center mt-10">
+                  ✨ Escudriñad las Escrituras…
                 </p>
               )}
             </div>
@@ -221,6 +272,13 @@ export default function ControlVersiculos() {
         onClose={() => setModalActivo(false)}
         selecLibro={libro}
         onCapitulo={CapituloSeleccionado}
+      />
+
+      <VersiculoModal
+        open={modalActivo}
+        onClose={() => setModalActivo(false)}
+        selecLibro={libro}
+        onVersiculo={VersiculoSeleccionado}
       />
     </div>
   );
