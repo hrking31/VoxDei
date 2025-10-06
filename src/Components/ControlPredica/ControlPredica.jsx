@@ -57,7 +57,6 @@ export default function Predica() {
   const [versiculoTemp, setVersiculoTemp] = useState("");
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
 
-
   const {
     slots,
     editar,
@@ -162,25 +161,58 @@ export default function Predica() {
         <>
           {/* agregar elementos */}
           <div className="sticky top-0 shadow-app-main shadow-md p-2 z-10 bg-app-light ">
-            {/* Input de mensaje */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-2 ">
-              <textarea
-                value={mensaje}
-                onChange={(e) => setMensaje(e.target.value)}
-                placeholder="Escribe tu mensaje..."
-                className="w-full border text-app-muted border-app-border rounded p-2  resize-none focus:outline-none focus:ring-2 focus:ring-app-main scrollbar-custom"
-                maxLength={600}
-              />
+            {/* Input de titulo */}
+            <div className="grid grid-cols-6 md:grid-cols-12 gap-1 mb-2 ">
+              <div className="col-span-4 flex">
+                <textarea
+                  value={mensaje}
+                  onChange={(e) => setMensaje(e.target.value)}
+                  placeholder="Escribe un titulo..."
+                  className="w-full border text-app-muted border-app-border rounded p-2  resize-none focus:outline-none focus:ring-2 focus:ring-app-main scrollbar-custom text-xs sm:text-sm md:text-base break-words"
+                  maxLength={600}
+                />
+              </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
+              {/* <div className="col-span-1 flex items-center justify-center ">
                 <EmojiButton
                   onSelect={(emoji) => setMensaje((prev) => prev + emoji)}
                 />
+              </div>
 
+              <div className="col-span1 flex items-center justify-center ">
                 <button
                   type="button"
                   onClick={() => agregarElemento("mensaje")}
-                  className="px-4 py-2 bg-green-500 text-white rounded w-full sm:w-auto"
+                  className="w-full px-4 py-2 flex items-center justify-center text-center bg-green-500 text-white rounded text-sm sm:text-base break-words"
+                  disabled={!mensaje}
+                >
+                  Agregar
+                </button>
+              </div> */}
+
+              {/* Input de mensaje */}
+              {/* <div className="col-span-4 flex"> */}
+              <div className="col-span-6 flex">
+                <textarea
+                  value={mensaje}
+                  onChange={(e) => setMensaje(e.target.value)}
+                  placeholder="Escribe tu mensaje..."
+                  className="w-full border text-app-muted border-app-border rounded p-2  resize-none focus:outline-none focus:ring-2 focus:ring-app-main scrollbar-custom text-xs sm:text-sm md:text-base break-words"
+                  maxLength={600}
+                />
+              </div>
+
+              <div className="col-span1 col-start-5 row-end-1 md:col-start-auto md:row-end-auto flex items-center justify-center">
+                <EmojiButton
+                  onSelect={(emoji) => setMensaje((prev) => prev + emoji)}
+                />
+              </div>
+
+              <div className="col-span1 col-start-6 row-end-1 md:col-start-auto md:row-end-auto flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={() => agregarElemento("mensaje")}
+                  className="w-full px-4 py-2 flex items-center justify-center text-center bg-green-500 text-white rounded text-xs sm:text-sm md:text-base break-words"
                   disabled={!mensaje}
                 >
                   Agregar
@@ -189,30 +221,25 @@ export default function Predica() {
             </div>
 
             {/* Selección de testamento, versículo y slots */}
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center ">
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center ">
-                <h2 className="flex items-center justify-center text-center font-bold text-app-muted">
-                  Predica {numSlots}
-                </h2>
-
-                <div className="flex gap-2">
-                  {slots.map((ocupado, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleSlotClick(i)}
-                      className={`px-4 py-2 rounded text-white ${
-                        ocupado ? "bg-green-500" : "bg-red-500"
-                      }`}
-                    >
-                      Slot {i + 1}
-                    </button>
-                  ))}
-
+            <div className="grid grid-cols-6 md:grid-cols-6 lg:grid-cols-6 gap-1 ">
+              {/* slots y edicion*/}
+              <div className="col-span-4 sm:col-span-6 gap-2 grid grid-cols-3 sm:grid-cols-6 p-0.5">
+                {slots.map((ocupado, i) => (
                   <button
-                    type="button"
-                    onClick={() => setEditar(!editar)}
-                    disabled={!numSlots}
-                    className={`px-3.5 py-1.5 font-bold rounded border-2 bg-transparent"
+                    key={i}
+                    onClick={() => handleSlotClick(i)}
+                    className={`w-full px-3 py-2 rounded text-white text-xs sm:text-sm md:text-base break-words ${
+                      ocupado ? "bg-green-500" : "bg-red-500"
+                    }`}
+                  >
+                    Slot {i + 1}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setEditar(!editar)}
+                  disabled={!numSlots}
+                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold rounded border-2 bg-transparent"
              ${
                editar
                  ? "border-app-error text-app-error"
@@ -220,57 +247,63 @@ export default function Predica() {
                  ? "border-app-main text-app-main"
                  : "border-app-border text-app-border"
              }`}
-                  >
-                    {editar ? `Slots ${numSlots}` : "Editar"}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPredicaItems([]);
-                      setNumSlots("");
-                      setItemSeleccionado(null);
-                    }}
-                    className="px-3.5 py-1.5 font-bold text-app-border rounded border-2 bg-transparent hover:text-app-error hover:border-app-error"
-                  >
-                    Limpiar
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => navigate("/")}
-                    className="px-3.5 py-1.5 font-bold text-app-border rounded border-2 bg-transparent hover:text-app-error hover:border-app-error"
-                  >
-                    Salida
-                  </button>
-                </div>
+                >
+                  {editar ? `Slots ${numSlots}` : "Editar"}
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => abrirModalConTipo("antiguo")}
-                className="p-2 bg-blue-500 text-white rounded flex-1  px-4"
-              >
-                Antiguo
-              </button>
+              {/* limpiar y salida */}
+              <div className="col-span-2 gap-2 grid grid-cols-1 sm:grid-cols-2 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPredicaItems([]);
+                    setNumSlots("");
+                    setItemSeleccionado(null);
+                  }}
+                  className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-border rounded border-2 bg-transparent hover:text-app-error hover:border-app-error"
+                >
+                  Limpiar
+                </button>
 
-              <button
-                type="button"
-                onClick={() => abrirModalConTipo("nuevo")}
-                className="p-2 bg-blue-500 text-white rounded flex-1  px-4"
-              >
-                Nuevo
-              </button>
+                <button
+                  type="button"
+                  onClick={() => navigate("/")}
+                  className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-border rounded border-2 bg-transparent hover:text-app-error hover:border-app-error"
+                >
+                  Salida
+                </button>
+              </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4 flex-1">
-                <h2 className="w-64 h-12 flex items-center justify-center text-center font-bold text-app-muted">
+              {/* Selección de testamento*/}
+              <div className="col-span-3 sm:col-span-2 gap-2 grid grid-cols-2 sm:grid-cols-2 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => abrirModalConTipo("antiguo")}
+                  className="w-full px-4 py-2 flex items-center justify-center text-center bg-blue-500 text-white rounded flex-1 text-xs sm:text-sm md:text-base break-words"
+                >
+                  Antiguo
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => abrirModalConTipo("nuevo")}
+                  className="w-full px-4 py-2 flex items-center justify-center text-center bg-blue-500 text-white rounded flex-1 text-xs sm:text-sm md:text-base break-words"
+                >
+                  Nuevo
+                </button>
+              </div>
+
+              {/* versiculo y agregar */}
+              <div className="col-span-3 sm:col-span-2  gap-2 grid grid-cols-2 sm:grid-cols-2 p-0.5">
+                <h2 className="flex items-center justify-center text-center font-bold text-app-muted text-xs sm:text-sm md:text-base break-words">
                   {versiculoTemp.cita || "Versículo Seleccionado"}
                 </h2>
 
                 <button
                   type="button"
                   onClick={() => agregarElemento("versiculo")}
-                  className="px-4 py-2 bg-green-500 text-white rounded w-full sm:w-auto"
+                  className="w-full px-4 py-2 flex items-center justify-center text-center bg-green-500 text-white rounded text-xs sm:text-sm md:text-base break-words"
                   disabled={!versiculoTemp}
                 >
                   Agregar
