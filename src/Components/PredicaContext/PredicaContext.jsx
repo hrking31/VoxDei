@@ -9,7 +9,11 @@ export function PredicaProvider({ children }) {
   const [editar, setEditar] = useState(false);
   const [numSlots, setNumSlots] = useState("");
   const [predicaItems, setPredicaItems] = useState([]);
-  const [notif, setNotif] = useState({ open: false, type: "info", message: "" });
+  const [notif, setNotif] = useState({
+    open: false,
+    type: "info",
+    message: "",
+  });
 
   const showNotif = (type, message) => {
     setNotif({ open: true, type, message });
@@ -30,11 +34,6 @@ export function PredicaProvider({ children }) {
 
   // Guardar prédica
   const guardarPredica = async (index, items) => {
-    if (!items || items.length === 0) {
-      showNotif("warning", "⚠️ No hay items para guardar");
-      return;
-    }
-
     try {
       await setDoc(doc(db, "predicas", `predica${index + 1}`), {
         items,
@@ -47,44 +46,21 @@ export function PredicaProvider({ children }) {
         return nuevo;
       });
 
-      showNotif("success", `💾 Predica ${index + 1} guardada`);
+      if (editar) {
+        showNotif("success", `🔄  Predica ${index + 1} actualizada`);
+      } else {
+        showNotif("success", `💾 Predica ${index + 1} guardada`);
+      }
     } catch (error) {
       showNotif("error", "❌ Error al guardar la prédica");
       console.error(error);
     }
   };
 
-  // Manejo de click en slot
-  // const handleSlotClick = async (index) => {
-  //   try {
-  //     if (slots[index]) {
-  //       if (editar) {
-  //         await guardarPredica(index, predicaItems);
-  //         setEditar(false);
-  //         showNotif("success", `✅ Predica ${index + 1} actualizada`);
-  //       } else {
-  //         setNumSlots(index + 1);
-  //         const snap = await getDoc(doc(db, "predicas", `predica${index + 1}`));
-  //         if (snap.exists()) {
-  //           setPredicaItems(snap.data().items);
-  //           showNotif("info", `📥 Predica ${index + 1} cargada`);
-  //         } else {
-  //           showNotif("warning", `⚠️ Slot ${index + 1} está vacío`);
-  //         }
-  //       }
-  //     } else {
-  //       await guardarPredica(index, predicaItems);
-  //     }
-  //   } catch (error) {
-  //     showNotif("error", "❌ Error al procesar la prédica");
-  //     console.error(error);
-  //   }
-  // };
-
+  // Manejar click en slot
   const handleSlotClick = async (index) => {
     try {
       const slotOcupado = slots[index];
-
       if (!editar) {
         // Modo solo lectura → cargar predica si existe
         if (slotOcupado) {
@@ -94,36 +70,35 @@ export function PredicaProvider({ children }) {
             setNumSlots(index + 1);
             showNotif("info", `📥 Predica ${index + 1} cargada`);
           }
-        } else {
-          showNotif("info", `⚠️ Slot ${index + 1} está vacío`);
+          return;
         }
-        return;
-      }
-
-      // Modo editar
-      if (slotOcupado) {
-        if (!predicaItems || predicaItems.length === 0) {
-          // Slot tenía datos, pero ahora está vacío → borrar
-          await deleteDoc(doc(db, "predicas", `predica${index + 1}`));
-          setSlots((prev) => {
-            const nuevo = [...prev];
-            nuevo[index] = false;
-            return nuevo;
-          });
-          showNotif("info", `🗑️ Predica ${index + 1} eliminada`);
-        } else {
-          // Slot tenía datos y hay items → actualizar
-          await guardarPredica(index, predicaItems);
-        }
-      } else {
         // Slot vacío → guardar solo si hay items
-        if (predicaItems && predicaItems.length > 0) {
+        else if (predicaItems && predicaItems.length > 0) {
           await guardarPredica(index, predicaItems);
         } else {
           showNotif(
             "warning",
-            `⚠️ Slot ${index + 1} está vacío, nada que guardar`
+            `🚫 No hay nada que guardar en Slot ${index + 1}`
           );
+        }
+      }
+
+      // Modo editar
+      if (editar) {
+        if (slotOcupado) {
+          if (!predicaItems || predicaItems.length === 0) {
+            // items tenía datos, pero ahora está vacío → borrar
+            await deleteDoc(doc(db, "predicas", `predica${index + 1}`));
+            setSlots((prev) => {
+              const nuevo = [...prev];
+              nuevo[index] = false;
+              return nuevo;
+            });
+            showNotif("info", `🗑️ Predica ${index + 1} eliminada`);
+          } else {
+            // items modifico los datos → actualizar
+            await guardarPredica(index, predicaItems);
+          }
         }
       }
 
@@ -134,7 +109,6 @@ export function PredicaProvider({ children }) {
       console.error(error);
     }
   };
-
 
   return (
     <PredicaContext.Provider

@@ -74,7 +74,7 @@ export default function Predica() {
     setNotif,
     showNotif,
     handleSlotClick,
-  } = usePredica();
+    } = usePredica();
 
   const handleChange = (id, value) => {
     setTexts((prev) => ({ ...prev, [id]: value }));
@@ -147,7 +147,7 @@ export default function Predica() {
         nuevos.push({
           tipo: "titulo",
           contenido: texts.titulo.trim(),
-          timestamp: Date.now(),
+          timestamp: Date.now() + Math.random(),
         });
       }
       // Si hay mensaje, lo agrega
@@ -155,7 +155,7 @@ export default function Predica() {
         nuevos.push({
           tipo: "mensaje",
           contenido: texts.mensaje.trim(),
-          timestamp: Date.now(),
+          timestamp: Date.now() + Math.random(),
         });
       }
       // Agregar todo a predicaItems
@@ -202,8 +202,6 @@ export default function Predica() {
       timestamp: Date.now(),
     });
   };
-
-  console.log("editar", slots);
 
   return (
     <div className="px-2 pt-1 mx-auto">
@@ -288,7 +286,11 @@ export default function Predica() {
                     key={i}
                     onClick={() => handleSlotClick(i)}
                     className={`w-full px-3 py-2 rounded text-white text-xs sm:text-sm md:text-base break-words ${
-                      ocupado ? "bg-green-500" : "bg-red-500"
+                      ocupado
+                        ? editar && numSlots === i + 1
+                          ? "bg-amber-500"
+                          : "bg-green-500"
+                        : "bg-red-500"
                     }`}
                   >
                     Slot {i + 1}
@@ -300,9 +302,9 @@ export default function Predica() {
                   disabled={!numSlots}
                   className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold rounded border-2 bg-transparent ${
                     editar
-                      ? "border-app-error text-app-error"
+                      ? "border-amber-500 text-amber-500"
                       : numSlots
-                      ? "border-app-main text-app-main cursor-pointer"
+                      ? "border-app-error text-app-error cursor-pointer"
                       : "border-app-border text-app-border cursor-default"
                   }`}
                 >
@@ -318,10 +320,11 @@ export default function Predica() {
                     setPredicaItems([]);
                     setNumSlots("");
                     setItemSeleccionado(null);
+                    setEditar(false);
                   }}
                   className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-border rounded border-2 bg-transparent hover:text-app-error hover:border-app-error cursor-pointer"
                 >
-                  Limpiar
+                  {editar ? "Cancelar" : "Limpiar"}
                 </button>
 
                 <button
