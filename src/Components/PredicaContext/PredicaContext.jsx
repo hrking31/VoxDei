@@ -1,7 +1,6 @@
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { db } from "../Firebase/Firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 
 const PredicaContext = createContext();
 
@@ -56,31 +55,86 @@ export function PredicaProvider({ children }) {
   };
 
   // Manejo de click en slot
+  // const handleSlotClick = async (index) => {
+  //   try {
+  //     if (slots[index]) {
+  //       if (editar) {
+  //         await guardarPredica(index, predicaItems);
+  //         setEditar(false);
+  //         showNotif("success", `✅ Predica ${index + 1} actualizada`);
+  //       } else {
+  //         setNumSlots(index + 1);
+  //         const snap = await getDoc(doc(db, "predicas", `predica${index + 1}`));
+  //         if (snap.exists()) {
+  //           setPredicaItems(snap.data().items);
+  //           showNotif("info", `📥 Predica ${index + 1} cargada`);
+  //         } else {
+  //           showNotif("warning", `⚠️ Slot ${index + 1} está vacío`);
+  //         }
+  //       }
+  //     } else {
+  //       await guardarPredica(index, predicaItems);
+  //     }
+  //   } catch (error) {
+  //     showNotif("error", "❌ Error al procesar la prédica");
+  //     console.error(error);
+  //   }
+  // };
+
   const handleSlotClick = async (index) => {
     try {
-      if (slots[index]) {
-        if (editar) {
-          await guardarPredica(index, predicaItems);
-          setEditar(false);
-          showNotif("success", `✅ Predica ${index + 1} actualizada`);
-        } else {
-          setNumSlots(index + 1);
+      const slotOcupado = slots[index];
+
+      if (!editar) {
+        // Modo solo lectura → cargar predica si existe
+        if (slotOcupado) {
           const snap = await getDoc(doc(db, "predicas", `predica${index + 1}`));
           if (snap.exists()) {
             setPredicaItems(snap.data().items);
+            setNumSlots(index + 1);
             showNotif("info", `📥 Predica ${index + 1} cargada`);
-          } else {
-            showNotif("warning", `⚠️ Slot ${index + 1} está vacío`);
           }
+        } else {
+          showNotif("info", `⚠️ Slot ${index + 1} está vacío`);
+        }
+        return;
+      }
+
+      // Modo editar
+      if (slotOcupado) {
+        if (!predicaItems || predicaItems.length === 0) {
+          // Slot tenía datos, pero ahora está vacío → borrar
+          await deleteDoc(doc(db, "predicas", `predica${index + 1}`));
+          setSlots((prev) => {
+            const nuevo = [...prev];
+            nuevo[index] = false;
+            return nuevo;
+          });
+          showNotif("info", `🗑️ Predica ${index + 1} eliminada`);
+        } else {
+          // Slot tenía datos y hay items → actualizar
+          await guardarPredica(index, predicaItems);
         }
       } else {
-        await guardarPredica(index, predicaItems);
+        // Slot vacío → guardar solo si hay items
+        if (predicaItems && predicaItems.length > 0) {
+          await guardarPredica(index, predicaItems);
+        } else {
+          showNotif(
+            "warning",
+            `⚠️ Slot ${index + 1} está vacío, nada que guardar`
+          );
+        }
       }
+
+      setEditar(false); // salir de edición al terminar
+      setNumSlots(""); // limpiar selección
     } catch (error) {
       showNotif("error", "❌ Error al procesar la prédica");
       console.error(error);
     }
   };
+
 
   return (
     <PredicaContext.Provider

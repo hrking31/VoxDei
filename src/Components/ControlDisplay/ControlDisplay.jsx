@@ -7,7 +7,9 @@ import TextAnimacion from "../TextAnimacion/TextAnimacion";
 export default function DisplayView() {
   const [display, setDisplay] = useState("");
   const [mensaje, setMensaje] = useState("");
-  const [titulo, setTitulo]= useState("")
+  const [titulo, setTitulo] = useState("");
+  const [tituloPredica, setTituloPredica] = useState("");
+  const [visibleTitulo, setVisibleTitulo] = useState(false);
   const [versiculo, setVersiculo] = useState("");
   const [versiculos, setVersiculos] = useState("");
   const [capitulo, setCapitulo] = useState("");
@@ -50,7 +52,6 @@ export default function DisplayView() {
     return () => unsubscribe();
   }, []);
 
-  
   useEffect(() => {
     const versiculosRef = ref(database, "displayVersiculos");
     const unsubscribe = onValue(versiculosRef, (snapshot) => {
@@ -68,19 +69,19 @@ export default function DisplayView() {
     });
     return () => unsubscribe();
   }, []);
-  
+
   useEffect(() => {
     const versiculoRef = ref(database, "displayVersiculo");
     const unsubscribe = onValue(versiculoRef, (snapshot) => {
       const data = snapshot.val();
       if (
         data &&
-        typeof data.titulo === "string" &&
+        (data.titulo === undefined || typeof data.titulo === "string") &&
         typeof data.text === "string" &&
         typeof data.cita === "string" &&
         typeof data.display === "string"
       ) {
-        setTitulo(data.titulo)
+        setTitulo(data.titulo);
         setVersiculo(data.text);
         setCita(data.cita);
         setDisplay(data.display);
@@ -88,7 +89,29 @@ export default function DisplayView() {
     });
     return () => unsubscribe();
   }, []);
-  
+
+useEffect(() => {
+  const tituloRef = ref(database, "displayTitulo");
+  const unsubscribe = onValue(tituloRef, (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      if (typeof data.text === "string") {
+        setTituloPredica(data.text);
+      }
+      if (typeof data.visible === "boolean") {
+        setVisibleTitulo(data.visible);
+      }
+
+      // Solo cambia el display si viene explícitamente un nuevo display
+      if (data.display && data.display !== "titulo") {
+        setDisplay(data.display);
+      }
+    }
+  });
+  return () => unsubscribe();
+}, []);
+
+
   useEffect(() => {
     const speedRef = ref(database, "speedVersiculo");
     const unsubscribe = onValue(speedRef, (snapshot) => {
@@ -114,6 +137,11 @@ export default function DisplayView() {
 
   return (
     <div className="relative h-screen w-screen bg-black text-white  flex items-center justify-center text-center p-5 overflow-hidden">
+      {visibleTitulo &&(
+      <div className="absolute top-2 left-0 w-full text-5xl font-bold text-app-muted text-center z-10 pointer-events-none">
+        {tituloPredica}
+      </div>
+      )}
       <TextAnimacion
         mensaje={mensaje}
         titulo={titulo}
