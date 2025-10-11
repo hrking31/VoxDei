@@ -226,6 +226,20 @@ export default function Predica() {
         >
           Asistente de Prédica
         </button>
+        {!visible && (
+          <div className="inline-block float-right mr-4">
+            <button
+              onClick={toggleVisible}
+              className="font-semibold text-app-main transition-all duration-200  "
+            >
+              {visiblePredica ? (
+                <EyeIcon className="w-8 h-8" />
+              ) : (
+                <EyeSlashIcon className="w-8 h-8" />
+              )}
+            </button>
+          </div>
+        )}
       </div>
 
       {visible && (
@@ -283,17 +297,6 @@ export default function Predica() {
                     setCursorPos(cursorPos + emoji.length);
                   }}
                 />
-
-                <button
-                  onClick={toggleVisible}
-                  className="font-semibold text-app-muted transition-all duration-200 ml-1 mr-1 "
-                >
-                  {visiblePredica ? (
-                    <EyeIcon className="w-6 h-6" />
-                  ) : (
-                    <EyeSlashIcon className="w-6 h-6" />
-                  )}
-                </button>
               </div>
 
               <div className="col-span col-start-6 row-end-1 md:col-start-auto md:row-end-auto flex items-center justify-center">
