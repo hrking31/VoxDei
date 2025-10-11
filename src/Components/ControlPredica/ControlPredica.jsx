@@ -56,7 +56,6 @@ export default function Predica() {
   const [error, setError] = useState("");
   const [tipoLibros, setTipoLibros] = useState("antiguo");
   const [modalActivo, setModalActivo] = useState(null);
-  const [mensaje, setMensaje] = useState("");
   const [versiculoTemp, setVersiculoTemp] = useState("");
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const [texts, setTexts] = useState({ titulo: "", mensaje: "" });
@@ -226,6 +225,7 @@ export default function Predica() {
         >
           Asistente de Prédica
         </button>
+
         {!visible && (
           <div className="inline-block float-right mr-4">
             <button
@@ -361,7 +361,12 @@ export default function Predica() {
                     setItemSeleccionado(null);
                     setEditar(false);
                   }}
-                  className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded  inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
+                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold rounded border-2 ${
+                    !numSlots && !predicaItems.length
+                      ? "bg-transparent font-bold text-app-border border-app-border cursor-pointer"
+                      : "font-bold text-app-error border-app-error"
+                  }`}
+                  disabled={!numSlots && !predicaItems.length}
                 >
                   {editar ? "Cancelar" : "Limpiar"}
                 </button>
@@ -420,6 +425,15 @@ export default function Predica() {
 
       {/* Lista de elementos */}
       <div className="space-y-2 mt-2">
+        {visible && numSlots && (
+          <div className="text-center">
+            <h1 className="font-bold text-sm sm:text-lg text-app-main">
+              Predica {numSlots}
+            </h1>
+            <div className="mx-auto mt-1 w-18 sm:w-24 border-b-2 border-app-main"></div>
+          </div>
+        )}
+
         {predicaItems.map((item, index) => (
           <div
             key={item.timestamp}
@@ -433,7 +447,11 @@ export default function Predica() {
                 : "hover:bg-app-border active:bg-app-light"
             }`}
           >
-            <span className="font-bold text-app-main ">
+            <span
+              className={`font-bold  ${
+                item.tipo === "titulo" ? "text-app-accent" : "text-app-main"
+              }`}
+            >
               {index + 1}.{" "}
               {item.tipo === "mensaje"
                 ? "Mensaje"
@@ -455,34 +473,39 @@ export default function Predica() {
                 </>
               ) : (
                 <>
-                  <span className="font-semibold border-app-main text-app-muted border-b-2">
+                  <span className="font-semibold border-app-accent text-app-muted border-b-2">
                     {item.contenido}
 
-                    <button
-                      onClick={(e) => toggleVisibleTitulo(e, item)}
-                      className="absolute top-2 right-10 p-1 text-app-border group-hover:text-red-600 mr-2 sm:mr-1 "
-                    >
-                      {visibleTitulo ? (
-                        <EyeIcon className="w-6 h-6" />
-                      ) : (
-                        <EyeSlashIcon className="w-6 h-6" />
-                      )}
-                    </button>
+                    {!visible && (
+                      <button
+                        onClick={(e) => toggleVisibleTitulo(e, item)}
+                        className="absolute top-2 right-10 p-1 text-app-border group-hover:text-red-600 mr-2 sm:mr-1 "
+                      >
+                        {visibleTitulo ? (
+                          <EyeIcon className="w-6 h-6" />
+                        ) : (
+                          <EyeSlashIcon className="w-6 h-6" />
+                        )}
+                      </button>
+                    )}
                   </span>
                 </>
               )}
             </span>
 
-            <button
-              type="button"
-              onClick={(e) => {
-                setPredicaItems((prev) => prev.filter((_, i) => i !== index));
-                e.stopPropagation();
-              }}
-              className="absolute top-2 right-2  p-1  text-app-border group-hover:text-red-600"
-            >
-              <TrashIcon className="h-6 w-6" />
-            </button>
+            {editar && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  setPredicaItems((prev) => prev.filter((_, i) => i !== index));
+                  e.stopPropagation();
+                  setItemSeleccionado(null);
+                }}
+                className="absolute top-2 right-2  p-1  text-app-border group-hover:text-red-600"
+              >
+                <TrashIcon className="h-6 w-6" />
+              </button>
+            )}
           </div>
         ))}
       </div>
