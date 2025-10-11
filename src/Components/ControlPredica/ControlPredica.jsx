@@ -5,12 +5,12 @@ import { ref, set, update } from "firebase/database";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import { usePredica } from "../../Components/PredicaContext/PredicaContext";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import EmojiButton from "../EmojiButton/EmojiButton";
 import LibrosModal from "../LibrosModal/LibrosModal";
 import CapituloModal from "../../Components/CapituloModal/CapituloModal";
 import VersiculoModal from "../VersiculoModal/VersiculoModal";
 import Notificaciones from "../../Components/Notificaciones/Notificaciones";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 const obtenerVersiculo = async (sigla, capitulo, numeroVersiculo) => {
   if (!sigla || !capitulo || !numeroVersiculo) {
@@ -51,6 +51,7 @@ export default function Predica() {
   });
   const [visible, setVisible] = useState(true);
   const [visibleTitulo, setVisibleTitulo] = useState(true);
+  const [visiblePredica, setVisiblePredica] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState("");
   const [tipoLibros, setTipoLibros] = useState("antiguo");
@@ -74,7 +75,7 @@ export default function Predica() {
     setNotif,
     showNotif,
     handleSlotClick,
-    } = usePredica();
+  } = usePredica();
 
   const handleChange = (id, value) => {
     setTexts((prev) => ({ ...prev, [id]: value }));
@@ -169,9 +170,9 @@ export default function Predica() {
 
   const enviarAProyeccion = (elemento) => {
     if (elemento.tipo === "mensaje") {
-      set(ref(database, "displayMessage"), {
+      set(ref(database, "displayPredica"), {
         text: elemento.contenido,
-        display: "mensaje",
+        display: "predica",
         timestamp: Date.now(),
       });
     } else if (elemento.tipo === "versiculo") {
@@ -203,12 +204,21 @@ export default function Predica() {
     });
   };
 
+  const toggleVisible = () => {
+    const newValue = !visiblePredica;
+    setVisiblePredica(newValue);
+    set(ref(database, "displayVisible"), {
+      visible: newValue,
+      timestamp: Date.now(),
+    });
+  };
+
   return (
-    <div className="px-2 pt-1 mx-auto">
+    <div className="pt-1 mx-auto">
       <div>
         <button
           onClick={() => setVisible(!visible)}
-          className={`"text-2xl font-bold text-center border-b-2 ${
+          className={`font-bold text-center ml-2 border-b-2 ${
             visible
               ? "text-app-main border-app-main"
               : "text-app-border border-app-border"
@@ -221,7 +231,7 @@ export default function Predica() {
       {visible && (
         <>
           {/* agregar elementos */}
-          <div className="sticky top-0 shadow-app-main shadow-md p-2 z-10 bg-app-light ">
+          <div className="sticky top-0 shadow-[inset_0_-2px_0_rgba(250,204,21,0.9)] bg-app-light p-2 z-10  ">
             {/* Input de titulo */}
             <div className="grid grid-cols-6 md:grid-cols-12 gap-1 mb-2 ">
               <div className="col-span-4 flex">
@@ -256,15 +266,41 @@ export default function Predica() {
 
               <div className="col-span col-start-5 row-end-1 md:col-start-auto md:row-end-auto flex items-center justify-center">
                 <EmojiButton
-                  onSelect={(emoji) => setMensaje((prev) => prev + emoji)}
+                  onSelect={(emoji) => {
+                    // Toma el texto actual del input activo
+                    const currentText = texts[activeInput] || "";
+
+                    // Inserta el emoji en la posición del cursor
+                    const newText =
+                      currentText.slice(0, cursorPos) +
+                      emoji +
+                      currentText.slice(cursorPos);
+
+                    // Actualiza el texto
+                    handleChange(activeInput, newText);
+
+                    // Actualiza la posición del cursor
+                    setCursorPos(cursorPos + emoji.length);
+                  }}
                 />
+
+                <button
+                  onClick={toggleVisible}
+                  className="font-semibold text-app-muted transition-all duration-200 ml-1 mr-1 "
+                >
+                  {visiblePredica ? (
+                    <EyeIcon className="w-6 h-6" />
+                  ) : (
+                    <EyeSlashIcon className="w-6 h-6" />
+                  )}
+                </button>
               </div>
 
               <div className="col-span col-start-6 row-end-1 md:col-start-auto md:row-end-auto flex items-center justify-center">
                 <button
                   type="button"
                   onClick={() => agregarElemento("mensaje")}
-                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-base break-words
+                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-xs lg:text-base break-words
     ${
       !texts.titulo && !texts.mensaje
         ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-default"
@@ -289,7 +325,7 @@ export default function Predica() {
                       ocupado
                         ? editar && numSlots === i + 1
                           ? "bg-amber-500"
-                          : "bg-green-500"
+                          : "bg-blue-500"
                         : "bg-red-500"
                     }`}
                   >
@@ -322,7 +358,7 @@ export default function Predica() {
                     setItemSeleccionado(null);
                     setEditar(false);
                   }}
-                  className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-border rounded border-2 bg-transparent hover:text-app-error hover:border-app-error cursor-pointer"
+                  className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded  inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
                 >
                   {editar ? "Cancelar" : "Limpiar"}
                 </button>
@@ -330,7 +366,7 @@ export default function Predica() {
                 <button
                   type="button"
                   onClick={() => navigate("/")}
-                  className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-border rounded border-2 bg-transparent hover:text-app-error hover:border-app-error cursor-pointer"
+                  className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
                 >
                   Salida
                 </button>
@@ -341,7 +377,7 @@ export default function Predica() {
                 <button
                   type="button"
                   onClick={() => abrirModalConTipo("antiguo")}
-                  className="w-full px-4 py-2 flex items-center justify-center text-center bg-blue-500 text-white rounded flex-1 text-xs sm:text-sm md:text-base break-words"
+                  className="w-full px-3.5 py-1.5 flex items-center justify-center text-center bg-transparent font-bold text-app-muted rounded border-2 flex-1 text-xs sm:text-sm md:text-base break-words hover:text-app-main hover:border-app-main cursor-pointer"
                 >
                   Antiguo
                 </button>
@@ -349,7 +385,7 @@ export default function Predica() {
                 <button
                   type="button"
                   onClick={() => abrirModalConTipo("nuevo")}
-                  className="w-full px-4 py-2 flex items-center justify-center text-center bg-blue-500 text-white rounded flex-1 text-xs sm:text-sm md:text-base break-words"
+                  className="w-full px-3.5 py-1.5 flex items-center justify-center text-center bg-transparent font-bold text-app-muted rounded border-2 flex-1 text-xs sm:text-sm md:text-base break-words hover:text-app-main hover:border-app-main cursor-pointer"
                 >
                   Nuevo
                 </button>
@@ -364,7 +400,11 @@ export default function Predica() {
                 <button
                   type="button"
                   onClick={() => agregarElemento("versiculo")}
-                  className="w-full px-4 py-2 flex items-center justify-center text-center bg-green-500 text-white rounded text-xs sm:text-sm md:text-base break-words"
+                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-base break-words ${
+                    !versiculoTemp
+                      ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-default"
+                      : "bg-green-500 text-white cursor-pointer"
+                  }`}
                   disabled={!versiculoTemp}
                 >
                   Agregar

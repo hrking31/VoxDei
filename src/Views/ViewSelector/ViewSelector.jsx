@@ -1,65 +1,106 @@
 import { useNavigate } from "react-router-dom";
+import { PlayCircleIcon } from "@heroicons/react/24/solid";
+import { TagIcon } from "@heroicons/react/24/outline";
+import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import { PhotoIcon } from "@heroicons/react/24/outline";
+import { VideoCameraIcon } from "@heroicons/react/24/outline";
+import { MicrophoneIcon } from "@heroicons/react/24/outline";
+import { BookOpenIcon } from "@heroicons/react/24/outline";
+import { BookmarkSquareIcon } from "@heroicons/react/24/outline";
 
 export default function ViewSelector() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col items-center h-screen justify-center gap-4">
-      <button
-        onClick={() => navigate("/ViewDisplay")}
-        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
-      >
-        Presentación
-      </button>
+    <div className="flex flex-col items-center justify-center p-4 gap-4">
+      <div className="text-center mb-8 md:mb-3">
+        <h1 className="text-4xl font-bold text-app-main">Panel de Gestión</h1>
+        <p className="text-app-muted text-lg mt-2">
+          Seleccione una opción para continuar
+        </p>
+      </div>
 
-      <button
-        onClick={() => navigate("/ViewTicker")}
-        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
-      >
-        Gestión Ticker
-      </button>
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-4xl">
+        <button
+          onClick={() => navigate("/ViewDisplay")}
+          className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+        >
+          <PlayCircleIcon className="w-10 h-10 text-app-muted mb-2" />
+          <span className="text-sm font-medium text-app-main text-center">
+            Presentación
+          </span>
+        </button>
 
-      <button
-        onClick={() => navigate("/ViewMessage")}
-        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
-      >
-        Gestión Mensaje
-      </button>
+        <button
+          onClick={() => navigate("/ViewTicker")}
+          className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+        >
+          <TagIcon className="w-10 h-10 text-app-muted mb-2" />
+          <span className="text-sm font-medium text-app-main text-center">
+            Gestión Ticker
+          </span>
+        </button>
 
-      <button
-        onClick={() => navigate("/ViewPanel")}
-        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
-      >
-        Gestión Imagen
-      </button>
+        <button
+          onClick={() => navigate("/ViewMessage")}
+          className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+        >
+          <ChatBubbleLeftRightIcon className="w-10 h-10 text-app-muted mb-2" />
+          <span className="text-sm font-medium text-app-main text-center">
+            Gestión Mensaje
+          </span>
+        </button>
 
-      <button
-        onClick={() => navigate("/ViewPanel")}
-        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
-      >
-        Gestión Video
-      </button>
+        <button
+          onClick={() => navigate("/ViewPanel")}
+          className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+        >
+          <PhotoIcon className="w-10 h-10 text-app-muted mb-2" />
+          <span className="text-sm font-medium text-app-main text-center">
+            Gestión Imagen
+          </span>
+        </button>
 
-      <button
-        onClick={() => navigate("/ViewPredica")}
-        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
-      >
-        Gestión Predica
-      </button>
+        <button
+          onClick={() => navigate("/ViewPanel")}
+          className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+        >
+          <VideoCameraIcon className="w-10 h-10 text-app-muted mb-2" />
+          <span className="text-sm font-medium text-app-main text-center">
+            Gestión Video
+          </span>
+        </button>
 
-      <button
-        onClick={() => navigate("/ViewVersiculo")}
-        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
-      >
-        Gestión Versiculo
-      </button>
+        <button
+          onClick={() => navigate("/ViewPredica")}
+          className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+        >
+          <MicrophoneIcon className="w-10 h-10 text-app-muted mb-2" />
+          <span className="text-sm font-medium text-app-main text-center">
+            Gestión Predica
+          </span>
+        </button>
 
-      <button
-        onClick={() => navigate("/ViewVersiculos")}
-        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow"
-      >
-        Gestión Versiculos
-      </button>
+        <button
+          onClick={() => navigate("/ViewVersiculo")}
+          className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+        >
+          <BookOpenIcon className="w-10 h-10 text-app-muted mb-2" />
+          <span className="text-sm font-medium text-app-main text-center">
+            Gestión Versiculo
+          </span>
+        </button>
+
+        <button
+          onClick={() => navigate("/ViewVersiculos")}
+          className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+        >
+          <BookmarkSquareIcon className="w-10 h-10 text-app-muted mb-2" />
+          <span className="text-sm font-medium text-app-main text-center">
+            Gestión Versiculos
+          </span>
+        </button>
+      </div>
     </div>
   );
 }

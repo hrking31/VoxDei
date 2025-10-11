@@ -359,6 +359,7 @@ import { useEffect, useRef } from "react";
 export default function TextAnimacion({
   mensaje,
   titulo,
+  predica,
   versiculo,
   versiculos,
   capitulo,
@@ -470,14 +471,18 @@ export default function TextAnimacion({
       </div>
 
       <div>
-        {display === "mensaje" ? (
+        {display === "predica" ? (
+          <div className="text-[3rem] text-center whitespace-pre-wrap break-words">
+            {predica}
+          </div>
+        ) : display === "mensaje" ? (
           <div className="text-[3rem] text-center whitespace-pre-wrap break-words">
             {mensaje}
           </div>
         ) : display === "versiculo" ? (
           <>
             <h2 className="font-bold sm:text-3xl  text-app-muted mb-6">
-         {titulo}
+              {titulo}
             </h2>
             <div className="text-[3rem] text-center whitespace-pre-wrap break-words">
               {versiculo}

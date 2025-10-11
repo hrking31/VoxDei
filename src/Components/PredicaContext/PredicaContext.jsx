@@ -102,8 +102,8 @@ export function PredicaProvider({ children }) {
         }
       }
 
-      setEditar(false); // salir de edición al terminar
-      setNumSlots(""); // limpiar selección
+      setEditar(false); 
+      setNumSlots(""); 
     } catch (error) {
       showNotif("error", "❌ Error al procesar la prédica");
       console.error(error);
