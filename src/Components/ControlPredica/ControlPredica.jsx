@@ -190,7 +190,7 @@ export default function Predica() {
     }
   };
 
-  const toggleVisibleTitulo = (e, item) => {
+  const toggleVisibleTitulo = (e) => {
     e.stopPropagation();
 
     const nuevoEstado = !visibleTitulo;
@@ -227,7 +227,18 @@ export default function Predica() {
         </button>
 
         {!visible && (
-          <div className="inline-block float-right mr-4">
+          <div className="flex justify-center float-right mr-4 gap-6">
+            <button
+              onClick={(e) => toggleVisibleTitulo(e)}
+              className="font-semibold text-app-accent transition-all duration-200  "
+            >
+              {visibleTitulo ? (
+                <EyeIcon className="w-8 h-8" />
+              ) : (
+                <EyeSlashIcon className="w-8 h-8" />
+              )}
+            </button>
+
             <button
               onClick={toggleVisible}
               className="font-semibold text-app-main transition-all duration-200  "
@@ -438,8 +449,10 @@ export default function Predica() {
           <div
             key={item.timestamp}
             onClick={() => {
-              enviarAProyeccion(item);
-              setItemSeleccionado(item.timestamp);
+              if (!visible) {
+                enviarAProyeccion(item);
+                setItemSeleccionado(item.timestamp);
+              }
             }}
             className={`group relative p-3 border-app-border rounded-lg cursor-pointer transition-colors ${
               itemSeleccionado === item.timestamp
@@ -476,7 +489,7 @@ export default function Predica() {
                   <span className="font-semibold border-app-accent text-app-muted border-b-2">
                     {item.contenido}
 
-                    {!visible && (
+                    {/* {!visible && (
                       <button
                         onClick={(e) => toggleVisibleTitulo(e, item)}
                         className="absolute top-2 right-10 p-1 text-app-border group-hover:text-red-600 mr-2 sm:mr-1 "
@@ -487,7 +500,7 @@ export default function Predica() {
                           <EyeSlashIcon className="w-6 h-6" />
                         )}
                       </button>
-                    )}
+                    )} */}
                   </span>
                 </>
               )}
