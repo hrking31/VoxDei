@@ -4,8 +4,11 @@ import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 
 const PredicaContext = createContext();
 
-export function PredicaProvider({ children }) {
-  const [slots, setSlots] = useState([false, false, false, false, false]);
+export function PredicaProvider({ children, initialSlots }) {
+  // const [slots, setSlots] = useState([false, false, false, false, false]);
+  const [slots, setSlots] = useState(
+    initialSlots || [false, false, false, false, false]
+  );
   const [editar, setEditar] = useState(false);
   const [numSlots, setNumSlots] = useState("");
   const [predicaItems, setPredicaItems] = useState([]);
@@ -19,18 +22,26 @@ export function PredicaProvider({ children }) {
     setNotif({ open: true, type, message });
   };
 
-  // Cargar estado inicial de los botones
+
+
   useEffect(() => {
-    const loadSlots = async () => {
-      const estados = [];
-      for (let i = 1; i <= 5; i++) {
-        const snap = await getDoc(doc(db, "predicas", `predica${i}`));
-        estados.push(snap.exists());
-      }
-      setSlots(estados);
-    };
-    loadSlots();
-  }, []);
+    if (initialSlots) {
+      setSlots(initialSlots);
+    }
+  }, [initialSlots]);
+
+  // Cargar estado inicial de los botones
+  // useEffect(() => {
+  //   const loadSlots = async () => {
+  //     const estados = [];
+  //     for (let i = 1; i <= 5; i++) {
+  //       const snap = await getDoc(doc(db, "predicas", `predica${i}`));
+  //       estados.push(snap.exists());
+  //     }
+  //     setSlots(estados);
+  //   };
+  //   loadSlots();
+  // }, []);
 
   // Guardar prédica
   const guardarPredica = async (index, items) => {
@@ -102,8 +113,8 @@ export function PredicaProvider({ children }) {
         }
       }
 
-      setEditar(false); 
-      setNumSlots(""); 
+      setEditar(false);
+      setNumSlots("");
     } catch (error) {
       showNotif("error", "❌ Error al procesar la prédica");
       console.error(error);

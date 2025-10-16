@@ -67,7 +67,7 @@ export default function ControlMenssage() {
       {/* botones de acciones*/}
       <div className="grid grid-cols-12">
         <div className="flex justify-center col-span-8 md:col-span-10 p-4">
-          <div className="flex gap-2 w-full ">
+          <div className="flex gap-2 w-full px-2 md:px-6">
             <button
               type="button"
               onClick={handleMessage}

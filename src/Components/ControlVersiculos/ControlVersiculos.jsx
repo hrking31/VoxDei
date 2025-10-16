@@ -149,12 +149,11 @@ export default function ControlVersiculos() {
         </div>
 
         {/* Botones */}
-        <div className="flex flex-row justify-center gap-2 pb-2">
+        <div className="flex gap-2 w-full px-2 md:px-6">
           <button
             type="button"
             onClick={() => abrirModalConTipo("antiguo")}
-            className="w-28 sm:w-36 md:w-44 lg:w-52 
-          py-2 font-bold text-app-muted rounded border-2 bg-app-border hover:text-app-error hover:border-app-error"
+            className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
           >
             Antiguo
           </button>
@@ -162,8 +161,7 @@ export default function ControlVersiculos() {
           <button
             type="button"
             onClick={() => abrirModalConTipo("nuevo")}
-            className="w-28 sm:w-36 md:w-44 lg:w-52 
-          py-2 md:py-3 font-bold text-app-muted rounded border-2 bg-app-border hover:text-app-error hover:border-app-error"
+            className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
           >
             Nuevo
           </button>
@@ -171,8 +169,7 @@ export default function ControlVersiculos() {
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="w-28 sm:w-36 md:w-44 lg:w-52 
-          py-2 md:py-3 font-bold text-app-border rounded border-2 bg-transparent hover:text-app-error hover:border-app-error"
+            className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
           >
             Salida
           </button>

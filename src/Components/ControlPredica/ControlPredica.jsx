@@ -488,19 +488,6 @@ export default function Predica() {
                 <>
                   <span className="font-semibold border-app-accent text-app-muted border-b-2">
                     {item.contenido}
-
-                    {/* {!visible && (
-                      <button
-                        onClick={(e) => toggleVisibleTitulo(e, item)}
-                        className="absolute top-2 right-10 p-1 text-app-border group-hover:text-red-600 mr-2 sm:mr-1 "
-                      >
-                        {visibleTitulo ? (
-                          <EyeIcon className="w-6 h-6" />
-                        ) : (
-                          <EyeSlashIcon className="w-6 h-6" />
-                        )}
-                      </button>
-                    )} */}
                   </span>
                 </>
               )}
