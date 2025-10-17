@@ -15,7 +15,10 @@ import { PredicaProvider } from "./Components/PredicaContext/PredicaContext";
 
 export default function App() {
   const [initialSlots, setInitialSlots] = useState(null);
+  const [tickerItems, setTickerItems] = useState(null);
+  console.log("tickers",tickerItems);
 
+  // Cargar estado inicial de los botones de prédica
   useEffect(() => {
     const loadSlots = async () => {
       const estados = [];
@@ -28,8 +31,35 @@ export default function App() {
     loadSlots();
   }, []);
 
+  
+useEffect(() => {
+  const loadTickers = async () => {
+    try {
+      const docs = await Promise.all(
+        Array.from({ length: 6 }, (_, i) =>
+          getDoc(doc(db, "tickers", `ticker${i + 1}`))
+        )
+      );
+
+      const data = docs.map((snap, i) => ({
+        id: `ticker${i + 1}`,
+        data: snap.exists() ? [snap.data()] : [],
+      }));
+
+      setTickerItems(data);
+    } catch (error) {
+      console.error("Error al cargar los tickers:", error);
+    }
+  };
+
+  loadTickers();
+}, []);
+
+
+
+
   return (
-    <PredicaProvider initialSlots={initialSlots}>
+    <PredicaProvider initialSlots={initialSlots} initialTicker={tickerItems}>
       <Routes>
         <Route path="/" element={<ViewSelector />} />
         <Route path="/viewdisplay" element={<ViewDisplay />} />
