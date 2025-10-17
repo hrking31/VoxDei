@@ -11,14 +11,12 @@ import {
   ViewSelector,
   ViewPredica,
 } from "./Views/index";
-import { PredicaProvider } from "./Components/PredicaContext/PredicaContext";
+// import { PredicaProvider } from "./Components/PredicaContext/PredicaContext";
+import { AppProvider, useAppContext } from "./Components/Context/AppContext";
 
-export default function App() {
-  const [initialSlots, setInitialSlots] = useState(null);
-  const [tickerItems, setTickerItems] = useState(null);
-  console.log("tickers",tickerItems);
+function AppInitializer() {
+  const { setSlots, setTickerItems } = useAppContext();
 
-  // Cargar estado inicial de los botones de prédica
   useEffect(() => {
     const loadSlots = async () => {
       const estados = [];
@@ -26,40 +24,81 @@ export default function App() {
         const snap = await getDoc(doc(db, "predicas", `predica${i}`));
         estados.push(snap.exists());
       }
-      setInitialSlots(estados);
+      setSlots(estados);
     };
+
+    const loadTickers = async () => {
+      try {
+        const docs = await Promise.all(
+          Array.from({ length: 6 }, (_, i) =>
+            getDoc(doc(db, "tickers", `ticker${i + 1}`))
+          )
+        );
+
+        const data = docs.map((snap, i) => ({
+          id: `ticker${i + 1}`,
+          data: snap.exists() ? [snap.data()] : [],
+        }));
+
+        setTickerItems(data);
+      } catch (error) {
+        console.error("Error al cargar los tickers:", error);
+      }
+    };
+
     loadSlots();
-  }, []);
+    loadTickers();
+  }, [setSlots, setTickerItems]);
 
-  
-useEffect(() => {
-  const loadTickers = async () => {
-    try {
-      const docs = await Promise.all(
-        Array.from({ length: 6 }, (_, i) =>
-          getDoc(doc(db, "tickers", `ticker${i + 1}`))
-        )
-      );
+  return null; // No renderiza nada
+}
 
-      const data = docs.map((snap, i) => ({
-        id: `ticker${i + 1}`,
-        data: snap.exists() ? [snap.data()] : [],
-      }));
+export default function App() {
+  const [initialSlots, setInitialSlots] = useState(null);
+  const [tickerItems, setTickerItems] = useState(null);
+ 
+  // Cargar estado inicial de los botones de prédica
+  // useEffect(() => {
+  //   const loadSlots = async () => {
+  //     const estados = [];
+  //     for (let i = 1; i <= 5; i++) {
+  //       const snap = await getDoc(doc(db, "predicas", `predica${i}`));
+  //       estados.push(snap.exists());
+  //     }
+  //     setInitialSlots(estados);
+  //   };
+  //   loadSlots();
+  // }, []);
 
-      setTickerItems(data);
-    } catch (error) {
-      console.error("Error al cargar los tickers:", error);
-    }
-  };
+  // Cargar estado de los tickers
+  // useEffect(() => {
+  //   const loadTickers = async () => {
+  //     try {
+  //       const docs = await Promise.all(
+  //         Array.from({ length: 6 }, (_, i) =>
+  //           getDoc(doc(db, "tickers", `ticker${i + 1}`))
+  //         )
+  //       );
 
-  loadTickers();
-}, []);
+  //       const data = docs.map((snap, i) => ({
+  //         id: `ticker${i + 1}`,
+  //         data: snap.exists() ? [snap.data()] : [],
+  //       }));
 
+  //       setTickerItems(data);
+  //     } catch (error) {
+  //       console.error("Error al cargar los tickers:", error);
+  //     }
+  //   };
 
-
+  //   loadTickers();
+  // }, []);
 
   return (
-    <PredicaProvider initialSlots={initialSlots} initialTicker={tickerItems}>
+    // <PredicaProvider initialSlots={initialSlots} initialTicker={tickerItems}>
+    <AppProvider>
+      {/* Este componente invisible hace la carga inicial */}
+      <AppInitializer />
       <Routes>
         <Route path="/" element={<ViewSelector />} />
         <Route path="/viewdisplay" element={<ViewDisplay />} />
@@ -69,6 +108,7 @@ useEffect(() => {
         <Route path="/ViewVersiculos" element={<ViewVersiculos />} />
         <Route path="/ViewPredica" element={<ViewPredica />} />
       </Routes>
-    </PredicaProvider>
+    </AppProvider>
+    // </PredicaProvider>
   );
 }

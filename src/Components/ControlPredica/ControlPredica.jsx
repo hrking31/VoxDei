@@ -4,7 +4,9 @@ import { database, db } from "../Firebase/Firebase";
 import { ref, set, update } from "firebase/database";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
-import { usePredica } from "../../Components/PredicaContext/PredicaContext";
+// import { usePredica } from "../../Components/PredicaContext/PredicaContext";
+import { handleSlotClick } from "../FuncionesControlPredica/FuncionesControlPredica";
+import { useAppContext } from "../Context/AppContext";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import EmojiButton from "../EmojiButton/EmojiButton";
 import LibrosModal from "../LibrosModal/LibrosModal";
@@ -61,20 +63,30 @@ export default function Predica() {
   const [texts, setTexts] = useState({ titulo: "", mensaje: "" });
   const [activeInput, setActiveInput] = useState("1");
   const [cursorPos, setCursorPos] = useState(0);
+  /////////////////////////////////////////////////////////////////////////////////
+  const { slots, setSlots } = useAppContext();
+  const [editar, setEditar] = useState(false);
+  const [numSlots, setNumSlots] = useState("");
+  const [predicaItems, setPredicaItems] = useState([]);
+  const [notif, setNotif] = useState({
+    open: false,
+    type: "info",
+    message: "",
+  });
 
-  const {
-    slots,
-    editar,
-    setEditar,
-    numSlots,
-    setNumSlots,
-    predicaItems,
-    setPredicaItems,
-    notif,
-    setNotif,
-    showNotif,
-    handleSlotClick,
-  } = usePredica();
+  // const {
+  //   slots,
+  //   editar,
+  //   setEditar,
+  //   numSlots,
+  //   setNumSlots,
+  //   predicaItems,
+  //   setPredicaItems,
+  //   notif,
+  //   setNotif,
+  //   showNotif,
+  //   handleSlotClick,
+  // } = usePredica();
 
   const handleChange = (id, value) => {
     setTexts((prev) => ({ ...prev, [id]: value }));
@@ -331,19 +343,32 @@ export default function Predica() {
             <div className="grid grid-cols-6 md:grid-cols-6 lg:grid-cols-6 gap-1 ">
               {/* slots y edicion*/}
               <div className="col-span-4 sm:col-span-6 gap-2 grid grid-cols-3 sm:grid-cols-6 p-0.5">
-                {slots.map((ocupado, i) => (
+                {slots.map((ocupado, index) => (
                   <button
-                    key={i}
-                    onClick={() => handleSlotClick(i)}
+                    key={index}
+                    // onClick={() => handleSlotClick(i)}
+                    onClick={() =>
+                      handleSlotClick({
+                        index,
+                        slots,
+                        editar,
+                        predicaItems,
+                        setPredicaItems,
+                        setSlots,
+                        setEditar,
+                        setNumSlots,
+                        setNotif,
+                      })
+                    }
                     className={`w-full px-3 py-2 rounded text-white text-xs sm:text-sm md:text-base break-words ${
                       ocupado
-                        ? editar && numSlots === i + 1
+                        ? editar && numSlots === index + 1
                           ? "bg-amber-500"
                           : "bg-blue-500"
                         : "bg-red-500"
                     }`}
                   >
-                    Slot {i + 1}
+                    Slot {index + 1}
                   </button>
                 ))}
                 <button
