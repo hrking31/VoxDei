@@ -1,47 +1,18 @@
 import { useState } from "react";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { database, db } from "../Firebase/Firebase";
+import { database } from "../Firebase/Firebase";
 import { ref, set, update } from "firebase/database";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
-// import { usePredica } from "../../Components/PredicaContext/PredicaContext";
-import { handleSlotClick } from "../FuncionesControlPredica/FuncionesControlPredica";
+import {
+  handleSlotClick,
+  obtenerVersiculo,
+} from "../FuncionesControlPredica/FuncionesControlPredica";
 import { useAppContext } from "../Context/AppContext";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import EmojiButton from "../EmojiButton/EmojiButton";
 import LibrosModal from "../LibrosModal/LibrosModal";
 import CapituloModal from "../../Components/CapituloModal/CapituloModal";
 import VersiculoModal from "../VersiculoModal/VersiculoModal";
-import Notificaciones from "../../Components/Notificaciones/Notificaciones";
-
-const obtenerVersiculo = async (sigla, capitulo, numeroVersiculo) => {
-  if (!sigla || !capitulo || !numeroVersiculo) {
-    throw new Error(
-      "❌ Parámetros inválidos. Debes enviar libro, capítulo y versículo."
-    );
-  }
-  const docId = `${sigla.toUpperCase()}_${capitulo}`;
-  const ref = doc(db, "biblia", docId);
-  const snapshot = await getDoc(ref);
-
-  if (!snapshot.exists()) {
-    throw new Error("❌ Documento no encontrado");
-  }
-
-  const data = snapshot.data();
-  const texto = data.versiculos?.[numeroVersiculo.toString()];
-
-  if (!texto) {
-    throw new Error("🔎 Versículo no encontrado");
-  }
-
-  return {
-    texto,
-    libro: data.libro,
-    capitulo: data.capitulo,
-    numero: numeroVersiculo,
-  };
-};
 
 export default function Predica() {
   const navigate = useNavigate();
@@ -55,7 +26,6 @@ export default function Predica() {
   const [visibleTitulo, setVisibleTitulo] = useState(true);
   const [visiblePredica, setVisiblePredica] = useState(false);
   const [resultado, setResultado] = useState(null);
-  const [error, setError] = useState("");
   const [tipoLibros, setTipoLibros] = useState("antiguo");
   const [modalActivo, setModalActivo] = useState(null);
   const [versiculoTemp, setVersiculoTemp] = useState("");
@@ -63,30 +33,11 @@ export default function Predica() {
   const [texts, setTexts] = useState({ titulo: "", mensaje: "" });
   const [activeInput, setActiveInput] = useState("1");
   const [cursorPos, setCursorPos] = useState(0);
-  /////////////////////////////////////////////////////////////////////////////////
   const { slots, setSlots } = useAppContext();
   const [editar, setEditar] = useState(false);
   const [numSlots, setNumSlots] = useState("");
   const [predicaItems, setPredicaItems] = useState([]);
-  const [notif, setNotif] = useState({
-    open: false,
-    type: "info",
-    message: "",
-  });
-
-  // const {
-  //   slots,
-  //   editar,
-  //   setEditar,
-  //   numSlots,
-  //   setNumSlots,
-  //   predicaItems,
-  //   setPredicaItems,
-  //   notif,
-  //   setNotif,
-  //   showNotif,
-  //   handleSlotClick,
-  // } = usePredica();
+  const { showNotif } = useAppContext();
 
   const handleChange = (id, value) => {
     setTexts((prev) => ({ ...prev, [id]: value }));
@@ -114,20 +65,14 @@ export default function Predica() {
   };
 
   const consultaVersiculo = async (sigla, capitulo, versiculo) => {
-    try {
-      const data = await obtenerVersiculo(sigla, capitulo, versiculo);
-      setResultado(data);
-      setVersiculoTemp({
-        cita: `${data.libro} ${data.capitulo}:${data.numero}`,
-        texto: data.texto,
-      });
-      setError(null);
-    } catch (error) {
-      console.error("Error en consultaVersiculo:", error.message);
-      setResultado(null);
-      setError(error.message);
-      showNotif("warning", error.message);
-    }
+    const data = await obtenerVersiculo(sigla, capitulo, versiculo, showNotif);
+    if (!data) return;
+
+    setResultado(data);
+    setVersiculoTemp({
+      cita: `${data.libro} ${data.capitulo}:${data.numero}`,
+      texto: data.texto,
+    });
   };
 
   const agregarElemento = (tipo) => {
@@ -346,7 +291,6 @@ export default function Predica() {
                 {slots.map((ocupado, index) => (
                   <button
                     key={index}
-                    // onClick={() => handleSlotClick(i)}
                     onClick={() =>
                       handleSlotClick({
                         index,
@@ -357,7 +301,8 @@ export default function Predica() {
                         setSlots,
                         setEditar,
                         setNumSlots,
-                        setNotif,
+                        // setNotif,
+                        showNotif,
                       })
                     }
                     className={`w-full px-3 py-2 rounded text-white text-xs sm:text-sm md:text-base break-words ${
@@ -555,14 +500,6 @@ export default function Predica() {
         onClose={() => setModalActivo(false)}
         selecLibro={libro}
         onVersiculo={VersiculoSeleccionado}
-      />
-
-      {/* Notificaciones */}
-      <Notificaciones
-        open={notif.open}
-        type={notif.type}
-        message={notif.message}
-        onClose={() => setNotif({ ...notif, open: false })}
       />
     </div>
   );

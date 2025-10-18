@@ -2,26 +2,19 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { database, db } from "../Firebase/Firebase";
 import { ref, set } from "firebase/database";
-import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
+import { doc, setDoc } from "firebase/firestore";
 import EmojiButton from "../EmojiButton/EmojiButton";
-import Notificaciones from "../../Components/Notificaciones/Notificaciones";
+import { useAppContext } from "../Context/AppContext";
 
 export default function ControlTicker() {
   const navigate = useNavigate();
   const [ticker, setTicker] = useState("");
-  const [tickerItems, setTickerItems] = useState([]);
+  const { tickerItems, setTickerItems } = useAppContext();
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const [velocidad, setVelocidad] = useState(2);
-  const [notif, setNotif] = useState({
-    open: false,
-    type: "info",
-    message: "",
-  });
+  const { showNotif } = useAppContext();
 
-  const showNotif = (type, message) => {
-    setNotif({ open: true, type, message });
-  };
-
+  // proyecta un ticker de la bd o del imput
   const handleTicker = (item) => {
     const textToSend = item?.text || ticker;
 
@@ -40,101 +33,65 @@ export default function ControlTicker() {
     });
   };
 
-  // const agregarElemento = () => {
-  //   // Validar campos
-  //   if (ticker.trim() === "") return;
-
-  //   const nuevoTicker = {
-  //     text: ticker,
-  //     num: tickerItems.length + 1,
-  //     timestamp: Date.now(),
-  //   };
-
-  //   setTickerItems((prev) => [...prev, nuevoTicker]);
-  //   setTicker("");
-  // };
-
-  // const agregarElemento = async () => {
-  //   // Validar campo
-  //   if (ticker.trim() === "") return;
-
-  //   // Crear nuevo ticker
-  //   const nuevoTicker = {
-  //     text: ticker,
-  //     num: tickerItems.length + 1,
-  //     timestamp: Date.now(),
-  //   };
-
-  //   // Actualizar el estado local
-  //   setTickerItems((prev) => [...prev, nuevoTicker]);
-  //   setTicker("");
-
-  //   try {
-  //     // Guardar en Firestore
-  //     await setDoc(
-  //       doc(db, "tickers", `ticker${nuevoTicker.num}`), // documento único
-  //       nuevoTicker
-  //     );
-
-  //     showNotif("success", `✅ Ticker guardado correctamente`);
-  //   } catch (error) {
-  //     showNotif("error", `❌ Error al guardar el ticker`);
-  //     console.error(error);
-  //   }
-  // };
-
+  // agrega un ticker a la bd
   const agregarElemento = async () => {
-    // Validar campo
-    if (ticker.trim() === "") return;
+    try {
+      // Validar campo
+      if (ticker.trim() === "") return;
 
-    const nuevoTicker = {
-      text: ticker,
-      timestamp: Date.now(),
-    };
-
-    if (tickerItems.length < 6) {
-      // 🟢 Si hay menos de 6, agregar normalmente
-      const num = tickerItems.length + 1;
-      const tickerFinal = { ...nuevoTicker, num };
-
-      // Guardar en Firestore
-      await setDoc(doc(db, "tickers", `ticker${num}`), tickerFinal);
-
-      // Actualizar estado local
-      setTickerItems((prev) => [...prev, tickerFinal]);
-    } else {
-      // 🔁 Si ya hay 6, sobrescribir el más antiguo
-      const ordenados = [...tickerItems].sort(
-        (a, b) => a.timestamp - b.timestamp
-      );
-      const masAntiguo = ordenados[0]; // el primero
-
-      const tickerFinal = {
-        ...nuevoTicker,
-        num: masAntiguo.num, // reusar su número
+      const nuevoTicker = {
+        text: ticker,
+        timestamp: Date.now(),
       };
 
-      // Sobrescribir en Firestore
-      await setDoc(doc(db, "tickers", `ticker${masAntiguo.num}`), tickerFinal);
+      if (tickerItems.length < 6) {
+        // Si hay menos de 6, agregar normalmente
+        const num = tickerItems.length + 1;
+        const tickerFinal = { ...nuevoTicker, num };
 
-      // Actualizar estado local (reemplazar el más antiguo)
-      // setTickerItems((prev) =>
-      //   prev.filter((item) => item.num !== masAntiguo.num).concat(tickerFinal)
-      // );
-      setTickerItems((prev) => {
-        const actualizados = prev.map((item) =>
-          item.num === masAntiguo.num ? tickerFinal : item
+        // Guardar en Firestore
+        await setDoc(doc(db, "tickers", `ticker${num}`), tickerFinal);
+
+        // Actualizar estado local
+        setTickerItems((prev) => [...prev, tickerFinal]);
+
+        showNotif("success", `✅ Ticker ${num} agregado correctamente`);
+      } else {
+        // Si ya hay 6, sobrescribir el más antiguo
+        const ordenados = [...tickerItems].sort(
+          (a, b) => a.timestamp - b.timestamp
         );
-        return actualizados.sort((a, b) => a.num - b.num);
-      });
+        const masAntiguo = ordenados[0]; // el primero
 
+        const tickerFinal = {
+          ...nuevoTicker,
+          num: masAntiguo.num, // reusar su número
+        };
+
+        // Sobrescribir en Firestore
+        await setDoc(
+          doc(db, "tickers", `ticker${masAntiguo.num}`),
+          tickerFinal
+        );
+
+        setTickerItems((prev) => {
+          const actualizados = prev.map((item) =>
+            item.num === masAntiguo.num ? tickerFinal : item
+          );
+          return actualizados.sort((a, b) => a.num - b.num);
+        });
+        showNotif(
+          "info",
+          `🔄 Se reemplazó el ticker ${masAntiguo.num} por uno nuevo`
+        );
+      }
+
+      setTicker("");
+    } catch (error) {
+      console.error("Error al agregar el ticker:", error);
+      showNotif("error", "❌ Error al guardar el ticker");
     }
-
-    // Limpiar input
-    setTicker("");
   };
-
-
 
   return (
     <div>
@@ -181,7 +138,7 @@ export default function ControlTicker() {
             <button
               type="button"
               onClick={() => {
-                handleTicker, setTicker("");
+                handleTicker(ticker), setTicker("");
               }}
               className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-base break-words ${
                 !ticker
@@ -264,12 +221,6 @@ export default function ControlTicker() {
           </div>
         ))}
       </div>
-      <Notificaciones
-        open={notif.open}
-        type={notif.type}
-        message={notif.message}
-        onClose={() => setNotif({ ...notif, open: false })}
-      />
     </div>
   );
 }

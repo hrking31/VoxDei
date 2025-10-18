@@ -8,6 +8,15 @@ export function AppProvider({ children }) {
   const [tickerItems, setTickerItems] = useState([]);
   const [mensajes, setMensajes] = useState([]);
   const [authUser, setAuthUser] = useState(null);
+  const [notif, setNotif] = useState({
+    open: false,
+    type: "info",
+    message: "",
+  });
+
+  const showNotif = (type, message) => {
+    setNotif({ open: true, type, message });
+  };
 
   return (
     <AppContext.Provider
@@ -20,6 +29,9 @@ export function AppProvider({ children }) {
         setMensajes,
         authUser,
         setAuthUser,
+        notif,
+        setNotif,
+        showNotif,
       }}
     >
       {children}

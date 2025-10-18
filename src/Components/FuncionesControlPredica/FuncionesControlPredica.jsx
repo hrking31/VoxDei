@@ -1,18 +1,13 @@
 import { db } from "../Firebase/Firebase";
 import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
 
-// 🔹 Mostrar notificación
-export const showNotif = (setNotif, type, message) => {
-  setNotif({ open: true, type, message });
-};
-
-// 🔹 Guardar prédica
+// Guardar prédica
 export const guardarPredica = async (
   index,
   items,
   setSlots,
   editar,
-  setNotif
+  showNotif
 ) => {
   try {
     await setDoc(doc(db, "predicas", `predica${index + 1}`), {
@@ -27,17 +22,17 @@ export const guardarPredica = async (
     });
 
     if (editar) {
-      showNotif(setNotif, "success", `🔄  Predica ${index + 1} actualizada`);
+      showNotif("success", `🔄  Predica ${index + 1} actualizada`);
     } else {
-      showNotif(setNotif, "success", `💾 Predica ${index + 1} guardada`);
+      showNotif("success", `💾 Predica ${index + 1} guardada`);
     }
   } catch (error) {
-    showNotif(setNotif, "error", "❌ Error al guardar la prédica");
+    showNotif("error", "❌ Error al guardar la prédica");
     console.error(error);
   }
 };
 
-// 🔹 Manejar click en slot
+// Manejar click en slot
 export const handleSlotClick = async ({
   index,
   slots,
@@ -47,7 +42,7 @@ export const handleSlotClick = async ({
   setSlots,
   setEditar,
   setNumSlots,
-  setNotif,
+  showNotif,
 }) => {
   try {
     const slotOcupado = slots[index];
@@ -59,19 +54,15 @@ export const handleSlotClick = async ({
         if (snap.exists()) {
           setPredicaItems(snap.data().items);
           setNumSlots(index + 1);
-          showNotif(setNotif, "info", `📥 Predica ${index + 1} cargada`);
+          showNotif("info", `📥 Predica ${index + 1} cargada`);
         }
         return;
       }
       // Slot vacío → guardar si hay items
       else if (predicaItems && predicaItems.length > 0) {
-        await guardarPredica(index, predicaItems, setSlots, editar, setNotif);
+        await guardarPredica(index, predicaItems, setSlots, editar, showNotif);
       } else {
-        showNotif(
-          setNotif,
-          "warning",
-          `🚫 No hay nada que guardar en Slot ${index + 1}`
-        );
+        showNotif("warning", `🚫 No hay nada que guardar en Slot ${index + 1}`);
       }
     }
 
@@ -86,10 +77,16 @@ export const handleSlotClick = async ({
             nuevo[index] = false;
             return nuevo;
           });
-          showNotif(setNotif, "info", `🗑️ Predica ${index + 1} eliminada`);
+          showNotif("info", `🗑️ Predica ${index + 1} eliminada`);
         } else {
           // Actualizar
-          await guardarPredica(index, predicaItems, setSlots, editar, setNotif);
+          await guardarPredica(
+            index,
+            predicaItems,
+            setSlots,
+            editar,
+            showNotif
+          );
         }
       }
     }
@@ -97,7 +94,54 @@ export const handleSlotClick = async ({
     setEditar(false);
     setNumSlots("");
   } catch (error) {
-    showNotif(setNotif, "error", "❌ Error al procesar la prédica");
+    showNotif("error", "❌ Error al procesar la prédica");
     console.error(error);
+  }
+};
+
+// Consultar versiculos
+export const obtenerVersiculo = async (
+  sigla,
+  capitulo,
+  numeroVersiculo,
+  showNotif
+) => {
+  try {
+    if (!sigla || !capitulo || !numeroVersiculo) {
+      showNotif(
+        "error",
+        "⚠️ Parámetros inválidos. Debes enviar libro, capítulo y versículo."
+      );
+      return;
+    }
+
+    const docId = `${sigla.toUpperCase()}_${capitulo}`;
+    const ref = doc(db, "biblia", docId);
+    const snapshot = await getDoc(ref);
+
+    if (!snapshot.exists()) {
+      showNotif("error", "📄 Documento no encontrado");
+      return;
+    }
+
+    const data = snapshot.data();
+    const texto = data.versiculos?.[numeroVersiculo.toString()];
+
+    if (!texto) {
+      showNotif("error", "🔎 Versículo no encontrado");
+      return;
+    }
+    showNotif("success", "✅ Versículo encontrado");
+
+    return {
+      texto,
+      libro: data.libro,
+      capitulo: data.capitulo,
+      numero: numeroVersiculo,
+    };
+  } catch (error) {
+    console.error("Error en obtenerVersiculo:", error);
+    showNotif("error", `⚠️ Error inesperado: ${error.message}`);
+    return null;
   }
 };
