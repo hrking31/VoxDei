@@ -9,7 +9,7 @@ import { useAppContext } from "../Context/AppContext";
 export default function ControlTicker() {
   const navigate = useNavigate();
   const [ticker, setTicker] = useState("");
-  const { tickerItems, setTickerItems } = useAppContext();
+  const {tickerItems, setTickerItems } = useAppContext();
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const [velocidad, setVelocidad] = useState(2);
   const { showNotif } = useAppContext();
@@ -204,17 +204,17 @@ export default function ControlTicker() {
               handleTicker(item);
               setItemSeleccionado(item.timestamp);
             }}
-            className={`group relative p-3 border-app-border rounded-lg cursor-pointer transition-colors ${
+            className={`relative p-3 border-app-border rounded-lg cursor-pointer transition-colors ${
               itemSeleccionado === item.timestamp
                 ? "bg-yellow-100 shadow-md"
                 : "hover:bg-app-border active:bg-app-light"
             }`}
           >
             <div className="p-5">
-              <h2 className="text-xl font-semibold text-app-main mb-2">
+              <h2 className="text-xl font-bold text-app-main mb-2">
                 Ticker {item.num}
               </h2>
-              <p className="text-app-muted text-sm leading-relaxed">
+              <p className="font-semibold text-app-muted text-sm leading-relaxed">
                 {item.text}
               </p>
             </div>

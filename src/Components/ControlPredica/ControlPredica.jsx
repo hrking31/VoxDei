@@ -22,9 +22,9 @@ export default function Predica() {
     capitulo: null,
     versiculo: null,
   });
-  const [visible, setVisible] = useState(true);
-  const [visibleTitulo, setVisibleTitulo] = useState(true);
-  const [visiblePredica, setVisiblePredica] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const { visibleTitulo, setVisibleTitulo } = useAppContext();
+  const { visiblePredica, setVisiblePredica } = useAppContext();
   const [resultado, setResultado] = useState(null);
   const [tipoLibros, setTipoLibros] = useState("antiguo");
   const [modalActivo, setModalActivo] = useState(null);

@@ -6,7 +6,9 @@ export function AppProvider({ children }) {
   // Estados globales iniciales
   const [slots, setSlots] = useState([false, false, false, false, false]);
   const [tickerItems, setTickerItems] = useState([]);
-  const [mensajes, setMensajes] = useState([]);
+  const [messageItems, setMessageItems] = useState([]);
+  const [visiblePredica, setVisiblePredica] = useState("");
+  const [visibleTitulo, setVisibleTitulo] = useState("");
   const [authUser, setAuthUser] = useState(null);
   const [notif, setNotif] = useState({
     open: false,
@@ -25,8 +27,12 @@ export function AppProvider({ children }) {
         setSlots,
         tickerItems,
         setTickerItems,
-        mensajes,
-        setMensajes,
+        messageItems,
+        setMessageItems,
+        visiblePredica,
+        setVisiblePredica,
+        visibleTitulo,
+        setVisibleTitulo,
         authUser,
         setAuthUser,
         notif,

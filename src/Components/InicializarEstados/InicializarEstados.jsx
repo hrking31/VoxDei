@@ -1,10 +1,18 @@
 import { useEffect } from "react";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "../../Components/Firebase/Firebase";
+import { database, db } from "../../Components/Firebase/Firebase";
+import { ref, set } from "firebase/database";
 import { useAppContext } from "../../Components/Context/AppContext";
 
 export default function InicializarEstados() {
-  const { setSlots, setTickerItems, showNotif } = useAppContext();
+  const {
+    setSlots,
+    setTickerItems,
+    setMessageItems,
+    showNotif,
+    setVisiblePredica,
+    setVisibleTitulo,
+  } = useAppContext();
 
   useEffect(() => {
     const loadSlots = async () => {
@@ -41,9 +49,55 @@ export default function InicializarEstados() {
       }
     };
 
+    const loadMessage = async () => {
+      try {
+        const docs = await Promise.all(
+          Array.from({ length: 6 }, (_, i) =>
+            getDoc(doc(db, "messages", `message${i + 1}`))
+          )
+        );
+
+        const data = docs
+          .filter((snap) => snap.exists())
+          .map((snap) => snap.data());
+
+        setMessageItems(data);
+      } catch (error) {
+        console.error("Error al cargar los mensajess:", error);
+        showNotif("error", "❌ No se pudieron cargar los mensajes");
+      }
+    };
+
+    const visibleMessage = async () => {
+      set(ref(database, "displayVisible"), {
+        visible: false,
+        timestamp: Date.now(),
+      });
+
+      setVisiblePredica(false);
+    };
+
+    const visibleTitulo = async () => {
+      set(ref(database, "displayTitulo"), {
+        visible: false,
+        timestamp: Date.now(),
+      });
+
+      setVisibleTitulo(false);
+    };
+
     loadSlots();
     loadTickers();
-  }, [setSlots, setTickerItems]);
+    loadMessage();
+    visibleMessage();
+    visibleTitulo();
+  }, [
+    setSlots,
+    setTickerItems,
+    setMessageItems,
+    setVisiblePredica,
+    setVisibleTitulo,
+  ]);
 
   return null;
 }
