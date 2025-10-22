@@ -324,11 +324,9 @@ export default function Predica() {
                           showNotif,
                         });
                         setPredicaItems([]);
-                        // setNumSlots(null);
-                        // setEditar(false);
                       }}
                       disabled={deshabilitado}
-                      className={`w-full px-3 py-2 rounded text-white text-xs sm:text-sm md:text-base break-words ${
+                      className={`w-full px-3 py-2 rounded text-xs sm:text-sm md:text-base break-words ${
                         ocupado
                           ? editar && numSlots === index + 1
                             ? "bg-amber-500"
