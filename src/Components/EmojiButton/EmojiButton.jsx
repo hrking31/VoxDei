@@ -2,7 +2,7 @@ import { useState } from "react";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 
-export default function EmojiButton({ onSelect }) {
+export default function EmojiButton({ onSelect, disabled }) {
   const [showPicker, setShowPicker] = useState(false);
 
   // Detectar si es móvil
@@ -20,6 +20,7 @@ export default function EmojiButton({ onSelect }) {
           border: "none",
           cursor: "pointer",
         }}
+        disabled={disabled}
       >
         😀
       </button>
