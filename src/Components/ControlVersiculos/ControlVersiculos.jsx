@@ -7,34 +7,11 @@ import parse from "html-react-parser";
 import LibrosModal from "../../Components/LibrosModal/LibrosModal";
 import CapituloModal from "../../Components/CapituloModal/CapituloModal";
 import VersiculoModal from "../../Components/VersiculoModal/VersiculoModal";
+import { obtenerVersiculo } from "../FuncionesControlPredica/FuncionesControlPredica";
 import BuscadorExpandible from "../buscadorExpandible/BuscadorExpandible";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useAppContext } from "../Context/AppContext";
 import { librosAntiguo, librosNuevo } from "../LibrosBiblia/LibrosBiblia";
-
-const obtenerVersiculo = async (sigla, capitulo, versiculo) => {
-  const docId = `${sigla.toUpperCase()}_${capitulo}`;
-  const ref = doc(db, "biblia", docId);
-  const snapshot = await getDoc(ref);
-
-  if (!snapshot.exists()) {
-    throw new Error("❌ Documento no encontrado");
-  }
-
-  const data = snapshot.data();
-  const texto = data.chapter_html || null;
-
-  if (!texto) {
-    throw new Error("⚠️ Capitulo no encontrado");
-  }
-
-  return {
-    texto,
-    libro: data.libro,
-    capitulo: data.capitulo,
-    versiculo: versiculo,
-  };
-};
 
 export default function ControlVersiculos() {
   const navigate = useNavigate();
@@ -56,9 +33,8 @@ export default function ControlVersiculos() {
   const { visiblePredica, setVisiblePredica } = useAppContext();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const { showNotif } = useAppContext();
   const versiculosRef = useRef({});
-
-  console.log("busqueda", query);
 
   const normalizar = (texto) =>
     texto
@@ -90,15 +66,12 @@ export default function ControlVersiculos() {
     LibroSeleccionado(coincidencias);
   };
 
-  console.log("resultado",libro);
-
   const abrirModalConTipo = (tipo) => {
     setTipoLibros(tipo);
     setModalActivo("libro");
   };
 
   const LibroSeleccionado = (libro) => {
-    
     setLibro(libro);
     setModalActivo("capitulo");
   };
@@ -122,7 +95,13 @@ export default function ControlVersiculos() {
 
   const consultaVersiculo = async (sigla, capitulo, versiculo) => {
     try {
-      const data = await obtenerVersiculo(sigla, capitulo, versiculo);
+      const data = await obtenerVersiculo(
+        sigla,
+        capitulo,
+        versiculo,
+        "html",
+        showNotif
+      );
       setResultado(data);
       setError("");
     } catch (err) {

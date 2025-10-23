@@ -99,11 +99,12 @@ export const handleSlotClick = async ({
   }
 };
 
-// Consultar versiculos
+// Consultar versiculosy capitulos
 export const obtenerVersiculo = async (
   sigla,
   capitulo,
   numeroVersiculo,
+  tipo,
   showNotif
 ) => {
   try {
@@ -125,13 +126,26 @@ export const obtenerVersiculo = async (
     }
 
     const data = snapshot.data();
-    const texto = data.versiculos?.[numeroVersiculo.toString()];
+    let texto;
+    if (tipo === "htlm") {
+      texto = data.versiculos?.[numeroVersiculo.toString()] || null;
+    } else {
+      texto = data.chapter_html || null;
+    }
 
     if (!texto) {
-      showNotif("error", "🔎 Versículo no encontrado");
+      showNotif(
+        "error",
+        tipo === "html"
+          ? "🔎 Capítulo no encontrado"
+          : "🔎 Versículo no encontrado"
+      );
       return;
     }
-    showNotif("success", "✅ Versículo encontrado");
+    showNotif(
+      "success",
+      tipo === "html" ? "✅ Capitulo encontrado" : "✅ Versículo encontrado"
+    );
 
     return {
       texto,
