@@ -127,7 +127,7 @@ export const obtenerVersiculo = async (
 
     const data = snapshot.data();
     let texto;
-    if (tipo === "htlm") {
+    if (tipo === "versiculo") {
       texto = data.versiculos?.[numeroVersiculo.toString()] || null;
     } else {
       texto = data.chapter_html || null;
@@ -136,7 +136,7 @@ export const obtenerVersiculo = async (
     if (!texto) {
       showNotif(
         "error",
-        tipo === "html"
+        tipo === "capitulo"
           ? "🔎 Capítulo no encontrado"
           : "🔎 Versículo no encontrado"
       );
@@ -144,7 +144,7 @@ export const obtenerVersiculo = async (
     }
     showNotif(
       "success",
-      tipo === "html" ? "✅ Capitulo encontrado" : "✅ Versículo encontrado"
+      tipo === "capitulo" ? "✅ Capitulo encontrado" : "✅ Versículo encontrado"
     );
 
     return {

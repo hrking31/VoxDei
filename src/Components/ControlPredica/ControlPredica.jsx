@@ -65,7 +65,13 @@ export default function Predica() {
   };
 
   const consultaVersiculo = async (sigla, capitulo, versiculo) => {
-    const data = await obtenerVersiculo(sigla, capitulo, versiculo, "tipo", showNotif);
+    const data = await obtenerVersiculo(
+      sigla,
+      capitulo,
+      versiculo,
+      "versiculo",
+      showNotif
+    );
     if (!data) return;
 
     setResultado(data);
@@ -324,6 +330,12 @@ export default function Predica() {
                           showNotif,
                         });
                         setPredicaItems([]);
+                        setVersiculoTemp("");
+                        setTexts((prev) => ({
+                          ...prev,
+                          titulo: "",
+                          mensaje: "",
+                        }));
                       }}
                       disabled={deshabilitado}
                       className={`w-full px-3 py-2 rounded text-xs sm:text-sm md:text-base break-words ${
@@ -346,21 +358,29 @@ export default function Predica() {
                 <button
                   type="button"
                   onClick={() => setEditar(!editar)}
-                  disabled={!numSlots}
+                  disabled={!numSlots || editar}
                   className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold rounded border-2 bg-transparent ${
-                    editar
-                      ? "border-amber-500 text-amber-500"
-                      : numSlots
-                      ? "border-app-error text-app-error hover:text-amber-500 hover:border-amber-500 cursor-pointer"
+                    numSlots
+                      ? editar
+                        ? "border-transparent text-amber-500"
+                        : "border-app-error text-app-error hover:text-amber-500 hover:border-amber-500 cursor-pointer"
                       : "border-app-border text-app-border cursor-not-allowed"
                   }`}
                 >
-                  {editar ? `Slots ${numSlots}` : "Editar"}
+                  {editar ? "Editando"  : "Editar"}
                 </button>
               </div>
 
               {/* limpiar y salida */}
               <div className="col-span-2 gap-2 grid grid-cols-1 sm:grid-cols-2 p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => navigate("/")}
+                      className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
+                    >
+                      Salida
+                    </button>
+                    
                 <button
                   type="button"
                   onClick={(e) => {
@@ -392,16 +412,9 @@ export default function Predica() {
                     !versiculoTemp
                   }
                 >
-                  {editar ? "Cancelar" : "Limpiar"}
+                  {editar ? "Cancelar" : numSlots ? "Atras" : "Limpiar"}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => navigate("/")}
-                  className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
-                >
-                  Salida
-                </button>
               </div>
 
               {/* Selección de testamento*/}
@@ -520,7 +533,7 @@ export default function Predica() {
               )}
             </span>
 
-            {editar && (
+            {((!editar && !numSlots) || (editar && !!numSlots)) && (
               <button
                 type="button"
                 onClick={(e) => {
@@ -528,7 +541,7 @@ export default function Predica() {
                   e.stopPropagation();
                   setItemSeleccionado(null);
                 }}
-                className="absolute top-2 right-2  p-1  text-app-border group-hover:text-red-600"
+                className="absolute top-2 right-2 p-1 text-app-border group-hover:text-red-600"
               >
                 <TrashIcon className="h-6 w-6" />
               </button>

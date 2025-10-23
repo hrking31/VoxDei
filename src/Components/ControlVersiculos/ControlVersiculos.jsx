@@ -99,7 +99,7 @@ export default function ControlVersiculos() {
         sigla,
         capitulo,
         versiculo,
-        "html",
+        "capitulo",
         showNotif
       );
       setResultado(data);
