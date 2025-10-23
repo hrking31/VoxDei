@@ -367,20 +367,20 @@ export default function Predica() {
                       : "border-app-border text-app-border cursor-not-allowed"
                   }`}
                 >
-                  {editar ? "Editando"  : "Editar"}
+                  {editar ? "Editando" : "Editar"}
                 </button>
               </div>
 
               {/* limpiar y salida */}
               <div className="col-span-2 gap-2 grid grid-cols-1 sm:grid-cols-2 p-0.5">
-                    <button
-                      type="button"
-                      onClick={() => navigate("/")}
-                      className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
-                    >
-                      Salida
-                    </button>
-                    
+                <button
+                  type="button"
+                  onClick={() => navigate("/")}
+                  className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
+                >
+                  Salida
+                </button>
+
                 <button
                   type="button"
                   onClick={(e) => {
@@ -414,7 +414,6 @@ export default function Predica() {
                 >
                   {editar ? "Cancelar" : numSlots ? "Atras" : "Limpiar"}
                 </button>
-
               </div>
 
               {/* Selección de testamento*/}

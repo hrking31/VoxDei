@@ -10,10 +10,10 @@ import { useAppContext } from "../Context/AppContext";
 export default function ControlMenssage() {
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
-  const {messageItems, setMessageItems } = useAppContext();
+  const { messageItems, setMessageItems } = useAppContext();
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
-  const {visiblePredica, setVisiblePredica} = useAppContext();
-  const {visibleTitulo, setVisibleTitulo} = useAppContext();
+  const { visiblePredica, setVisiblePredica } = useAppContext();
+  const { visibleTitulo, setVisibleTitulo } = useAppContext();
   const { showNotif } = useAppContext();
   const textareaRef = useRef(null);
 
@@ -27,7 +27,7 @@ export default function ControlMenssage() {
 
   // proyecta un mensaje de la bd o del imput
   const handleMessage = (item) => {
-    const textToSend = item?.text ||message;
+    const textToSend = item?.text || message;
 
     if (!textToSend.trim()) return;
 
@@ -126,7 +126,7 @@ export default function ControlMenssage() {
         Panel de Control Mensajes
       </h1>
 
-      <div className="grid grid-cols-12 gap-1 mb-2 ">
+      <div className="grid grid-cols-12 gap-1 mb-2">
         {/*textarea de mensaje*/}
         <div className="col-span-10 flex p-1 md:p-2">
           <textarea
@@ -141,13 +141,13 @@ export default function ControlMenssage() {
         </div>
 
         {/* boton guardar */}
-        <div className="col-span-2 flex justify-center p-1 md:p-2">
+        <div className="col-span-2 flex items-center justify-center p-1 md:p-2">
           <button
             type="button"
             onClick={() => {
               agregarElemento(message), setMessage("");
             }}
-            className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-xs lg:text-base break-words
+            className={`w-full h-10 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-xs lg:text-base break-words
                ${
                  !message
                    ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-default"
@@ -239,7 +239,7 @@ export default function ControlMenssage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-1 sm:p-4">
         {messageItems.map((item) => (
           <div
             key={item.num}
@@ -253,9 +253,9 @@ export default function ControlMenssage() {
                 : "hover:bg-app-border active:bg-app-light"
             }`}
           >
-            <div className="p-5">
-              <h2 className="text-xl font-bold text-app-main mb-2">
-                Mensaje {item.num}
+            <div className="sm:p-5">
+              <h2 className="flex sm:justify-center mb-0.5 sm:mb-2 sm:text-xl font-bold text-app-main">
+                {item.num}. Mensaje
               </h2>
               <p className="font-semibold text-app-muted text-sm leading-relaxed">
                 {item.text}

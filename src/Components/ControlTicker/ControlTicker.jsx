@@ -112,13 +112,13 @@ export default function ControlTicker() {
         </div>
 
         {/* boton guardar */}
-        <div className="col-span-2 flex justify-center p-1 md:p-2">
+        <div className="col-span-2 flex items-center justify-center p-1 md:p-2">
           <button
             type="button"
             onClick={() => {
               agregarElemento(ticker), setTicker("");
             }}
-            className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-xs lg:text-base break-words
+            className={`w-full h-10 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-xs lg:text-base break-words
                ${
                  !ticker
                    ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-default"
@@ -210,9 +210,9 @@ export default function ControlTicker() {
                 : "hover:bg-app-border active:bg-app-light"
             }`}
           >
-            <div className="p-5">
-              <h2 className="text-xl font-bold text-app-main mb-2">
-                Ticker {item.num}
+            <div className="sm:p-5">
+              <h2 className="flex sm:justify-center mb-0.5 sm:mb-2 sm:text-xl font-bold text-app-main">
+                {item.num}. Ticker
               </h2>
               <p className="font-semibold text-app-muted text-sm leading-relaxed">
                 {item.text}
