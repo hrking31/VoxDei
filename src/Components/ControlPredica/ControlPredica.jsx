@@ -65,7 +65,7 @@ export default function Predica() {
   };
 
   const consultaVersiculo = async (sigla, capitulo, versiculo) => {
-    const data = await obtenerVersiculo(sigla, capitulo, versiculo, showNotif);
+    const data = await obtenerVersiculo(sigla, capitulo, versiculo, "tipo", showNotif);
     if (!data) return;
 
     setResultado(data);
@@ -177,7 +177,7 @@ export default function Predica() {
           className={`font-bold text-center ml-2 border-b-2 ${
             visible
               ? "text-app-main border-app-main"
-              : "text-app-border border-app-border"
+              : "text-app-muted border-app-muted"
           }`}
         >
           Asistente de Prédica
@@ -226,10 +226,10 @@ export default function Predica() {
                     handleChange("titulo", e.target.value);
                   }}
                   placeholder="Escribe un titulo..."
-                  className={`w-full border text-app-muted border-app-border rounded p-2  resize-none focus:outline-none focus:ring-2 focus:ring-app-main scrollbar-custom text-xs sm:text-sm md:text-base break-words ${
+                  className={`w-full font-bold rounded p-2 resize-none focus:outline-none scrollbar-custom text-xs sm:text-sm md:text-base break-words ${
                     !editar && numSlots
-                      ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-not-allowed"
-                      : "focus:outline-none focus:ring-2 focus:ring-app-main cursor-pointer"
+                      ? "bg-transparent border-2 border-app-border text-app-border cursor-not-allowed"
+                      : "text-app-muted border-2 border-app-muted focus:outline-none focus:border-transparent focus:ring-2 focus:ring-app-main cursor-pointer"
                   }`}
                   disabled={!editar && numSlots}
                   maxLength={600}
@@ -246,10 +246,10 @@ export default function Predica() {
                     handleChange("mensaje", e.target.value);
                   }}
                   placeholder="Escribe tu mensaje..."
-                  className={`w-full border text-app-muted border-app-border rounded p-2  resize-none focus:outline-none scrollbar-custom text-xs sm:text-sm md:text-base break-words ${
+                  className={`w-full font-bold rounded p-2 resize-none focus:outline-none scrollbar-custom text-xs sm:text-sm md:text-base break-words ${
                     !editar && numSlots
-                      ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-not-allowed"
-                      : "focus:outline-none focus:ring-2 focus:ring-app-main cursor-pointer"
+                      ? "bg-transparent border-2 border-app-border text-app-border cursor-not-allowed"
+                      : "text-app-muted border-2 border-app-muted focus:outline-none focus:border-transparent focus:ring-2 focus:ring-app-main cursor-pointer"
                   }`}
                   disabled={!editar && numSlots}
                   maxLength={600}
@@ -351,7 +351,7 @@ export default function Predica() {
                     editar
                       ? "border-amber-500 text-amber-500"
                       : numSlots
-                      ? "border-app-error text-app-error cursor-pointer"
+                      ? "border-app-error text-app-error hover:text-amber-500 hover:border-amber-500 cursor-pointer"
                       : "border-app-border text-app-border cursor-not-allowed"
                   }`}
                 >
@@ -409,10 +409,10 @@ export default function Predica() {
                 <button
                   type="button"
                   onClick={() => abrirModalConTipo("antiguo")}
-                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center bg-transparent font-bold text-app-muted rounded border-2 flex-1 text-xs sm:text-sm md:text-base break-words ${
+                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center bg-transparent font-bold rounded border-2 flex-1 text-xs sm:text-sm md:text-base break-words ${
                     !editar && numSlots
                       ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-not-allowed"
-                      : "hover:text-app-main hover:border-app-main cursor-pointer"
+                      : "text-app-muted hover:text-app-main hover:border-app-main cursor-pointer"
                   }`}
                   disabled={!editar && numSlots}
                 >
@@ -422,10 +422,10 @@ export default function Predica() {
                 <button
                   type="button"
                   onClick={() => abrirModalConTipo("nuevo")}
-                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center bg-transparent font-bold text-app-muted rounded border-2 flex-1 text-xs sm:text-sm md:text-base break-words ${
+                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center bg-transparent font-bold rounded border-2 flex-1 text-xs sm:text-sm md:text-base break-words ${
                     !editar && numSlots
                       ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-not-allowed"
-                      : "hover:text-app-main hover:border-app-main cursor-pointer"
+                      : "text-app-muted hover:text-app-main hover:border-app-main cursor-pointer"
                   }`}
                   disabled={!editar && numSlots}
                 >
@@ -435,7 +435,11 @@ export default function Predica() {
 
               {/* versiculo y agregar */}
               <div className="col-span-3 sm:col-span-2  gap-2 grid grid-cols-2 sm:grid-cols-2 p-0.5">
-                <h2 className="flex items-center justify-center text-center font-bold text-app-muted text-xs sm:text-sm md:text-base break-words">
+                <h2
+                  className={`flex items-center justify-center text-center font-bold text-xs sm:text-sm md:text-base break-words ${
+                    !editar && numSlots ? "text-app-border " : "text-app-muted "
+                  }`}
+                >
                   {versiculoTemp.cita || "Versículo Seleccionado"}
                 </h2>
 

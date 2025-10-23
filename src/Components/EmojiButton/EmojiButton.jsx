@@ -13,8 +13,12 @@ export default function EmojiButton({ onSelect, disabled }) {
       <button
         type="button"
         onClick={() => setShowPicker(!showPicker)}
-        className={`text-2xl bg-transparent border-none cursor-pointer transition-opacity 
-          ${disabled ? "opacity-40 cursor-not-allowed" : "hover:opacity-80"}`}
+        className={`text-2xl bg-transparent border-none transition-opacity 
+          ${
+            disabled
+              ? "opacity-40 cursor-not-allowed"
+              : "hover:opacity-80 cursor-pointer "
+          }`}
         disabled={disabled}
       >
         {showPicker ? "😎" : "😀"}
