@@ -1,17 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { doc, getDoc } from "firebase/firestore";
-import { database, db } from "../Firebase/Firebase";
+import { database } from "../Firebase/Firebase";
 import { ref, set, update } from "firebase/database";
 import parse from "html-react-parser";
 import LibrosModal from "../../Components/LibrosModal/LibrosModal";
 import CapituloModal from "../../Components/CapituloModal/CapituloModal";
 import VersiculoModal from "../../Components/VersiculoModal/VersiculoModal";
 import { obtenerVersiculo } from "../FuncionesControlPredica/FuncionesControlPredica";
-import BuscadorExpandible from "../buscadorExpandible/BuscadorExpandible";
+import BuscadorLibros from "../BuscadorLibros/BuscadorLibros";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useAppContext } from "../Context/AppContext";
-import { librosAntiguo, librosNuevo } from "../LibrosBiblia/LibrosBiblia";
 
 export default function ControlVersiculos() {
   const navigate = useNavigate();
@@ -32,39 +30,8 @@ export default function ControlVersiculos() {
   const { visibleTitulo, setVisibleTitulo } = useAppContext();
   const { visiblePredica, setVisiblePredica } = useAppContext();
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
   const { showNotif } = useAppContext();
   const versiculosRef = useRef({});
-
-  const normalizar = (texto) =>
-    texto
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-
-  const handleBuscar = (valor) => {
-    setQuery(valor);
-
-    if (valor.trim() === "") {
-      setLibro();
-      return;
-    }
-    const filtro = normalizar(valor);
-    const coincidencias =
-      librosNuevo.find((libro) => {
-        const nombre = normalizar(libro.nombre);
-        const sigla = normalizar(libro.sigla);
-        return nombre.includes(filtro) || sigla.includes(filtro);
-      }) ||
-      librosAntiguo.find((libro) => {
-        const nombre = normalizar(libro.nombre);
-        const sigla = normalizar(libro.sigla);
-        return nombre.includes(filtro) || sigla.includes(filtro);
-      });
-
-    setLibro(coincidencias);
-    LibroSeleccionado(coincidencias);
-  };
 
   const abrirModalConTipo = (tipo) => {
     setTipoLibros(tipo);
@@ -163,6 +130,29 @@ export default function ControlVersiculos() {
 
   return (
     <div className="flex flex-col justify-center gap-2">
+      <div className="w-full flex items-center justify-end mt-1 gap-6 px-4">
+        <button
+          onClick={(e) => toggleVisibleTitulo(e)}
+          className="font-semibold text-app-accent transition-all duration-200  "
+        >
+          {visibleTitulo ? (
+            <EyeIcon className="w-8 h-8" />
+          ) : (
+            <EyeSlashIcon className="w-8 h-8" />
+          )}
+        </button>
+
+        <button
+          onClick={toggleVisible}
+          className="font-semibold text-app-main transition-all duration-200  "
+        >
+          {visiblePredica ? (
+            <EyeIcon className="w-8 h-8" />
+          ) : (
+            <EyeSlashIcon className="w-8 h-8" />
+          )}
+        </button>
+      </div>
       {/* BLOQUE STICKY */}
       <div className="sticky top-0 z-10 bg-app-dark pt-3 pb-3">
         {/* Fila de capítulos */}
@@ -188,34 +178,32 @@ export default function ControlVersiculos() {
         </div>
 
         {/* Botones */}
-        <div className="grid grid-cols-12 gap-2 w-full ">
+        <div className="grid grid-cols-12 w-full">
           <div
-            className={`flex justify-center p-2 ${
+            className={`flex p-2 ${
               open
-                ? "col-span-12 sm:col-span-6 lg:col-span-4"
-                : "col-span-2 pl-4 sm:col-span-1"
+                ? "col-span-12 sm:col-span-6 lg:col-span-4 "
+                : "col-span-2 sm:col-span-1 pl-5"
             }`}
           >
-            <BuscadorExpandible
+            <BuscadorLibros
               open={open}
               setOpen={setOpen}
-              query={query}
-              setQuery={setQuery}
-              handleBuscar={handleBuscar}
+              onLibroSeleccionado={LibroSeleccionado}
             />
           </div>
 
           <div
             className={`flex justify-center gap-2 p-2 ${
               open
-                ? "col-span-12 sm:col-span-6 lg:col-span-8"
-                : "col-span-10 pl-4 sm:col-span-11"
+                ? "col-span-12 row-end-1 sm:row-end-auto sm:col-span-6 lg:col-span-8"
+                : "col-span-10 sm:col-span-11"
             }`}
           >
             <button
               type="button"
               onClick={() => abrirModalConTipo("antiguo")}
-              className="w-full  px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
+              className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
             >
               Antiguo
             </button>
@@ -223,7 +211,7 @@ export default function ControlVersiculos() {
             <button
               type="button"
               onClick={() => abrirModalConTipo("nuevo")}
-              className="w-full  px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
+              className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
             >
               Nuevo
             </button>
@@ -231,35 +219,11 @@ export default function ControlVersiculos() {
             <button
               type="button"
               onClick={() => navigate("/")}
-              className="w-full  px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
+              className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
             >
               Salida
             </button>
           </div>
-        </div>
-
-        <div className="w-full flex items-center justify-end mt-1 gap-6 px-4">
-          <button
-            onClick={(e) => toggleVisibleTitulo(e)}
-            className="font-semibold text-app-accent transition-all duration-200  "
-          >
-            {visibleTitulo ? (
-              <EyeIcon className="w-8 h-8" />
-            ) : (
-              <EyeSlashIcon className="w-8 h-8" />
-            )}
-          </button>
-
-          <button
-            onClick={toggleVisible}
-            className="font-semibold text-app-main transition-all duration-200  "
-          >
-            {visiblePredica ? (
-              <EyeIcon className="w-8 h-8" />
-            ) : (
-              <EyeSlashIcon className="w-8 h-8" />
-            )}
-          </button>
         </div>
       </div>
       {/* FIN BLOQUE STICKY */}
