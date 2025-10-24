@@ -205,7 +205,7 @@ export default function ControlVersiculos() {
             <button
               type="button"
               onClick={() => abrirModalConTipo("antiguo")}
-              className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
+              className="w-full px-1.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
             >
               Antiguo
             </button>
@@ -213,7 +213,7 @@ export default function ControlVersiculos() {
             <button
               type="button"
               onClick={() => abrirModalConTipo("nuevo")}
-              className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
+              className="w-full px-1.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
             >
               Nuevo
             </button>
@@ -221,15 +221,15 @@ export default function ControlVersiculos() {
             <button
               type="button"
               onClick={() => navigate("/")}
-              className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
+              className="w-full px-1.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
             >
               Salida
             </button>
 
-            <div className="sm:hidden flex items-center gap-4 shrink-0 mr-2">
+            <div className="sm:hidden flex items-center gap-2 ">
               <button
                 onClick={(e) => toggleVisibleTitulo(e)}
-                className="p-2 border-2 rounded font-semibold text-app-accent transition-all duration-200"
+                className="p-1 border-2 rounded font-semibold text-app-accent transition-all duration-200"
               >
                 {visibleTitulo ? (
                   <EyeIcon className="w-6 h-6" />
@@ -240,7 +240,7 @@ export default function ControlVersiculos() {
 
               <button
                 onClick={toggleVisible}
-                className="p-2 border-2 rounded font-semibold text-app-main transition-all duration-200"
+                className="p-1 border-2 rounded font-semibold text-app-main transition-all duration-200"
               >
                 {visiblePredica ? (
                   <EyeIcon className="w-6 h-6" />
