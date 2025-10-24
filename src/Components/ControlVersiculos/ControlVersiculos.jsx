@@ -154,7 +154,7 @@ export default function ControlVersiculos() {
         </button>
       </div>
       {/* BLOQUE STICKY */}
-      <div className="sticky top-0 z-10 bg-app-dark pt-3 pb-3">
+      <div className="sticky top-0 z-10 bg-app-dark pt-3 pb-3 border">
         {/* Fila de capítulos */}
         <div
           className="flex gap-2 overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden   
@@ -178,12 +178,12 @@ export default function ControlVersiculos() {
         </div>
 
         {/* Botones */}
-        <div className="grid grid-cols-12 w-full">
+        <div className="grid grid-cols-12 w-full border">
           <div
-            className={`flex p-2 ${
+            className={`flex p-2 border ${
               open
                 ? "col-span-12 sm:col-span-6 lg:col-span-4 "
-                : "col-span-2 sm:col-span-1 pl-5"
+                : "col-span-2 sm:col-span-1"
             }`}
           >
             <BuscadorLibros
@@ -194,7 +194,7 @@ export default function ControlVersiculos() {
           </div>
 
           <div
-            className={`flex justify-center gap-2 p-2 ${
+            className={`flex justify-center gap-2 p-2 border ${
               open
                 ? "col-span-12 row-end-1 sm:row-end-auto sm:col-span-6 lg:col-span-8"
                 : "col-span-10 sm:col-span-11"
