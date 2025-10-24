@@ -130,51 +130,53 @@ export default function ControlVersiculos() {
 
   return (
     <div className="flex flex-col justify-center gap-2">
-      <div className="w-full flex items-center justify-end mt-1 gap-6 px-4">
-        <button
-          onClick={(e) => toggleVisibleTitulo(e)}
-          className="font-semibold text-app-accent transition-all duration-200  "
-        >
-          {visibleTitulo ? (
-            <EyeIcon className="w-8 h-8" />
-          ) : (
-            <EyeSlashIcon className="w-8 h-8" />
-          )}
-        </button>
-
-        <button
-          onClick={toggleVisible}
-          className="font-semibold text-app-main transition-all duration-200  "
-        >
-          {visiblePredica ? (
-            <EyeIcon className="w-8 h-8" />
-          ) : (
-            <EyeSlashIcon className="w-8 h-8" />
-          )}
-        </button>
-      </div>
       {/* BLOQUE STICKY */}
       <div className="sticky top-0 z-10 bg-app-dark pt-3 pb-3 border">
         {/* Fila de capítulos */}
-        <div
-          className="flex gap-2 overflow-x-auto whitespace-nowrap [&::-webkit-scrollbar]:hidden   
-        xl:[&::-webkit-scrollbar]:block scrollbar-custom mb-4"
-        >
-          {Array.from({ length: libro.capitulos }, (_, i) => (
-            <span
-              key={i + 1}
-              onClick={() => {
-                setLibro((prevLibro) => ({
-                  ...prevLibro,
-                  versiculo: 1,
-                }));
-                consultaVersiculo(libro.sigla, i + 1, 1);
-              }}
-              className="xl:mb-1 inline-block px-2 py-1 text-app-muted bg-app-border rounded cursor-pointer hover:text-app-main"
+        <div className="flex items-center justify-end gap-4 ">
+          <div className="flex-1 overflow-x-auto scrollbar-custom [&::-webkit-scrollbar]:hidden xl:[&::-webkit-scrollbar]:block">
+            <div className="flex gap-2 whitespace-nowrap">
+              {Array.from({ length: libro.capitulos }, (_, i) => (
+                <span
+                  key={i + 1}
+                  onClick={() => {
+                    setLibro((prevLibro) => ({
+                      ...prevLibro,
+                      versiculo: 1,
+                    }));
+                    consultaVersiculo(libro.sigla, i + 1, 1);
+                  }}
+                  className="xl:mb-1 inline-block px-2 py-1 text-app-muted bg-app-border rounded cursor-pointer hover:text-app-main"
+                >
+                  {libro.nombre} {i + 1}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-4 shrink-0 mr-2">
+            <button
+              onClick={(e) => toggleVisibleTitulo(e)}
+              className="p-2 border-2 rounded font-semibold text-app-accent transition-all duration-200"
             >
-              {libro.nombre} {i + 1}
-            </span>
-          ))}
+              {visibleTitulo ? (
+                <EyeIcon className="w-6 h-6" />
+              ) : (
+                <EyeSlashIcon className="w-6 h-6" />
+              )}
+            </button>
+
+            <button
+              onClick={toggleVisible}
+              className="p-2 border-2 rounded font-semibold text-app-main transition-all duration-200"
+            >
+              {visiblePredica ? (
+                <EyeIcon className="w-6 h-6" />
+              ) : (
+                <EyeSlashIcon className="w-6 h-6" />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Botones */}
@@ -223,6 +225,30 @@ export default function ControlVersiculos() {
             >
               Salida
             </button>
+
+            <div className="sm:hidden flex items-center gap-4 shrink-0 mr-2">
+              <button
+                onClick={(e) => toggleVisibleTitulo(e)}
+                className="p-2 border-2 rounded font-semibold text-app-accent transition-all duration-200"
+              >
+                {visibleTitulo ? (
+                  <EyeIcon className="w-6 h-6" />
+                ) : (
+                  <EyeSlashIcon className="w-6 h-6" />
+                )}
+              </button>
+
+              <button
+                onClick={toggleVisible}
+                className="p-2 border-2 rounded font-semibold text-app-main transition-all duration-200"
+              >
+                {visiblePredica ? (
+                  <EyeIcon className="w-6 h-6" />
+                ) : (
+                  <EyeSlashIcon className="w-6 h-6" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>

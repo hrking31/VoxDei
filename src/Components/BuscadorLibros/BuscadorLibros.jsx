@@ -59,7 +59,7 @@ export default function BuscadorLibros({ open, setOpen, onLibroSeleccionado }) {
 
       {/* Campo de búsqueda */}
       {open && (
-        <div className="flex items-center w-full bg-white rounded-full shadow-md overflow-hidden">
+        <div className="flex items-center w-full bg-app-light border-2 border-app-border rounded-full shadow-md overflow-hidden">
           <button
             onClick={() => {
               setOpen(false);
@@ -76,7 +76,7 @@ export default function BuscadorLibros({ open, setOpen, onLibroSeleccionado }) {
             onChange={(e) => handleBuscar(e.target.value)}
             placeholder="Buscar..."
             autoFocus
-            className="flex-1 bg-transparent px-3 py-2 text-gray-800 focus:outline-none text-sm sm:text-base"
+            className="flex-1 bg-transparent px-3 py-2 text-app-muted focus:outline-none text-sm sm:text-base"
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
@@ -92,15 +92,17 @@ export default function BuscadorLibros({ open, setOpen, onLibroSeleccionado }) {
             top-[110%] 
             left-1/2 
             -translate-x-1/2 
-            w-[95%] sm:w-[90%] md:w-[80%] 
-            bg-white 
-            border border-gray-300 
+            w-[100%] sm:w-[90%] 
+            bg-app-light
+            border-2 border-app-border
             rounded-lg 
             shadow-lg 
             max-h-64 
             overflow-y-auto 
             z-20 
+            text-app-muted
             text-sm sm:text-base
+            scrollbar-custom
           "
         >
           {resultados.map((libro, idx) => (
