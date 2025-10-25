@@ -15,6 +15,12 @@ export default function BuscadorLibros({ open, setOpen, onLibroSeleccionado }) {
   const [query, setQuery] = useState("");
   const [resultados, setResultados] = useState([]);
 
+  const cerrarBuscador = () => {
+    setOpen(false);
+    setResultados([]);
+    setQuery("");
+  };
+
   const handleBuscar = (valor) => {
     setQuery(valor);
 
@@ -26,10 +32,10 @@ export default function BuscadorLibros({ open, setOpen, onLibroSeleccionado }) {
     const filtro = normalizar(valor);
 
     const coincidenciasNuevo = librosNuevo.filter((libro) =>
-      normalizar(libro.nombre).includes(filtro)
+      normalizar(libro.nombre).startsWith(filtro)
     );
     const coincidenciasAntiguo = librosAntiguo.filter((libro) =>
-      normalizar(libro.nombre).includes(filtro)
+      normalizar(libro.nombre).startsWith(filtro)
     );
 
     const todos = [...coincidenciasNuevo, ...coincidenciasAntiguo].sort(
@@ -40,9 +46,8 @@ export default function BuscadorLibros({ open, setOpen, onLibroSeleccionado }) {
   };
 
   const handleSeleccionarLibro = (libro) => {
-    setQuery(libro.nombre);
-    setResultados([]);
     onLibroSeleccionado(libro);
+    cerrarBuscador();
   };
 
   return (
@@ -61,11 +66,7 @@ export default function BuscadorLibros({ open, setOpen, onLibroSeleccionado }) {
       {open && (
         <div className="flex items-center w-full bg-app-light border-2 border-app-border rounded-full shadow-md overflow-hidden">
           <button
-            onClick={() => {
-              setOpen(false);
-              setResultados([]);
-              setQuery("");
-            }}
+            onClick={cerrarBuscador}
             className="flex items-center justify-center p-1.5 bg-app-main focus:outline-none"
           >
             <MagnifyingGlassIcon className="w-6 sm:w-7 h-6 sm:h-7 p-1 text-app-light" />

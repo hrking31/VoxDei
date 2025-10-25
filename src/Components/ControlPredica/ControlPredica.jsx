@@ -262,7 +262,7 @@ export default function Predica() {
                 />
               </div>
 
-              <div className="col-span col-start-5 row-end-1 md:col-start-auto md:row-end-auto flex items-center justify-center">
+              <div className="col-start-5 row-end-1 md:col-start-auto md:row-end-auto flex items-center justify-center">
                 <EmojiButton
                   onSelect={(emoji) => {
                     // Toma el texto actual del input activo
@@ -284,7 +284,7 @@ export default function Predica() {
                 />
               </div>
 
-              <div className="col-span col-start-6 row-end-1 md:col-start-auto md:row-end-auto flex items-center justify-center">
+              <div className="col-start-6 row-end-1 md:col-start-auto md:row-end-auto flex items-center justify-center">
                 <button
                   type="button"
                   onClick={() => agregarElemento("mensaje")}

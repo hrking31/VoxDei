@@ -131,125 +131,98 @@ export default function ControlVersiculos() {
   return (
     <div className="flex flex-col justify-center gap-2">
       {/* BLOQUE STICKY */}
-      <div className="sticky top-0 z-10 bg-app-dark pt-3 pb-3 border">
+      <div className="grid grid-cols-12 w-full sticky bg-app-dark top-0 z-10 pt-3">
         {/* Fila de capítulos */}
-        <div className="flex items-center justify-end gap-4 ">
-          <div className="flex-1 overflow-x-auto scrollbar-custom [&::-webkit-scrollbar]:hidden xl:[&::-webkit-scrollbar]:block">
-            <div className="flex gap-2 whitespace-nowrap">
-              {Array.from({ length: libro.capitulos }, (_, i) => (
-                <span
-                  key={i + 1}
-                  onClick={() => {
-                    setLibro((prevLibro) => ({
-                      ...prevLibro,
-                      versiculo: 1,
-                    }));
-                    consultaVersiculo(libro.sigla, i + 1, 1);
-                  }}
-                  className="xl:mb-1 inline-block px-2 py-1 text-app-muted bg-app-border rounded cursor-pointer hover:text-app-main"
-                >
-                  {libro.nombre} {i + 1}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="hidden sm:flex items-center gap-4 shrink-0 mr-2">
-            <button
-              onClick={(e) => toggleVisibleTitulo(e)}
-              className="p-2 border-2 rounded font-semibold text-app-accent transition-all duration-200"
-            >
-              {visibleTitulo ? (
-                <EyeIcon className="w-6 h-6" />
-              ) : (
-                <EyeSlashIcon className="w-6 h-6" />
-              )}
-            </button>
-
-            <button
-              onClick={toggleVisible}
-              className="p-2 border-2 rounded font-semibold text-app-main transition-all duration-200"
-            >
-              {visiblePredica ? (
-                <EyeIcon className="w-6 h-6" />
-              ) : (
-                <EyeSlashIcon className="w-6 h-6" />
-              )}
-            </button>
+        <div className="col-span-12 xl:col-span-10 overflow-x-auto scrollbar-custom [&::-webkit-scrollbar]:hidden xl:[&::-webkit-scrollbar]:block pb-2">
+          <div className="flex gap-2 whitespace-nowrap">
+            {Array.from({ length: libro.capitulos }, (_, i) => (
+              <span
+                key={i + 1}
+                onClick={() => {
+                  setLibro((prevLibro) => ({
+                    ...prevLibro,
+                    versiculo: 1,
+                  }));
+                  consultaVersiculo(libro.sigla, i + 1, 1);
+                }}
+                className="xl:mb-1 inline-block px-2 py-1 text-app-muted bg-app-border rounded cursor-pointer hover:text-app-main"
+              >
+                {libro.nombre} {i + 1}
+              </span>
+            ))}
           </div>
         </div>
 
         {/* Botones */}
-        <div className="grid grid-cols-12 w-full border">
-          <div
-            className={`flex p-2 border ${
-              open
-                ? "col-span-12 sm:col-span-6 lg:col-span-4 "
-                : "col-span-2 sm:col-span-1"
-            }`}
+        <div
+          className={`flex p-2 ${
+            open
+              ? "col-span-12 row-start-3 sm:row-start-auto sm:col-span-6"
+              : "col-span-2 sm:col-span-1"
+          }`}
+        >
+          <BuscadorLibros
+            open={open}
+            setOpen={setOpen}
+            onLibroSeleccionado={LibroSeleccionado}
+          />
+        </div>
+
+        <div
+          className={`flex justify-center gap-2 p-2 ${
+            open
+              ? "col-span-8 sm:col-span-4 xl:col-span-6"
+              : "col-span-6 sm:col-span-9 xl:col-span-11"
+          }`}
+        >
+          <button
+            type="button"
+            onClick={() => abrirModalConTipo("antiguo")}
+            className="w-full py-2 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
           >
-            <BuscadorLibros
-              open={open}
-              setOpen={setOpen}
-              onLibroSeleccionado={LibroSeleccionado}
-            />
-          </div>
+            Antiguo
+          </button>
 
-          <div
-            className={`flex justify-center gap-2 p-2 border ${
-              open
-                ? "col-span-12 row-end-1 sm:row-end-auto sm:col-span-6 lg:col-span-8"
-                : "col-span-10 sm:col-span-11"
-            }`}
+          <button
+            type="button"
+            onClick={() => abrirModalConTipo("nuevo")}
+            className="w-full py-2 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
           >
-            <button
-              type="button"
-              onClick={() => abrirModalConTipo("antiguo")}
-              className="w-full px-1.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
-            >
-              Antiguo
-            </button>
+            Nuevo
+          </button>
 
-            <button
-              type="button"
-              onClick={() => abrirModalConTipo("nuevo")}
-              className="w-full px-1.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
-            >
-              Nuevo
-            </button>
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="w-full py-2 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
+          >
+            Salida
+          </button>
+        </div>
 
-            <button
-              type="button"
-              onClick={() => navigate("/")}
-              className="w-full px-1.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
-            >
-              Salida
-            </button>
+        {/* botones visisbilidad */}
+        <div className="col-span-4 sm:col-span-2 xl:col-span-2 xl:col-start-11 xl:row-start-1 row-start-auto flex items-center justify-center xl:px-2.5 gap-4 p-2 xl:p-0">
+          <button
+            onClick={(e) => toggleVisibleTitulo(e)}
+            className="w-full py-1.5 xl:py-3 flex items-center justify-center border-2 rounded font-semibold text-app-accent transition-all duration-200"
+          >
+            {visibleTitulo ? (
+              <EyeIcon className="w-6 h-6" />
+            ) : (
+              <EyeSlashIcon className="w-6 h-6" />
+            )}
+          </button>
 
-            <div className="sm:hidden flex items-center gap-2 ">
-              <button
-                onClick={(e) => toggleVisibleTitulo(e)}
-                className="p-1 border-2 rounded font-semibold text-app-accent transition-all duration-200"
-              >
-                {visibleTitulo ? (
-                  <EyeIcon className="w-6 h-6" />
-                ) : (
-                  <EyeSlashIcon className="w-6 h-6" />
-                )}
-              </button>
-
-              <button
-                onClick={toggleVisible}
-                className="p-1 border-2 rounded font-semibold text-app-main transition-all duration-200"
-              >
-                {visiblePredica ? (
-                  <EyeIcon className="w-6 h-6" />
-                ) : (
-                  <EyeSlashIcon className="w-6 h-6" />
-                )}
-              </button>
-            </div>
-          </div>
+          <button
+            onClick={toggleVisible}
+            className="w-full py-1.5 xl:py-3 flex items-center justify-center border-2 rounded font-semibold text-app-main transition-all duration-200"
+          >
+            {visiblePredica ? (
+              <EyeIcon className="w-6 h-6" />
+            ) : (
+              <EyeSlashIcon className="w-6 h-6" />
+            )}
+          </button>
         </div>
       </div>
       {/* FIN BLOQUE STICKY */}
