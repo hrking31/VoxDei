@@ -126,22 +126,31 @@ export default function ControlMenssage() {
         Panel de Control Mensajes
       </h1>
 
-      <div className="grid grid-cols-12 gap-1 mb-2">
+      <div className="grid grid-cols-12">
         {/*textarea de mensaje*/}
-        <div className="col-span-10 flex p-1 md:p-2">
+        <div className="col-span-9 flex flex-col p-2 md:p-2">
           <textarea
             ref={textareaRef}
-            className="w-full border text-app-muted border-app-border rounded resize-none focus:outline-none focus:ring-2 focus:ring-app-main scrollbar-custom text-sm md:text-base break-words p-1"
+            className="w-full border text-app-muted border-app-border rounded resize-none focus:outline-none focus:ring-2 focus:ring-app-main scrollbar-custom text-sm md:text-base break-words min-h-[4rem] p-1"
             name="message"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Escribe tu mensaje aquí..."
             maxLength={600}
           />
+          <p className="col-span-12 flex text-sm text-app-muted justify-end px-3">
+            {message.length} / 600
+          </p>
         </div>
 
         {/* boton guardar */}
-        <div className="col-span-2 flex items-center justify-center p-1 md:p-2">
+        <div className="col-span-3 flex flex-col sm:flex-row items-center justify-center gap-2 p-2">
+          <div className=" flex items-center justify-center">
+            <EmojiButton
+              onSelect={(emoji) => setMessage((prev) => prev + emoji)}
+            />
+          </div>
+
           <button
             type="button"
             onClick={() => {
@@ -150,7 +159,7 @@ export default function ControlMenssage() {
             className={`w-full h-10 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-xs lg:text-base break-words
                ${
                  !message
-                   ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-default"
+                   ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-not-allowed"
                    : "bg-green-500 text-white cursor-pointer"
                }`}
             disabled={!message}
@@ -160,23 +169,16 @@ export default function ControlMenssage() {
         </div>
       </div>
 
-      {/* contador de caracteres*/}
-      <div className="grid grid-cols-12">
-        <div className="col-span-12 flex text-sm text-app-muted justify-end mb-2 pr-3">
-          <p className="">{message.length} / 600</p>
-        </div>
-      </div>
-
       {/* botones de acciones*/}
-      <div className="grid grid-cols-12 p-2 sm:p-0">
-        <div className="flex justify-center p-1 md:p-4 col-span-8 sm:col-span-9 col-start-5 row-end-1 md:col-start-auto md:row-end-auto">
+      <div className="grid grid-cols-12">
+        <div className="flex justify-center col-span-8 sm:col-span-10 p-2">
           <div className="flex gap-2 w-full">
             <button
               type="button"
               onClick={() => {
                 handleMessage(message), setMessage("");
               }}
-              className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-base break-words ${
+              className={`w-full py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-base break-words ${
                 !message
                   ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-default"
                   : "bg-green-500 text-white cursor-pointer"
@@ -188,7 +190,7 @@ export default function ControlMenssage() {
 
             <button
               onClick={() => setMessage("")}
-              className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
+              className="w-full py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
             >
               Cancelar
             </button>
@@ -196,46 +198,35 @@ export default function ControlMenssage() {
             <button
               type="button"
               onClick={() => navigate("/")}
-              className="w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
+              className="w-full py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
             >
               Salida
             </button>
           </div>
         </div>
 
-        <div className="col-span-1 col-start-1 row-end-1 md:col-start-auto md:row-end-auto flex items-center justify-center p-1">
-          <EmojiButton
-            onSelect={(emoji) => setMessage((prev) => prev + emoji)}
-          />
-        </div>
+        <div className="col-span-4 sm:col-span-2 flex items-center justify-center xl:px-2.5 gap-4 p-2 xl:p-0">
+          <button
+            onClick={(e) => toggleVisibleTitulo(e)}
+            className="w-full py-1.5 xl:py-3 flex items-center justify-center border-2 rounded font-semibold text-app-accent transition-all duration-200"
+          >
+            {visibleTitulo ? (
+              <EyeIcon className="w-6 h-6" />
+            ) : (
+              <EyeSlashIcon className="w-6 h-6" />
+            )}
+          </button>
 
-        <div className="col-span-3 sm:col-span-2 col-start-2 row-end-1 md:col-start-auto md:row-end-auto flex items-center justify-center gap-3 sm:gap-10 ">
-          <div className="flex p-1">
-            <button
-              onClick={(e) => toggleVisibleTitulo(e)}
-              className="font-semibold text-app-accent transition-all duration-200"
-            >
-              {visibleTitulo ? (
-                <EyeIcon className="w-6 sm:w-8 h-6 sm:h-8" />
-              ) : (
-                <EyeSlashIcon className="w-6 sm:w-8 h-6 sm:h-8" />
-              )}
-            </button>
-          </div>
-
-          <div className="flex p-1">
-            <button
-              onClick={toggleVisible}
-              className="font-semibold text-app-main transition-all
-              duration-200"
-            >
-              {visiblePredica ? (
-                <EyeIcon className="w-6 sm:w-8 h-6 sm:h-8" />
-              ) : (
-                <EyeSlashIcon className="w-6 sm:w-8 h-6 sm:h-8" />
-              )}
-            </button>
-          </div>
+          <button
+            onClick={toggleVisible}
+            className="w-full py-1.5 xl:py-3 flex items-center justify-center border-2 rounded font-semibold text-app-main transition-all duration-200"
+          >
+            {visiblePredica ? (
+              <EyeIcon className="w-6 h-6" />
+            ) : (
+              <EyeSlashIcon className="w-6 h-6" />
+            )}
+          </button>
         </div>
       </div>
 
