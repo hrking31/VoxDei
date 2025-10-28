@@ -15,12 +15,12 @@ export default function VersiculoModal({
     >
       <div
         className="bg-app-light rounded-lg shadow-lg w-[90%] sm:w-[600px] md:w-[700px] lg:w-[800px] 
-                   h-[80vh] max-h-[80vh] p-6 max-h-[80vh] overflow-y-auto  scrollbar-custom"
+                   h-[80vh] max-h-[80vh] p-6 overflow-y-auto scrollbar-custom"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center ">
           <h2 className="text-2xl text-app-main font-bold ">
-            Capitulo {selecLibro.capitulo}
+            {selecLibro.nombre} Capitulo {selecLibro.capitulo}: 
           </h2>
 
           <button

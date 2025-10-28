@@ -74,7 +74,7 @@ export default function LibrosModal({ open, onClose, tipo, onLibro }) {
     >
       <div
         className="bg-app-light rounded-lg shadow-lg w-[90%] sm:w-[600px] md:w-[700px] lg:w-[800px] 
-                   h-[80vh] max-h-[80vh] p-6 flex flex-col overflow-hidden"
+                   h-[80vh] max-h-[80vh] p-6 overflow-y-auto scrollbar-custom"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Encabezado */}

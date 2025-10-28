@@ -13,6 +13,7 @@ import EmojiButton from "../EmojiButton/EmojiButton";
 import LibrosModal from "../LibrosModal/LibrosModal";
 import CapituloModal from "../../Components/CapituloModal/CapituloModal";
 import VersiculoModal from "../VersiculoModal/VersiculoModal";
+import WhatsAppButton from "../WhatsAppButton/WhatsAppButton";
 
 export default function Predica() {
   const navigate = useNavigate();
@@ -38,6 +39,9 @@ export default function Predica() {
   const [numSlots, setNumSlots] = useState("");
   const [predicaItems, setPredicaItems] = useState([]);
   const { showNotif } = useAppContext();
+
+  console.log("mensaje", predicaItems);
+    console.log("boleano", !predicaItems?.length);
 
   const handleChange = (id, value) => {
     setTexts((prev) => ({ ...prev, [id]: value }));
@@ -191,6 +195,10 @@ export default function Predica() {
 
         {!visible && (
           <div className="flex justify-center float-right mr-4 gap-6">
+            {predicaItems?.length > 0 && (
+              <WhatsAppButton message={predicaItems} />
+            )}
+
             <button
               onClick={(e) => toggleVisibleTitulo(e)}
               className="font-semibold text-app-accent transition-all duration-200  "
