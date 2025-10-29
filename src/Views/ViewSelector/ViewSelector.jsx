@@ -5,8 +5,10 @@ import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
 import { PhotoIcon } from "@heroicons/react/24/outline";
 import { VideoCameraIcon } from "@heroicons/react/24/outline";
 import { MicrophoneIcon } from "@heroicons/react/24/outline";
-import { BookOpenIcon as BookOpenOutline } from "@heroicons/react/24/outline";
-import { BookOpenIcon as BookOpenSolid } from "@heroicons/react/24/solid";
+import { BookOpenIcon } from "@heroicons/react/24/solid";
+import { PaintBrushIcon } from "@heroicons/react/24/outline";
+
+
 
 export default function ViewSelector() {
   const navigate = useNavigate();
@@ -82,22 +84,22 @@ export default function ViewSelector() {
         </button>
 
         <button
-          onClick={() => navigate("/ViewVersiculo")}
+          onClick={() => navigate("/ViewVersiculos")}
           className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
         >
-          <BookOpenSolid className="w-10 h-10 text-app-muted mb-2" />
+          <BookOpenIcon className="w-10 h-10 text-app-muted mb-2" />
           <span className="text-sm font-medium text-app-main text-center">
-            Capitulos
+            Biblia
           </span>
         </button>
 
         <button
-          onClick={() => navigate("/ViewVersiculos")}
+          onClick={() => navigate("/ViewVersiculo")}
           className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
         >
-          <BookOpenOutline className="w-10 h-10 text-app-muted mb-2" />
+          <PaintBrushIcon className="w-10 h-10 text-app-muted mb-2" />
           <span className="text-sm font-medium text-app-main text-center">
-            Versiculos
+            Estilos y colores
           </span>
         </button>
       </div>
