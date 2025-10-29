@@ -8,8 +8,6 @@ import { MicrophoneIcon } from "@heroicons/react/24/outline";
 import { BookOpenIcon } from "@heroicons/react/24/solid";
 import { PaintBrushIcon } from "@heroicons/react/24/outline";
 
-
-
 export default function ViewSelector() {
   const navigate = useNavigate();
 
@@ -22,10 +20,10 @@ export default function ViewSelector() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full max-w-4xl">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 w-full max-w-4xl">
         <button
           onClick={() => navigate("/ViewDisplay")}
-          className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+          className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
         >
           <PlayCircleIcon className="w-10 h-10 text-app-muted mb-2" />
           <span className="text-sm font-medium text-app-main text-center">
@@ -34,8 +32,18 @@ export default function ViewSelector() {
         </button>
 
         <button
+          onClick={() => navigate("/ViewVersiculo")}
+          className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+        >
+          <PaintBrushIcon className="w-10 h-10 text-app-muted mb-2" />
+          <span className="text-sm font-medium text-app-main text-center">
+            Estilos y colores
+          </span>
+        </button>
+
+        <button
           onClick={() => navigate("/ViewTicker")}
-          className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+          className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
         >
           <TagIcon className="w-10 h-10 text-app-muted mb-2" />
           <span className="text-sm font-medium text-app-main text-center">
@@ -45,7 +53,7 @@ export default function ViewSelector() {
 
         <button
           onClick={() => navigate("/ViewMessage")}
-          className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+          className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
         >
           <ChatBubbleLeftRightIcon className="w-10 h-10 text-app-muted mb-2" />
           <span className="text-sm font-medium text-app-main text-center">
@@ -55,7 +63,7 @@ export default function ViewSelector() {
 
         <button
           onClick={() => navigate("/ViewPanel")}
-          className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+          className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
         >
           <PhotoIcon className="w-10 h-10 text-app-muted mb-2" />
           <span className="text-sm font-medium text-app-main text-center">
@@ -65,7 +73,7 @@ export default function ViewSelector() {
 
         <button
           onClick={() => navigate("/ViewPanel")}
-          className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+          className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
         >
           <VideoCameraIcon className="w-10 h-10 text-app-muted mb-2" />
           <span className="text-sm font-medium text-app-main text-center">
@@ -75,7 +83,7 @@ export default function ViewSelector() {
 
         <button
           onClick={() => navigate("/ViewPredica")}
-          className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+          className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
         >
           <MicrophoneIcon className="w-10 h-10 text-app-muted mb-2" />
           <span className="text-sm font-medium text-app-main text-center">
@@ -85,25 +93,14 @@ export default function ViewSelector() {
 
         <button
           onClick={() => navigate("/ViewVersiculos")}
-          className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+          className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
         >
           <BookOpenIcon className="w-10 h-10 text-app-muted mb-2" />
           <span className="text-sm font-medium text-app-main text-center">
             Biblia
           </span>
         </button>
-
-        <button
-          onClick={() => navigate("/ViewVersiculo")}
-          className="flex flex-col items-center justify-center p-6 bg-app-light  rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
-        >
-          <PaintBrushIcon className="w-10 h-10 text-app-muted mb-2" />
-          <span className="text-sm font-medium text-app-main text-center">
-            Estilos y colores
-          </span>
-        </button>
       </div>
     </div>
   );
 }
-
