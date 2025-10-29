@@ -31,6 +31,7 @@ export default function ControlVersiculos() {
   const { visiblePredica, setVisiblePredica } = useAppContext();
   const [open, setOpen] = useState(false);
   const { showNotif } = useAppContext();
+  const capitulosRef = useRef({});
   const versiculosRef = useRef({});
 
   const abrirModalConTipo = (tipo) => {
@@ -88,31 +89,40 @@ export default function ControlVersiculos() {
     });
   };
 
+  useLayoutEffect(() => {
+    if (!resultado?.numero) return;
+
+    const numero = Number(resultado.numero);
+
+    if (numero === 1) {
+      // Esto asegura que siempre inicie desde arriba
+      window.scrollTo({ top: 0, behavior: "auto" });
+      return;
+    }
+
+    const elemento = versiculosRef.current[numero];
+    if (!elemento) return;
+
+    const stickyOffset = window.innerWidth >= 1280 ? 150 : 120;
+    const marginSuperior = 5;
+
+    const elementPosition =
+      elemento.getBoundingClientRect().top + window.scrollY;
+    const offsetPosition = elementPosition - stickyOffset - marginSuperior;
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: "auto",
+    });
+  }, [resultado?.numero, resultado?.texto, resultado?.libro]);
+
 useLayoutEffect(() => {
-  if (!resultado?.numero) return;
-
-  const numero = Number(resultado.numero);
-
-  if (numero === 1) {
-    // 👇 Esto asegura que siempre inicie desde arriba
-    window.scrollTo({ top: 0, behavior: "auto" });
-    return;
+  if (!libro.capitulo) return;
+  const el = capitulosRef.current[libro.capitulo];
+  if (el) {
+    el.scrollIntoView({ behavior: "auto", inline: "center", block: "nearest" });
   }
-
-  const elemento = versiculosRef.current[numero];
-  if (!elemento) return;
-
-  const stickyOffset = window.innerWidth >= 1280 ? 150 : 120;
-  const marginSuperior = 5;
-
-  const elementPosition = elemento.getBoundingClientRect().top + window.scrollY;
-  const offsetPosition = elementPosition - stickyOffset - marginSuperior;
-
-  window.scrollTo({
-    top: offsetPosition,
-    behavior: "auto",
-  });
-}, [resultado?.numero, resultado?.texto, resultado?.libro]);
+}, [libro.capitulo]);
 
 
   let currentTitulo = "";
@@ -140,27 +150,49 @@ useLayoutEffect(() => {
   };
 
   return (
-    <div className="flex flex-col justify-center gap-2">
+    <div className="flex flex-col justify-center">
       {/* BLOQUE STICKY */}
       <div className="grid grid-cols-12 w-full sticky bg-app-dark top-0 z-10 pt-3 pb-4">
         {/* Fila de capítulos */}
         <div className="col-span-12 xl:col-span-10 overflow-x-auto scrollbar-custom [&::-webkit-scrollbar]:hidden xl:[&::-webkit-scrollbar]:block pb-2">
           <div className="flex gap-2 whitespace-nowrap">
-            {Array.from({ length: libro.capitulos }, (_, i) => (
-              <span
-                key={i + 1}
-                onClick={() => {
-                  setLibro((prevLibro) => ({
-                    ...prevLibro,
-                    versiculo: 1,
-                  }));
-                  consultaVersiculo(libro.sigla, i + 1, 1);
-                }}
-                className="xl:mb-1 inline-block px-2 py-1 text-app-muted bg-app-border rounded cursor-pointer hover:text-app-main"
-              >
-                {libro.nombre} {i + 1}
-              </span>
-            ))}
+            {Array.from({ length: libro.capitulos }, (_, i) => {
+              const capitulo = i + 1;
+              const isSelected = libro.capitulo === capitulo;
+
+              return (
+                <span
+                  key={capitulo}
+                  ref={(el) => (capitulosRef.current[capitulo] = el)} 
+                  onClick={() => {
+                    setLibro((prevLibro) => ({
+                      ...prevLibro,
+                      capitulo,
+                      versiculo: 1,
+                    }));
+
+                    versiculosRef.current = {};
+                    consultaVersiculo(libro.sigla, capitulo, 1);
+
+                    // 👇 Centra el capítulo seleccionado en el contenedor
+                    setTimeout(() => {
+                      capitulosRef.current[capitulo]?.scrollIntoView({
+                        behavior: "smooth",
+                        inline: "center",
+                        block: "nearest",
+                      });
+                    }, 50);
+                  }}
+                  className={`xl:mb-1 inline-block px-2 py-1 rounded cursor-pointer transition-all duration-200 ${
+                    isSelected
+                      ? "bg-app-border text-app-main font-semibold"
+                      : "text-app-muted bg-app-border hover:text-app-main"
+                  }`}
+                >
+                  {libro.nombre} {capitulo}
+                </span>
+              );
+            })}
           </div>
         </div>
 
@@ -240,9 +272,9 @@ useLayoutEffect(() => {
 
       {/* RESULTADOS */}
       <div className="w-full max-w-xl mx-auto p-2">
-        <div className="flex flex-col">
-          <div className="mt-6 flex justify-center">
-            <div className="max-w-xl w-full text-black px-4">
+        <div className="flex flex-colborder">
+          <div className="sm:mt-6 flex justify-center">
+            <div className="max-w-xl w-full px-4">
               {resultado ? (
                 <>
                   <strong className="block mb-4 text-lg sm:text-xl text-center text-app-main">
@@ -255,7 +287,7 @@ useLayoutEffect(() => {
                         if (domNode.name === "h2") {
                           currentTitulo = domNode.children[0]?.data || "";
                           return (
-                            <h2 className="font-bold sm:text-3xl text-app-muted mb-4 text-left">
+                            <h2 className="font-bold sm:text-3xl text-app-muted mb-2 md:mb-4 text-left">
                               {currentTitulo}
                             </h2>
                           );
