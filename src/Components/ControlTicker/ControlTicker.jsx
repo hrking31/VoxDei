@@ -187,7 +187,7 @@ export default function ControlTicker() {
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="w-full py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
+            className="w-full py-1.5 boton-salida"
           >
             Salida
           </button>

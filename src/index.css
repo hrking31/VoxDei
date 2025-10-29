@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
-/* 🎨 Definición de colores personalizados */
+/* Colores personalizados */
 @theme {
-  --color-app-dark: #323437;     /* 🔲 Fondo principal de la app */
-  --color-app-main: #facc15;  /* ⚠️ Amarillo para advertencias */
-  --color-app-light: #2c2e30;    /* 🔳 Variación un poco más clara, útil para cards o paneles */
-  --color-app-accent: #ff6b6b;   /* ❤️ Color de acento para botones principales o alertas */
-  --color-app-muted: #9ca3af;    /* ⚪ Texto secundario / descripciones */
-  --color-app-border: #444749;   /* ➖ Líneas divisorias, bordes suaves */
-  --color-app-success: #4ade80;  /* ✅ Verde para mensajes de éxito */
-  --color-app-error: #ef4444;    /* ❌ Rojo para errores */
+  --color-app-dark: #323437; /* 🔲 Fondo principal de la app */
+  --color-app-main: #facc15; /* ⚠️ Amarillo para advertencias */
+  --color-app-light: #2c2e30; /* 🔳 Variación un poco más clara, útil para cards o paneles */
+  --color-app-accent: #ff6b6b; /* ❤️ Color de acento para botones principales o alertas */
+  --color-app-muted: #9ca3af; /* ⚪ Texto secundario / descripciones */
+  --color-app-border: #444749; /* ➖ Líneas divisorias, bordes suaves */
+  --color-app-success: #4ade80; /* ✅ Verde para mensajes de éxito */
+  --color-app-error: #ef4444; /* ❌ Rojo para errores */
 }
 
 /* Estilos base */
@@ -25,12 +25,12 @@ body {
   }
 
   .scrollbar-custom::-webkit-scrollbar-track {
-    background: theme(--color-app-light); 
+    background: theme(--color-app-light);
     border-radius: 4px;
   }
 
   .scrollbar-custom::-webkit-scrollbar-thumb {
-    background-color: theme(--color-app-border); 
+    background-color: theme(--color-app-border);
     border-radius: 4px;
   }
 
@@ -39,5 +39,10 @@ body {
   }
 }
 
-
-
+.boton-salida {
+  @apply flex items-center justify-center text-center text-xs sm:text-sm md:text-base 
+  break-words font-bold rounded cursor-pointer 
+  text-app-error sm:text-app-muted 
+  inset-shadow-sm inset-shadow-app-error sm:inset-shadow-app-muted 
+  hover:text-app-error hover:inset-shadow-app-error;
+}
