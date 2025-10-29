@@ -1,15 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import ControlVersiculo from "../../Components/ControlVersiculo/ControlVersiculo";
-
+import ColorPicker from "../../Components/ColorPicker/ColorPicker";
 
 export default function ViewVersiculo() {
   const navigate = useNavigate();
 
   return (
     <div className="flex flex-col pb-16">
-      <ControlVersiculo />
-
-
       <div className="  flex justify-center">
         <button
           onClick={() => navigate("/")}
@@ -18,6 +14,7 @@ export default function ViewVersiculo() {
           Volver
         </button>
       </div>
+      <ColorPicker />
     </div>
   );
 }

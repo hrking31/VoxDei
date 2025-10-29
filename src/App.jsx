@@ -1,12 +1,12 @@
 import { Routes, Route } from "react-router-dom";
 import {
+  ViewSelector,
+  ViewDisplay,
+  ViewStylos,
   ViewTicker,
   ViewMessage,
-  ViewVersiculo,
-  ViewVersiculos,
-  ViewDisplay,
-  ViewSelector,
   ViewPredica,
+  ViewVersiculos,
 } from "./Views/index";
 import { AppProvider } from "./Components/Context/AppContext";
 import InicializarEstados from "./Components/InicializarEstados/InicializarEstados";
@@ -21,11 +21,11 @@ export default function App() {
       <Routes>
         <Route path="/" element={<ViewSelector />} />
         <Route path="/viewdisplay" element={<ViewDisplay />} />
+        <Route path="/ViewStylos" element={<ViewStylos />} />
         <Route path="/viewTicker" element={<ViewTicker />} />
         <Route path="/ViewMessage" element={<ViewMessage />} />
-        <Route path="/ViewVersiculo" element={<ViewVersiculo />} />
-        <Route path="/ViewVersiculos" element={<ViewVersiculos />} />
         <Route path="/ViewPredica" element={<ViewPredica />} />
+        <Route path="/ViewVersiculos" element={<ViewVersiculos />} />
       </Routes>
     </AppProvider>
   );

@@ -32,7 +32,7 @@ export default function ViewSelector() {
         </button>
 
         <button
-          onClick={() => navigate("/ViewVersiculo")}
+          onClick={() => navigate("/ViewStylos")}
           className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
         >
           <PaintBrushIcon className="w-10 h-10 text-app-muted mb-2" />
