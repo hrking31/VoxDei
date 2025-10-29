@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { database } from "../Firebase/Firebase";
 import { ref, set, update } from "firebase/database";
@@ -88,21 +88,32 @@ export default function ControlVersiculos() {
     });
   };
 
-  useEffect(() => {
-    if (!libro.versiculo || libro.versiculo === 1) return;
-    const elemento = versiculosRef.current[libro.versiculo];
+useLayoutEffect(() => {
+  if (!resultado?.numero) return;
 
-    if (elemento) {
-      const stickyOffset = window.innerWidth >= 1280 ? 150 : 120;
-      const elementPosition =
-        elemento.getBoundingClientRect().top + window.scrollY;
-      const offsetPosition = elementPosition - stickyOffset;
+  const numero = Number(resultado.numero);
 
-      window.scrollTo({
-        top: offsetPosition,
-      });
-    }
-  }, [libro.versiculo, resultado?.texto]);
+  if (numero === 1) {
+    // 👇 Esto asegura que siempre inicie desde arriba
+    window.scrollTo({ top: 0, behavior: "auto" });
+    return;
+  }
+
+  const elemento = versiculosRef.current[numero];
+  if (!elemento) return;
+
+  const stickyOffset = window.innerWidth >= 1280 ? 150 : 120;
+  const marginSuperior = 5;
+
+  const elementPosition = elemento.getBoundingClientRect().top + window.scrollY;
+  const offsetPosition = elementPosition - stickyOffset - marginSuperior;
+
+  window.scrollTo({
+    top: offsetPosition,
+    behavior: "auto",
+  });
+}, [resultado?.numero, resultado?.texto, resultado?.libro]);
+
 
   let currentTitulo = "";
 
@@ -131,7 +142,7 @@ export default function ControlVersiculos() {
   return (
     <div className="flex flex-col justify-center gap-2">
       {/* BLOQUE STICKY */}
-      <div className="grid grid-cols-12 w-full sticky bg-app-dark top-0 z-10 pt-3">
+      <div className="grid grid-cols-12 w-full sticky bg-app-dark top-0 z-10 pt-3 pb-4">
         {/* Fila de capítulos */}
         <div className="col-span-12 xl:col-span-10 overflow-x-auto scrollbar-custom [&::-webkit-scrollbar]:hidden xl:[&::-webkit-scrollbar]:block pb-2">
           <div className="flex gap-2 whitespace-nowrap">
