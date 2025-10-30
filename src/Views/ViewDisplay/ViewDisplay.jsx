@@ -1,12 +1,12 @@
 import ControlDisplay from "../../Components/ControlDisplay/ControlDisplay";
-// import SubirBiblia from "../../Components/SubirBiblia/SubirBiblia";
-// import Versiculos from "../../Components/Vesiculos/Versiculos";
+// import Biblia from "../../Components/Upload/CargarBiblia/CargarBiblia";
+// import Versiculos from "../../Components/Upload/CargarVesiculos/CargarVersiculos";
 
 export default function ViewDisplay() {
   return (
     <div>
       <ControlDisplay />
-      {/* <SubirBiblia /> */}
+      {/* <Biblia /> */}
       {/* <Versiculos /> */}
     </div>
   );

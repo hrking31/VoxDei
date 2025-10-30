@@ -6,7 +6,7 @@ import {
   ViewTicker,
   ViewMessage,
   ViewPredica,
-  ViewVersiculos,
+  ViewVersiculo,
 } from "./Views/index";
 import { AppProvider } from "./Components/Context/AppContext";
 import InicializarEstados from "./Components/InicializarEstados/InicializarEstados";
@@ -25,7 +25,7 @@ export default function App() {
         <Route path="/viewTicker" element={<ViewTicker />} />
         <Route path="/ViewMessage" element={<ViewMessage />} />
         <Route path="/ViewPredica" element={<ViewPredica />} />
-        <Route path="/ViewVersiculos" element={<ViewVersiculos />} />
+        <Route path="/ViewVersiculo" element={<ViewVersiculo />} />
       </Routes>
     </AppProvider>
   );

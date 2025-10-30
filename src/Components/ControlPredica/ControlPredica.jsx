@@ -10,9 +10,9 @@ import {
 import { useAppContext } from "../Context/AppContext";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import EmojiButton from "../EmojiButton/EmojiButton";
-import LibrosModal from "../LibrosModal/LibrosModal";
-import CapituloModal from "../../Components/CapituloModal/CapituloModal";
-import VersiculoModal from "../VersiculoModal/VersiculoModal";
+import LibrosModal from "../../Components/ModalLibros/ModalLibros";
+import CapituloModal from "../../Components/ModalCapitulo/ModalCapitulo";
+import VersiculoModal from "../../Components/ModalVersiculo/ModalVersiculo";
 import WhatsAppButton from "../WhatsAppButton/WhatsAppButton";
 
 export default function Predica() {

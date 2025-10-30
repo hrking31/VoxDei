@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { doc, setDoc } from "firebase/firestore";
-import { db } from "../Firebase/Firebase";
-import bibleData from "../../assets/RVR1960.json"; 
+import { db } from "../../Firebase/Firebase";
+// import bibleData from "../../assets/RVR1960.json";
 
 const SubirBiblia = () => {
   const [subiendo, setSubiendo] = useState(false);

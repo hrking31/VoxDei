@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { db } from "../Firebase/Firebase";
+import { db } from "../../Firebase/Firebase";
 import { doc, getDoc } from "firebase/firestore";
 import {
   librosAntiguo,
   librosNuevo,
-} from "../LibrosBiblia/LibrosBibliaincompleto";
+} from "./LibrosBibliaincompleto";
 
 // Traducción de libros con números
 const traducirLibrosNumerados = (libros) => {

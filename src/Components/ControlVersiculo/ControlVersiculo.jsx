@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { database } from "../Firebase/Firebase";
 import { ref, set, update } from "firebase/database";
 import parse from "html-react-parser";
-import LibrosModal from "../../Components/LibrosModal/LibrosModal";
-import CapituloModal from "../../Components/CapituloModal/CapituloModal";
-import VersiculoModal from "../../Components/VersiculoModal/VersiculoModal";
+import LibrosModal from "../ModalLibros/ModalLibros";
+import CapituloModal from "../ModalCapitulo/ModalCapitulo";
+import VersiculoModal from "../ModalVersiculo/ModalVersiculo";
 import { obtenerVersiculo } from "../FuncionesControlPredica/FuncionesControlPredica";
 import BuscadorLibros from "../BuscadorLibros/BuscadorLibros";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
@@ -116,14 +116,17 @@ export default function ControlVersiculos() {
     });
   }, [resultado?.numero, resultado?.texto, resultado?.libro]);
 
-useLayoutEffect(() => {
-  if (!libro.capitulo) return;
-  const el = capitulosRef.current[libro.capitulo];
-  if (el) {
-    el.scrollIntoView({ behavior: "auto", inline: "center", block: "nearest" });
-  }
-}, [libro.capitulo]);
-
+  useLayoutEffect(() => {
+    if (!libro.capitulo) return;
+    const el = capitulosRef.current[libro.capitulo];
+    if (el) {
+      el.scrollIntoView({
+        behavior: "auto",
+        inline: "center",
+        block: "nearest",
+      });
+    }
+  }, [libro.capitulo]);
 
   let currentTitulo = "";
 
@@ -163,7 +166,7 @@ useLayoutEffect(() => {
               return (
                 <span
                   key={capitulo}
-                  ref={(el) => (capitulosRef.current[capitulo] = el)} 
+                  ref={(el) => (capitulosRef.current[capitulo] = el)}
                   onClick={() => {
                     setLibro((prevLibro) => ({
                       ...prevLibro,

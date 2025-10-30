@@ -4,7 +4,7 @@ import ViewStylos from "./ViewStylos/ViewStylos";
 import ViewTicker from "./ViewTicker/ViewTicker";
 import ViewMessage from "./ViewMessage/ViewMenssage";
 import ViewPredica from "./ViewPredica/ViewPredica";
-import ViewVersiculos from "./ViewVersiculos/ViewVersiculos";
+import ViewVersiculo from "./ViewVersiculo/ViewVersiculo";
 
 export {
   ViewSelector,
@@ -13,5 +13,5 @@ export {
   ViewTicker,
   ViewMessage,
   ViewPredica,
-  ViewVersiculos,
+  ViewVersiculo,
 };
