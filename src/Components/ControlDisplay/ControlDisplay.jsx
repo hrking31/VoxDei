@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { onValue, ref } from "firebase/database";
 import { database } from "../Firebase/Firebase";
-import TickerMessage from "../TickerMessage/TickerMessage";
+import TickerAnimacion from "../TickerAnimacion/TickerAnimacion";
 import TextAnimacion from "../TextAnimacion/TextAnimacion";
 
 export default function DisplayView() {
@@ -196,7 +196,7 @@ export default function DisplayView() {
           />
         </div>
       )}
-      <TickerMessage message={ticker} />
+      <TickerAnimacion message={ticker} />
     </div>
   );
 }
