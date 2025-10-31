@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { onValue, ref } from "firebase/database";
 import { database } from "../Firebase/Firebase";
 import TickerAnimacion from "../TickerAnimacion/TickerAnimacion";
-// import TextAnimacion from "../TextAnimacion/TextAnimacion";
 
 export default function DisplayView() {
   const [display, setDisplay] = useState("");
@@ -13,33 +12,10 @@ export default function DisplayView() {
   const [visibleTitulo, setVisibleTitulo] = useState(false);
   const [visiblePredica, setVisiblePredica] = useState(false);
   const [versiculo, setVersiculo] = useState("");
-  const [versiculos, setVersiculos] = useState("");
-  const [capitulo, setCapitulo] = useState("");
   const [cita, setCita] = useState("");
   const [ticker, setTicker] = useState("");
-  const [velocidad, setVelocidad] = useState("");
-  const [estado, setEstado] = useState("");
 
-  // Capitulo Text
-  useEffect(() => {
-    const capituloRef = ref(database, "displayCapitulo");
-    const unsubscribe = onValue(capituloRef, (snapshot) => {
-      const data = snapshot.val();
-      if (
-        data &&
-        typeof data.text === "string" &&
-        typeof data.cita === "string" &&
-        typeof data.display === "string"
-      ) {
-        setCapitulo(data.text);
-        setCita(data.cita);
-        setDisplay(data.display);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // Versiculo Text
+  // Display Versiculo
   useEffect(() => {
     const versiculoRef = ref(database, "displayVersiculo");
     const unsubscribe = onValue(versiculoRef, (snapshot) => {
@@ -60,26 +36,7 @@ export default function DisplayView() {
     return () => unsubscribe();
   }, []);
 
-  // Versiculos Text
-  useEffect(() => {
-    const versiculosRef = ref(database, "displayVersiculos");
-    const unsubscribe = onValue(versiculosRef, (snapshot) => {
-      const data = snapshot.val();
-      if (
-        data &&
-        typeof data.text === "string" &&
-        typeof data.cita === "string" &&
-        typeof data.display === "string"
-      ) {
-        setVersiculos(data.text);
-        setCita(data.cita);
-        setDisplay(data.display);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // Titulo Predica
+  // Display Titulo
   useEffect(() => {
     const tituloRef = ref(database, "displayTitulo");
     const unsubscribe = onValue(tituloRef, (snapshot) => {
@@ -100,7 +57,7 @@ export default function DisplayView() {
     return () => unsubscribe();
   }, []);
 
-  // Mensaje Text
+  // Display Message
   useEffect(() => {
     const messageRef = ref(database, "displayMessage");
     const unsubscribe = onValue(messageRef, (snapshot) => {
@@ -117,7 +74,7 @@ export default function DisplayView() {
     return () => unsubscribe();
   }, []);
 
-  // Predica Text
+  // Display Predica
   useEffect(() => {
     const predicaRef = ref(database, "displayPredica");
     const unsubscribe = onValue(predicaRef, (snapshot) => {
@@ -134,20 +91,7 @@ export default function DisplayView() {
     return () => unsubscribe();
   }, []);
 
-  // Speed and State
-  useEffect(() => {
-    const speedRef = ref(database, "speedVersiculo");
-    const unsubscribe = onValue(speedRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data && data.velocidad !== undefined) {
-        setVelocidad(data.velocidad);
-        setEstado(data.estado);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // Ticker Message
+  // Display Ticker
   useEffect(() => {
     const tickerRef = ref(database, "displayTicker");
     const unsubscribe = onValue(tickerRef, (snapshot) => {
