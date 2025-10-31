@@ -133,9 +133,9 @@ export default function Predica() {
 
   const enviarAProyeccion = (elemento) => {
     if (elemento.tipo === "mensaje") {
-      set(ref(database, "displayPredica"), {
+      set(ref(database, "displayMessage"), {
         text: elemento.contenido,
-        display: "predica",
+        display: "mensajePredica",
         timestamp: Date.now(),
       });
     } else if (elemento.tipo === "versiculo") {

@@ -6,7 +6,7 @@ import TickerAnimacion from "../TickerAnimacion/TickerAnimacion";
 export default function DisplayView() {
   const [display, setDisplay] = useState("");
   const [mensaje, setMensaje] = useState("");
-  const [predica, setPredica] = useState("");
+  const [mensajePredica, setMensajePredica] = useState("");
   const [titulo, setTitulo] = useState("");
   const [tituloPredica, setTituloPredica] = useState("");
   const [visibleTitulo, setVisibleTitulo] = useState(false);
@@ -67,25 +67,13 @@ export default function DisplayView() {
         typeof data.text === "string" &&
         typeof data.display === "string"
       ) {
-        setMensaje(data.text);
-        setDisplay(data.display);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // Display Predica
-  useEffect(() => {
-    const predicaRef = ref(database, "displayPredica");
-    const unsubscribe = onValue(predicaRef, (snapshot) => {
-      const data = snapshot.val();
-      if (
-        data &&
-        typeof data.text === "string" &&
-        typeof data.display === "string"
-      ) {
-        setPredica(data.text);
-        setDisplay(data.display);
+        if (data.display === "mensaje") {
+          setMensaje(data.text);
+          setDisplay(data.display);
+        } else {
+          setMensajePredica(data.text);
+          setDisplay(data.display);
+        }
       }
     });
     return () => unsubscribe();
@@ -125,9 +113,9 @@ export default function DisplayView() {
 
       {visiblePredica && (
         <div className="flex flex-col items-center justify-center h-screen overflow-hidden p-5">
-          {display === "predica" ? (
+          {display === "mensajePredica" ? (
             <div className="text-[3rem] text-center whitespace-pre-wrap break-words">
-              {predica}
+              {mensajePredica}
             </div>
           ) : display === "mensaje" ? (
             <div className="text-[3rem] text-center whitespace-pre-wrap break-words">
