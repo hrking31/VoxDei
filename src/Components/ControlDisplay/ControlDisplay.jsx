@@ -5,15 +5,15 @@ import TickerAnimacion from "../TickerAnimacion/TickerAnimacion";
 
 export default function DisplayView() {
   const [display, setDisplay] = useState("");
+  const [ticker, setTicker] = useState("");
   const [mensaje, setMensaje] = useState("");
-  const [mensajePredica, setMensajePredica] = useState("");
-  const [titulo, setTitulo] = useState("");
   const [tituloPredica, setTituloPredica] = useState("");
+  const [mensajePredica, setMensajePredica] = useState("");
+  const [tituloVersiculo, setTituloVersiculo] = useState("");
   const [visibleTitulo, setVisibleTitulo] = useState(false);
   const [visiblePredica, setVisiblePredica] = useState(false);
   const [versiculo, setVersiculo] = useState("");
   const [cita, setCita] = useState("");
-  const [ticker, setTicker] = useState("");
 
   // Display Versiculo
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function DisplayView() {
         typeof data.cita === "string" &&
         typeof data.display === "string"
       ) {
-        setTitulo(data.titulo);
+        setTituloVersiculo(data.titulo);
         setVersiculo(data.text);
         setCita(data.cita);
         setDisplay(data.display);
@@ -124,7 +124,7 @@ export default function DisplayView() {
           ) : display === "versiculo" ? (
             <>
               <h2 className="font-bold sm:text-3xl  text-app-muted mb-6">
-                {titulo}
+                {tituloVersiculo}
               </h2>
               <div className="text-[3rem] text-center whitespace-pre-wrap break-words">
                 {versiculo}
