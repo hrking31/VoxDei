@@ -5,7 +5,6 @@ import TickerAnimacion from "../TickerAnimacion/TickerAnimacion";
 import TextAnimacion from "../TextAnimacion/TextAnimacion";
 
 export default function DisplayView() {
-  const [visible, setVisible] = useState(true);
   const [display, setDisplay] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [predica, setPredica] = useState("");
