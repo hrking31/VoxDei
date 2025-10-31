@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { onValue, ref } from "firebase/database";
 import { database } from "../Firebase/Firebase";
 import TickerAnimacion from "../TickerAnimacion/TickerAnimacion";
-import TextAnimacion from "../TextAnimacion/TextAnimacion";
+// import TextAnimacion from "../TextAnimacion/TextAnimacion";
 
 export default function DisplayView() {
   const [display, setDisplay] = useState("");
@@ -172,7 +172,7 @@ export default function DisplayView() {
   }, []);
 
   return (
-    <div className="relative h-screen w-screen bg-black text-white  flex items-center justify-center text-center p-5 overflow-hidden">
+    <div className="relative h-screen w-screen bg-black font-bold text-white flex items-center justify-center text-center overflow-hidden p-5">
       {visibleTitulo && (
         <div className="absolute top-2 left-0 w-full text-5xl font-bold text-app-muted text-center z-10 pointer-events-none">
           {tituloPredica}
@@ -180,19 +180,28 @@ export default function DisplayView() {
       )}
 
       {visiblePredica && (
-        <div className="absolute top-2 left-0 w-full text-5xl font-bold text-app-muted text-center z-10 pointer-events-none">
-          <TextAnimacion
-            mensaje={mensaje}
-            titulo={titulo}
-            predica={predica}
-            versiculo={versiculo}
-            versiculos={versiculos}
-            capitulo={capitulo}
-            speed={velocidad}
-            estado={estado}
-            display={display}
-            cita={cita}
-          />
+        <div className="flex flex-col items-center justify-center h-screen overflow-hidden p-5">
+          {display === "predica" ? (
+            <div className="text-[3rem] text-center whitespace-pre-wrap break-words">
+              {predica}
+            </div>
+          ) : display === "mensaje" ? (
+            <div className="text-[3rem] text-center whitespace-pre-wrap break-words">
+              {mensaje}
+            </div>
+          ) : display === "versiculo" ? (
+            <>
+              <h2 className="font-bold sm:text-3xl  text-app-muted mb-6">
+                {titulo}
+              </h2>
+              <div className="text-[3rem] text-center whitespace-pre-wrap break-words">
+                {versiculo}
+              </div>
+              <div className="text-[1.5rem] self-end mt-4 text-right">
+                {cita}
+              </div>
+            </>
+          ) : null}
         </div>
       )}
       <TickerAnimacion message={ticker} />
