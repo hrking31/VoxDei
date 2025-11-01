@@ -10,8 +10,8 @@ export default function InicializarEstados() {
     setTickerItems,
     setMessageItems,
     showNotif,
-    setVisiblePredica,
     setVisibleTitulo,
+    setVisibleTexto,
   } = useAppContext();
 
   useEffect(() => {
@@ -68,35 +68,35 @@ export default function InicializarEstados() {
       }
     };
 
-    const visibleMessage = async () => {
-      set(ref(database, "displayVisible"), {
-        visible: false,
-        timestamp: Date.now(),
-      });
-
-      setVisiblePredica(false);
-    };
-
     const visibleTitulo = async () => {
-      set(ref(database, "displayTitulo"), {
-        visible: false,
+      set(ref(database, "displayVisibleTitulo"), {
+        visibleTitulo: false,
         timestamp: Date.now(),
       });
 
       setVisibleTitulo(false);
     };
 
+    const visibleTexto = async () => {
+      set(ref(database, "displayVisibleTexto"), {
+        visibleTexto: false,
+        timestamp: Date.now(),
+      });
+
+      setVisibleTexto(false);
+    };
+
     loadSlots();
     loadTickers();
     loadMessage();
-    visibleMessage();
     visibleTitulo();
+    visibleTexto();
   }, [
     setSlots,
     setTickerItems,
     setMessageItems,
-    setVisiblePredica,
     setVisibleTitulo,
+    setVisibleTexto,
   ]);
 
   return null;

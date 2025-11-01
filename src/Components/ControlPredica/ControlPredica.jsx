@@ -25,7 +25,7 @@ export default function Predica() {
   });
   const [visible, setVisible] = useState(false);
   const { visibleTitulo, setVisibleTitulo } = useAppContext();
-  const { visiblePredica, setVisiblePredica } = useAppContext();
+  const { visibleTexto, setVisibleTexto } = useAppContext();
   const [resultado, setResultado] = useState(null);
   const [tipoLibros, setTipoLibros] = useState("antiguo");
   const [modalActivo, setModalActivo] = useState(null);
@@ -154,27 +154,25 @@ export default function Predica() {
     }
   };
 
-  const toggleVisibleTitulo = (e) => {
-    e.stopPropagation();
+const toggleVisibleTitulo = () => {
+  const nuevoEstado = !visibleTitulo;
+  setVisibleTitulo(nuevoEstado);
 
-    const nuevoEstado = !visibleTitulo;
-    setVisibleTitulo(nuevoEstado);
+  update(ref(database, "displayVisibleTitulo"), {
+    visibleTitulo: nuevoEstado,
+    timestamp: Date.now(),
+  });
+};
 
-    // Actualiza solo el campo "visible" en Firebase
-    update(ref(database, "displayTitulo"), {
-      visible: nuevoEstado,
-      timestamp: Date.now(),
-    });
-  };
+const toggleVisibleTexto = () => {
+  const nuevoEstado = !visibleTexto;
+  setVisibleTexto(nuevoEstado);
 
-  const toggleVisible = () => {
-    const newValue = !visiblePredica;
-    setVisiblePredica(newValue);
-    set(ref(database, "displayVisible"), {
-      visible: newValue,
-      timestamp: Date.now(),
-    });
-  };
+  update(ref(database, "displayVisibleTexto"), {
+    visibleTexto: nuevoEstado,
+    timestamp: Date.now(),
+  });
+};
 
   return (
     <div className="pt-1 mx-auto">
@@ -197,8 +195,9 @@ export default function Predica() {
             )}
 
             <button
-              onClick={(e) => toggleVisibleTitulo(e)}
-              className="font-semibold text-app-accent transition-all duration-200  "
+              onClick={toggleVisibleTitulo}
+              className="font-semibold text-app-accent transition-all
+              duration-200 "
             >
               {visibleTitulo ? (
                 <EyeIcon className="w-8 h-8" />
@@ -208,10 +207,11 @@ export default function Predica() {
             </button>
 
             <button
-              onClick={toggleVisible}
-              className="font-semibold text-app-main transition-all duration-200  "
+              onClick={toggleVisibleTexto}
+              className="font-semibold text-app-main transition-all duration-200
+              "
             >
-              {visiblePredica ? (
+              {visibleTexto ? (
                 <EyeIcon className="w-8 h-8" />
               ) : (
                 <EyeSlashIcon className="w-8 h-8" />
@@ -542,7 +542,7 @@ export default function Predica() {
                 type="button"
                 onClick={(e) => {
                   setPredicaItems((prev) => prev.filter((_, i) => i !== index));
-                  e.stopPropagation();
+                  // e.stopPropagation();
                   setItemSeleccionado(null);
                 }}
                 className="absolute top-2 right-2 p-1 text-app-border group-hover:text-red-600"

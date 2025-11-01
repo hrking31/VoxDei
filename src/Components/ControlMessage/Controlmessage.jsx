@@ -12,8 +12,8 @@ export default function ControlMenssage() {
   const [message, setMessage] = useState("");
   const { messageItems, setMessageItems } = useAppContext();
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
-  const { visiblePredica, setVisiblePredica } = useAppContext();
-  const { visibleTitulo, setVisibleTitulo } = useAppContext();
+ const { visibleTitulo, setVisibleTitulo } = useAppContext();
+ const { visibleTexto, setVisibleTexto } = useAppContext();
   const { showNotif } = useAppContext();
   const textareaRef = useRef(null);
 
@@ -38,27 +38,25 @@ export default function ControlMenssage() {
     });
   };
 
-  const toggleVisible = () => {
-    const newValue = !visiblePredica;
-    setVisiblePredica(newValue);
-    set(ref(database, "displayVisible"), {
-      visible: newValue,
-      timestamp: Date.now(),
-    });
-  };
+const toggleVisibleTitulo = () => {
+  const nuevoEstado = !visibleTitulo;
+  setVisibleTitulo(nuevoEstado);
 
-  const toggleVisibleTitulo = (e) => {
-    e.stopPropagation();
+  update(ref(database, "displayVisibleTitulo"), {
+    visibleTitulo: nuevoEstado,
+    timestamp: Date.now(),
+  });
+};
 
-    const nuevoEstado = !visibleTitulo;
-    setVisibleTitulo(nuevoEstado);
+const toggleVisibleTexto = () => {
+  const nuevoEstado = !visibleTexto;
+  setVisibleTexto(nuevoEstado);
 
-    // Actualiza solo el campo "visible" en Firebase
-    update(ref(database, "displayTitulo"), {
-      visible: nuevoEstado,
-      timestamp: Date.now(),
-    });
-  };
+  update(ref(database, "displayVisibleTexto"), {
+    visibleTexto: nuevoEstado,
+    timestamp: Date.now(),
+  });
+};
 
   // agrega un mensaje  a la bd
   const agregarElemento = async () => {
@@ -207,7 +205,7 @@ export default function ControlMenssage() {
 
         <div className="col-span-4 sm:col-span-2 flex items-center justify-center xl:px-2.5 gap-4 p-2 xl:p-0">
           <button
-            onClick={(e) => toggleVisibleTitulo(e)}
+            onClick={toggleVisibleTitulo}
             className="w-full py-1.5 xl:py-3 flex items-center justify-center border-2 rounded font-semibold text-app-accent transition-all duration-200"
           >
             {visibleTitulo ? (
@@ -218,10 +216,10 @@ export default function ControlMenssage() {
           </button>
 
           <button
-            onClick={toggleVisible}
+            onClick={toggleVisibleTexto}
             className="w-full py-1.5 xl:py-3 flex items-center justify-center border-2 rounded font-semibold text-app-main transition-all duration-200"
           >
-            {visiblePredica ? (
+            {visibleTexto ? (
               <EyeIcon className="w-6 h-6" />
             ) : (
               <EyeSlashIcon className="w-6 h-6" />

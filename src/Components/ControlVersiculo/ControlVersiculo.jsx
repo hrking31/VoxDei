@@ -27,8 +27,8 @@ export default function ControlVersiculos() {
   const [versiculoNumero, setVersiculoNumero] = useState(null);
   const [versiculoTexto, setVersiculoTexto] = useState(null);
   const [versiculoTitulo, setVersiculoTitulo] = useState(null);
-  const { visibleTitulo, setVisibleTitulo } = useAppContext();
-  const { visiblePredica, setVisiblePredica } = useAppContext();
+ const { visibleTitulo, setVisibleTitulo } = useAppContext();
+ const { visibleTexto, setVisibleTexto } = useAppContext();
   const [open, setOpen] = useState(false);
   const { showNotif } = useAppContext();
   const capitulosRef = useRef({});
@@ -130,27 +130,25 @@ export default function ControlVersiculos() {
 
   let currentTitulo = "";
 
-  const toggleVisible = () => {
-    const newValue = !visiblePredica;
-    setVisiblePredica(newValue);
-    set(ref(database, "displayVisible"), {
-      visible: newValue,
-      timestamp: Date.now(),
-    });
-  };
+const toggleVisibleTitulo = () => {
+  const nuevoEstado = !visibleTitulo;
+  setVisibleTitulo(nuevoEstado);
 
-  const toggleVisibleTitulo = (e) => {
-    e.stopPropagation();
+  update(ref(database, "displayVisibleTitulo"), {
+    visibleTitulo: nuevoEstado,
+    timestamp: Date.now(),
+  });
+};
 
-    const nuevoEstado = !visibleTitulo;
-    setVisibleTitulo(nuevoEstado);
+const toggleVisibleTexto = () => {
+  const nuevoEstado = !visibleTexto;
+  setVisibleTexto(nuevoEstado);
 
-    // Actualiza solo el campo "visible" en Firebase
-    update(ref(database, "displayTitulo"), {
-      visible: nuevoEstado,
-      timestamp: Date.now(),
-    });
-  };
+  update(ref(database, "displayVisibleTexto"), {
+    visibleTexto: nuevoEstado,
+    timestamp: Date.now(),
+  });
+};
 
   return (
     <div className="flex flex-col justify-center">
@@ -249,7 +247,7 @@ export default function ControlVersiculos() {
         {/* botones visisbilidad */}
         <div className="col-span-4 sm:col-span-2 xl:col-span-2 xl:col-start-11 xl:row-start-1 row-start-auto flex items-center justify-center xl:px-2.5 gap-4 p-2 xl:p-0">
           <button
-            onClick={(e) => toggleVisibleTitulo(e)}
+            onClick={toggleVisibleTitulo}
             className="w-full py-1.5 xl:py-3 flex items-center justify-center border-2 rounded font-semibold text-app-accent transition-all duration-200"
           >
             {visibleTitulo ? (
@@ -260,10 +258,10 @@ export default function ControlVersiculos() {
           </button>
 
           <button
-            onClick={toggleVisible}
+            onClick={toggleVisibleTexto}
             className="w-full py-1.5 xl:py-3 flex items-center justify-center border-2 rounded font-semibold text-app-main transition-all duration-200"
           >
-            {visiblePredica ? (
+            {visibleTexto ? (
               <EyeIcon className="w-6 h-6" />
             ) : (
               <EyeSlashIcon className="w-6 h-6" />
