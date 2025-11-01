@@ -9,10 +9,14 @@ import { useAppContext } from "../Context/AppContext";
 export default function ControlTicker() {
   const navigate = useNavigate();
   const [ticker, setTicker] = useState("");
-  const { tickerItems, setTickerItems } = useAppContext();
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
-  const [velocidad, setVelocidad] = useState(2);
-  const { showNotif } = useAppContext();
+  const {
+    tickerItems,
+    setTickerItems,
+    velocidadTicker,
+    setVelocidadTicker,
+    showNotif,
+  } = useAppContext();
 
   // proyecta un ticker de la bd o del imput
   const handleTicker = (item) => {
@@ -27,7 +31,7 @@ export default function ControlTicker() {
   };
 
   const configSpeed = (nuevoValor) => {
-    setVelocidad(nuevoValor);
+    setVelocidadTicker(nuevoValor);
     set(ref(database, "speedTicker"), {
       velocidad: nuevoValor,
     });
@@ -125,11 +129,11 @@ export default function ControlTicker() {
               agregarElemento(ticker), setTicker("");
             }}
             className={`w-full h-10 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-xs lg:text-base break-words
-               ${
-                 !ticker
-                   ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-default"
-                   : "bg-green-500 text-white cursor-pointer"
-               }`}
+              ${
+                !ticker
+                  ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-default"
+                  : "bg-green-500 text-white cursor-pointer"
+              }`}
             disabled={!ticker}
           >
             Guardar
@@ -149,12 +153,16 @@ export default function ControlTicker() {
               type="range"
               min="1"
               max="10"
-              value={velocidad}
-              onChange={(e) => configSpeed(Number(e.target.value))}
+              value={velocidadTicker}
+              onChange={(e) => {
+                const nuevaVelocidad = Number(e.target.value);
+                setVelocidadTicker(nuevaVelocidad);
+                configSpeed(nuevaVelocidad);
+              }}
               className="w-full accent-app-main"
             />
             <span className="w-10 flex justify-center text-app-muted text-xs sm:text-sm md:text-base break-words p-2">
-              {velocidad}s
+              {velocidadTicker}s
             </span>
           </div>
         </div>

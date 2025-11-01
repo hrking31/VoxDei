@@ -7,6 +7,7 @@ export function AppProvider({ children }) {
   const [slots, setSlots] = useState([false, false, false, false, false]);
   const [tickerItems, setTickerItems] = useState([]);
   const [messageItems, setMessageItems] = useState([]);
+  const [velocidadTicker, setVelocidadTicker] = useState(2);
   const [visibleTitulo, setVisibleTitulo] = useState("");
   const [visibleTexto, setVisibleTexto] = useState("");
   const [authUser, setAuthUser] = useState(null);
@@ -27,6 +28,8 @@ export function AppProvider({ children }) {
         setSlots,
         tickerItems,
         setTickerItems,
+        velocidadTicker,
+        setVelocidadTicker,
         messageItems,
         setMessageItems,
         visibleTitulo,

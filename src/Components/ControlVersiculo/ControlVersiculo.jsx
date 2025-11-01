@@ -26,11 +26,14 @@ export default function ControlVersiculos() {
   const [tipoLibros, setTipoLibros] = useState("antiguo");
   const [versiculoNumero, setVersiculoNumero] = useState(null);
   const [versiculoTexto, setVersiculoTexto] = useState(null);
-  const [versiculoTitulo, setVersiculoTitulo] = useState(null);
- const { visibleTitulo, setVisibleTitulo } = useAppContext();
- const { visibleTexto, setVisibleTexto } = useAppContext();
+  const {
+    visibleTitulo,
+    setVisibleTitulo,
+    visibleTexto,
+    setVisibleTexto,
+    showNotif,
+  } = useAppContext();
   const [open, setOpen] = useState(false);
-  const { showNotif } = useAppContext();
   const capitulosRef = useRef({});
   const versiculosRef = useRef({});
 
@@ -130,25 +133,25 @@ export default function ControlVersiculos() {
 
   let currentTitulo = "";
 
-const toggleVisibleTitulo = () => {
-  const nuevoEstado = !visibleTitulo;
-  setVisibleTitulo(nuevoEstado);
+  const toggleVisibleTitulo = () => {
+    const nuevoEstado = !visibleTitulo;
+    setVisibleTitulo(nuevoEstado);
 
-  update(ref(database, "displayVisibleTitulo"), {
-    visibleTitulo: nuevoEstado,
-    timestamp: Date.now(),
-  });
-};
+    update(ref(database, "displayVisibleTitulo"), {
+      visibleTitulo: nuevoEstado,
+      timestamp: Date.now(),
+    });
+  };
 
-const toggleVisibleTexto = () => {
-  const nuevoEstado = !visibleTexto;
-  setVisibleTexto(nuevoEstado);
+  const toggleVisibleTexto = () => {
+    const nuevoEstado = !visibleTexto;
+    setVisibleTexto(nuevoEstado);
 
-  update(ref(database, "displayVisibleTexto"), {
-    visibleTexto: nuevoEstado,
-    timestamp: Date.now(),
-  });
-};
+    update(ref(database, "displayVisibleTexto"), {
+      visibleTexto: nuevoEstado,
+      timestamp: Date.now(),
+    });
+  };
 
   return (
     <div className="flex flex-col justify-center">
@@ -314,7 +317,6 @@ const toggleVisibleTexto = () => {
                               onClick={() => {
                                 setVersiculoNumero(numero);
                                 setVersiculoTexto(texto);
-                                setVersiculoTitulo(titulo);
                                 handleProjectarVersiculo(texto, numero, titulo);
                               }}
                               className={`versiculo-scroll cursor-pointer rounded-lg px-2 py-2 transition-colors flex ${

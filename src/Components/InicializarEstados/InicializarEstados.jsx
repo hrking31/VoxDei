@@ -12,6 +12,7 @@ export default function InicializarEstados() {
     showNotif,
     setVisibleTitulo,
     setVisibleTexto,
+    setVelocidadTicker,
   } = useAppContext();
 
   useEffect(() => {
@@ -86,17 +87,27 @@ export default function InicializarEstados() {
       setVisibleTexto(false);
     };
 
+    const speedTicker = async () => {
+      set(ref(database, "speedTicker"), {
+        velocidad: 2,
+      });
+
+      setVelocidadTicker, false;
+    };
+
     loadSlots();
     loadTickers();
     loadMessage();
     visibleTitulo();
     visibleTexto();
+    speedTicker();
   }, [
     setSlots,
     setTickerItems,
     setMessageItems,
     setVisibleTitulo,
     setVisibleTexto,
+    setVelocidadTicker,
   ]);
 
   return null;

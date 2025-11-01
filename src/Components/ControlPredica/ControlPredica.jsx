@@ -24,9 +24,15 @@ export default function Predica() {
     versiculo: null,
   });
   const [visible, setVisible] = useState(false);
-  const { visibleTitulo, setVisibleTitulo } = useAppContext();
-  const { visibleTexto, setVisibleTexto } = useAppContext();
-  const [resultado, setResultado] = useState(null);
+  const {
+    visibleTitulo,
+    setVisibleTitulo,
+    visibleTexto,
+    setVisibleTexto,
+    slots,
+    setSlots,
+    showNotif,
+  } = useAppContext();
   const [tipoLibros, setTipoLibros] = useState("antiguo");
   const [modalActivo, setModalActivo] = useState(null);
   const [versiculoTemp, setVersiculoTemp] = useState("");
@@ -34,11 +40,9 @@ export default function Predica() {
   const [texts, setTexts] = useState({ titulo: "", mensaje: "" });
   const [activeInput, setActiveInput] = useState("1");
   const [cursorPos, setCursorPos] = useState(0);
-  const { slots, setSlots } = useAppContext();
   const [editar, setEditar] = useState(false);
   const [numSlots, setNumSlots] = useState("");
   const [predicaItems, setPredicaItems] = useState([]);
-  const { showNotif } = useAppContext();
 
   const handleChange = (id, value) => {
     setTexts((prev) => ({ ...prev, [id]: value }));
@@ -75,7 +79,6 @@ export default function Predica() {
     );
     if (!data) return;
 
-    setResultado(data);
     setVersiculoTemp({
       cita: `${data.libro} ${data.capitulo}:${data.numero}`,
       texto: data.texto,

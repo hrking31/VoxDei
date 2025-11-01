@@ -10,10 +10,15 @@ import { useAppContext } from "../Context/AppContext";
 export default function ControlMenssage() {
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
-  const { messageItems, setMessageItems } = useAppContext();
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
- const { visibleTitulo, setVisibleTitulo } = useAppContext();
- const { visibleTexto, setVisibleTexto } = useAppContext();
+  const {
+    visibleTitulo,
+    setVisibleTitulo,
+    visibleTexto,
+    setVisibleTexto,
+    messageItems,
+    setMessageItems,
+  } = useAppContext();
   const { showNotif } = useAppContext();
   const textareaRef = useRef(null);
 
@@ -38,25 +43,25 @@ export default function ControlMenssage() {
     });
   };
 
-const toggleVisibleTitulo = () => {
-  const nuevoEstado = !visibleTitulo;
-  setVisibleTitulo(nuevoEstado);
+  const toggleVisibleTitulo = () => {
+    const nuevoEstado = !visibleTitulo;
+    setVisibleTitulo(nuevoEstado);
 
-  update(ref(database, "displayVisibleTitulo"), {
-    visibleTitulo: nuevoEstado,
-    timestamp: Date.now(),
-  });
-};
+    update(ref(database, "displayVisibleTitulo"), {
+      visibleTitulo: nuevoEstado,
+      timestamp: Date.now(),
+    });
+  };
 
-const toggleVisibleTexto = () => {
-  const nuevoEstado = !visibleTexto;
-  setVisibleTexto(nuevoEstado);
+  const toggleVisibleTexto = () => {
+    const nuevoEstado = !visibleTexto;
+    setVisibleTexto(nuevoEstado);
 
-  update(ref(database, "displayVisibleTexto"), {
-    visibleTexto: nuevoEstado,
-    timestamp: Date.now(),
-  });
-};
+    update(ref(database, "displayVisibleTexto"), {
+      visibleTexto: nuevoEstado,
+      timestamp: Date.now(),
+    });
+  };
 
   // agrega un mensaje  a la bd
   const agregarElemento = async () => {

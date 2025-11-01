@@ -1,30 +1,13 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { onValue, ref } from "firebase/database";
-import { database } from "../Firebase/Firebase";
 import Reloj from "../Reloj/Reloj";
 
-export default function TickerMessage({ message }) {
+export default function TickerMessage({ message, velocidad }) {
   const navigate = useNavigate();
   const containerRef = useRef(null);
   const textRef = useRef(null);
   const requestRef = useRef(null);
   const positionRef = useRef(0);
-
-  const [velocidad, setVelocidad] = useState(2);
-
-  useEffect(() => {
-    const speedRef = ref(database, "speedTicker");
-
-    const unsubscribe = onValue(speedRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data && data.velocidad !== undefined) {
-        setVelocidad(data.velocidad);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     const container = containerRef.current;

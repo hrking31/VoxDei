@@ -13,8 +13,14 @@ export default function DisplayView() {
   const [versiculo, setVersiculo] = useState("");
   const [tituloVersiculo, setTituloVersiculo] = useState("");
   const [cita, setCita] = useState("");
-  const { visibleTitulo, setVisibleTitulo } = useAppContext();
-  const { visibleTexto, setVisibleTexto } = useAppContext();
+  const {
+    visibleTitulo,
+    setVisibleTitulo,
+    visibleTexto,
+    setVisibleTexto,
+    velocidadTicker,
+    setVelocidadTicker,
+  } = useAppContext();
 
   // Display Ticker
   useEffect(() => {
@@ -115,6 +121,20 @@ export default function DisplayView() {
     return () => unsubscribe();
   }, []);
 
+  // Speed Ticker
+  useEffect(() => {
+    const speedRef = ref(database, "speedTicker");
+    const unsubscribe = onValue(speedRef, (snapshot) => {
+      const data = snapshot.val();
+
+      if (data && typeof data.velocidad !== undefined) {
+        setVelocidadTicker(data.velocidad);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <div className="relative h-screen w-screen bg-black font-bold text-white flex items-center justify-center text-center overflow-hidden p-5">
       {visibleTitulo && (
@@ -148,7 +168,7 @@ export default function DisplayView() {
           ) : null}
         </div>
       )}
-      <TickerAnimacion message={ticker} />
+      <TickerAnimacion message={ticker} velocidad={velocidadTicker} />
     </div>
   );
 }
