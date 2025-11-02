@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import {
   ViewSelector,
+  ViewGestion,
   ViewDisplay,
   ViewStylos,
   ViewTicker,
@@ -20,6 +21,7 @@ export default function App() {
       <Notificaciones/>
       <Routes>
         <Route path="/" element={<ViewSelector />} />
+        <Route path="/ViewGestion" element={<ViewGestion />} />
         <Route path="/viewdisplay" element={<ViewDisplay />} />
         <Route path="/ViewStylos" element={<ViewStylos />} />
         <Route path="/viewTicker" element={<ViewTicker />} />

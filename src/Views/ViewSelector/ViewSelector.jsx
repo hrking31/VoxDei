@@ -1,104 +1,62 @@
 import { useNavigate } from "react-router-dom";
-import { PlayCircleIcon } from "@heroicons/react/24/solid";
-import { TagIcon } from "@heroicons/react/24/outline";
-import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
-import { PhotoIcon } from "@heroicons/react/24/outline";
-import { VideoCameraIcon } from "@heroicons/react/24/outline";
-import { MicrophoneIcon } from "@heroicons/react/24/outline";
-import { BookOpenIcon } from "@heroicons/react/24/solid";
-import { PaintBrushIcon } from "@heroicons/react/24/outline";
+import {
+  PlayCircleIcon,
+  Squares2X2Icon,
+  XMarkIcon,
+} from "@heroicons/react/24/solid";
 
 export default function ViewSelector() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 gap-4">
-      <div className="text-center mb-8 md:mb-3">
-        <h1 className="text-4xl font-bold text-app-main">Panel de Gestión</h1>
-        <p className="text-app-muted text-lg mt-2">
-          Seleccione una opción para continuar
+    <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-app-light/50 to-white">
+      {/* Botón Cerrar */}
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 transition"
+        aria-label="Cerrar"
+      >
+        <XMarkIcon className="w-6 h-6 text-app-muted" />
+      </button>
+
+      {/* Encabezado */}
+      <div className="text-center mb-10">
+        <h1 className="text-3xl sm:text-4xl font-bold text-app-main tracking-tight">
+          Bienvenidos a VOXDEI
+        </h1>
+        <p className="text-app-muted text-base sm:text-lg mt-2">
+          ¿Cómo quieres usar este dispositivo?
         </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 w-full max-w-4xl">
+      {/* Contenedor de botones */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-3xl">
+        {/* Botón Presentación */}
         <button
           onClick={() => navigate("/ViewDisplay")}
-          className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+          className="flex flex-col items-center justify-center p-8 sm:p-10 bg-white rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 border border-gray-100"
         >
-          <PlayCircleIcon className="w-10 h-10 text-app-muted mb-2" />
-          <span className="text-sm font-medium text-app-main text-center">
+          <PlayCircleIcon className="w-14 h-14 text-app-main mb-3" />
+          <span className="text-base sm:text-lg font-semibold text-app-main text-center">
             Presentación
           </span>
+          <p className="text-sm text-app-muted mt-1 text-center">
+            Muestra el contenido en la pantalla principal
+          </p>
         </button>
 
+        {/* Botón Administrador */}
         <button
-          onClick={() => navigate("/ViewStylos")}
-          className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
+          onClick={() => navigate("/ViewGestion")}
+          className="flex flex-col items-center justify-center p-8 sm:p-10 bg-white rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 border border-gray-100"
         >
-          <PaintBrushIcon className="w-10 h-10 text-app-muted mb-2" />
-          <span className="text-sm font-medium text-app-main text-center">
-            Estilos y colores
+          <Squares2X2Icon className="w-14 h-14 text-app-main mb-3" />
+          <span className="text-base sm:text-lg font-semibold text-app-main text-center">
+            Administrador
           </span>
-        </button>
-
-        <button
-          onClick={() => navigate("/ViewTicker")}
-          className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
-        >
-          <TagIcon className="w-10 h-10 text-app-muted mb-2" />
-          <span className="text-sm font-medium text-app-main text-center">
-            Gestión Ticker
-          </span>
-        </button>
-
-        <button
-          onClick={() => navigate("/ViewMessage")}
-          className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
-        >
-          <ChatBubbleLeftRightIcon className="w-10 h-10 text-app-muted mb-2" />
-          <span className="text-sm font-medium text-app-main text-center">
-            Gestión Mensaje
-          </span>
-        </button>
-
-        <button
-          onClick={() => navigate("/ViewPanel")}
-          className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
-        >
-          <PhotoIcon className="w-10 h-10 text-app-muted mb-2" />
-          <span className="text-sm font-medium text-app-main text-center">
-            Gestión Imagen
-          </span>
-        </button>
-
-        <button
-          onClick={() => navigate("/ViewPanel")}
-          className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
-        >
-          <VideoCameraIcon className="w-10 h-10 text-app-muted mb-2" />
-          <span className="text-sm font-medium text-app-main text-center">
-            Gestión Video
-          </span>
-        </button>
-
-        <button
-          onClick={() => navigate("/ViewPredica")}
-          className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
-        >
-          <MicrophoneIcon className="w-10 h-10 text-app-muted mb-2" />
-          <span className="text-sm font-medium text-app-main text-center">
-            Gestión Predica
-          </span>
-        </button>
-
-        <button
-          onClick={() => navigate("/ViewVersiculo")}
-          className="flex flex-col items-center justify-center p-6 bg-app-light rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 sm:aspect-square"
-        >
-          <BookOpenIcon className="w-10 h-10 text-app-muted mb-2" />
-          <span className="text-sm font-medium text-app-main text-center">
-            Biblia
-          </span>
+          <p className="text-sm text-app-muted mt-1 text-center">
+            Gestiona ticker, mensajes, predicas, versiculos y estilos
+          </p>
         </button>
       </div>
     </div>

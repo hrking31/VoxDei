@@ -1,4 +1,5 @@
 import ViewSelector from "./ViewSelector/ViewSelector";
+import ViewGestion from "./ViewGestion/ViewGestion";
 import ViewDisplay from "./ViewDisplay/ViewDisplay";
 import ViewStylos from "./ViewStylos/ViewStylos";
 import ViewTicker from "./ViewTicker/ViewTicker";
@@ -7,6 +8,7 @@ import ViewPredica from "./ViewPredica/ViewPredica";
 import ViewVersiculo from "./ViewVersiculo/ViewVersiculo";
 
 export {
+  ViewGestion,
   ViewSelector,
   ViewDisplay,
   ViewStylos,
