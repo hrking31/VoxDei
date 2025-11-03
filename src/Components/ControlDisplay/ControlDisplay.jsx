@@ -19,7 +19,7 @@ export default function DisplayView() {
     visibleTexto,
     setVisibleTexto,
     velocidadTicker,
-    setVelocidadTicker,
+    // setVelocidadTicker,
   } = useAppContext();
 
   // Display Ticker
@@ -121,19 +121,19 @@ export default function DisplayView() {
     return () => unsubscribe();
   }, []);
 
-  // Speed Ticker
-  useEffect(() => {
-    const speedRef = ref(database, "speedTicker");
-    const unsubscribe = onValue(speedRef, (snapshot) => {
-      const data = snapshot.val();
+  // // Speed Ticker
+  // useEffect(() => {
+  //   const speedRef = ref(database, "speedTicker");
+  //   const unsubscribe = onValue(speedRef, (snapshot) => {
+  //     const data = snapshot.val();
 
-      if (data && typeof data.velocidad !== undefined) {
-        setVelocidadTicker(data.velocidad);
-      }
-    });
+  //     if (data && typeof data.velocidad !== undefined) {
+  //       setVelocidadTicker(data.velocidad);
+  //     }
+  //   });
 
-    return () => unsubscribe();
-  }, []);
+  //   return () => unsubscribe();
+  // }, []);
 
   return (
     <div className="relative h-screen w-screen bg-black font-bold text-white flex items-center justify-center text-center overflow-hidden p-5">

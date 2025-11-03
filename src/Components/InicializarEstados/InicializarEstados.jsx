@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { database, db } from "../../Components/Firebase/Firebase";
-import { ref, set } from "firebase/database";
+import { ref, set, onValue } from "firebase/database";
 import { useAppContext } from "../../Components/Context/AppContext";
 
 export default function InicializarEstados() {
@@ -109,6 +109,20 @@ export default function InicializarEstados() {
     setVisibleTexto,
     setVelocidadTicker,
   ]);
+
+  // Speed Ticker
+  useEffect(() => {
+    const speedRef = ref(database, "speedTicker");
+    const unsubscribe = onValue(speedRef, (snapshot) => {
+      const data = snapshot.val();
+
+      if (data && typeof data.velocidad !== undefined) {
+        setVelocidadTicker(data.velocidad);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return null;
 }
