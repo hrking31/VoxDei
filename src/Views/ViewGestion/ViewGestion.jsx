@@ -18,11 +18,11 @@ export default function ViewSelector() {
     <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-app-dark">
       {/* Botón de cerrar */}
       <button
-        onClick={() => navigate("/")}
-        className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 transition"
+        onClick={() => navigate("/ViewSelector")}
+        className="absolute top-4 right-4 p-2 rounded-full hover:bg-app-main transition"
         aria-label="Cerrar"
       >
-        <XMarkIcon className="w-6 h-6 text-app-muted" />
+        <XMarkIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
       </button>
 
       {/* Encabezado */}

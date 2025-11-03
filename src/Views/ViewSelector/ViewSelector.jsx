@@ -13,10 +13,10 @@ export default function ViewSelector() {
       {/* Botón Cerrar */}
       <button
         onClick={() => navigate("/")}
-        className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 transition"
+        className="absolute top-4 right-4 p-2 rounded-full hover:bg-app-main transition"
         aria-label="Cerrar"
       >
-        <XMarkIcon className="w-6 h-6 text-app-muted" />
+        <XMarkIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
       </button>
 
       {/* Encabezado */}
@@ -55,7 +55,7 @@ export default function ViewSelector() {
             Administrador
           </span>
           <p className="text-sm text-app-muted mt-1 text-center">
-            Gestiona ticker, mensajes, predicas, versiculos y estilos
+            Gestiona tickers, mensajes, predicas, versiculos, usuarios y estilos
           </p>
         </button>
       </div>

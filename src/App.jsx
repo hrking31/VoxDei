@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import {
+  ViewLogin,
   ViewSelector,
   ViewGestion,
   ViewDisplay,
@@ -14,13 +15,13 @@ import InicializarEstados from "./Components/InicializarEstados/InicializarEstad
 import Notificaciones from "./Components/Notificaciones/Notificaciones";
 
 export default function App() {
-
   return (
     <AppProvider>
       <InicializarEstados />
-      <Notificaciones/>
+      <Notificaciones />
       <Routes>
-        <Route path="/" element={<ViewSelector />} />
+        <Route path="/" element={<ViewLogin />} />
+        <Route path="/ViewSelector" element={<ViewSelector />} />
         <Route path="/ViewGestion" element={<ViewGestion />} />
         <Route path="/viewdisplay" element={<ViewDisplay />} />
         <Route path="/ViewStylos" element={<ViewStylos />} />
