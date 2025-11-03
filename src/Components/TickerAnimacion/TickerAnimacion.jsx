@@ -42,7 +42,7 @@ export default function TickerMessage({ message, velocidad }) {
       className="w-full fixed bottom-0 left-0 z-40 flex items-center bg-blue-600 h-14 overflow-hidden"
     >
       <button
-        onClick={() => navigate("/")}
+        onClick={() => navigate("/ViewSelector")}
         className="fixed z-50 flex items-center h-14"
       >
         <Reloj />

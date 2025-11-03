@@ -240,7 +240,7 @@ export default function ControlVersiculos() {
 
           <button
             type="button"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/ViewGestion")}
             className="w-full py-2 boton-salida"
           >
             Salida

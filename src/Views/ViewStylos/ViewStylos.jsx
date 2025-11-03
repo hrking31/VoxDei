@@ -8,7 +8,7 @@ export default function ViewVersiculo() {
     <div className="flex flex-col pb-16">
       <div className="  flex justify-center">
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/ViewGestion")}
           className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold w-48 py-2 px-4 rounded shadow "
         >
           Volver

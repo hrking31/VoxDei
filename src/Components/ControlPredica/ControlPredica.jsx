@@ -383,7 +383,7 @@ const toggleVisibleTexto = () => {
               <div className="col-span-2 gap-2 grid grid-cols-1 sm:grid-cols-2 p-0.5">
                 <button
                   type="button"
-                  onClick={() => navigate("/")}
+                  onClick={() => navigate("/ViewGestion")}
                   className="w-full py-1.5 boton-salida"
                 >
                   Salida

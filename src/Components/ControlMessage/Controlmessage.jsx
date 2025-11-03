@@ -200,7 +200,7 @@ export default function ControlMenssage() {
 
             <button
               type="button"
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/ViewGestion")}
               className="w-full py-1.5 boton-salida"
             >
               Salida
