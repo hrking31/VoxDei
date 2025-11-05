@@ -37,16 +37,17 @@ body {
   .scrollbar-custom::-webkit-scrollbar-thumb:hover {
     background-color: theme(--color-app-main);
   }
-
-    .no-autofill {
-    &:-webkit-autofill {
-      box-shadow: 0 0 0px 1000px white inset !important;
-      -webkit-box-shadow: 0 0 0px 1000px white inset !important;
-      -webkit-text-fill-color: #374151 !important;
-    }
-  }
 }
 
+/* Quitar el estilo azul del autofill de Chrome */
+input:-webkit-autofill {
+  box-shadow: 0 0 0px 1000px white inset !important;
+  -webkit-box-shadow: 0 0 0px 1000px white inset !important;
+  -webkit-text-fill-color: #9ca3af !important; /* color de texto (gris Tailwind) */
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Estilos para botones */
 .boton-salida {
   @apply flex items-center justify-center text-center text-xs sm:text-sm md:text-base 
   break-words font-bold rounded cursor-pointer 
