@@ -4,15 +4,21 @@ import {
   Squares2X2Icon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
+import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function ViewSelector() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handlerLogout = async () => {
+    await logout();
+  };
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-app-light/50 to-white">
       {/* Botón Cerrar */}
       <button
-        onClick={() => navigate("/")}
+        onClick={handlerLogout}
         className="absolute top-4 right-4 p-2 rounded-full hover:bg-app-main transition"
         aria-label="Cerrar"
       >

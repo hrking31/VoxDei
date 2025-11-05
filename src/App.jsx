@@ -13,6 +13,7 @@ import {
 import { AppProvider } from "./Components/Context/AppContext";
 import InicializarEstados from "./Components/InicializarEstados/InicializarEstados";
 import Notificaciones from "./Components/Notificaciones/Notificaciones";
+import { ProtectedRoutes } from "./Components/ProtectedRoutes/ProtectedRoutes.jsx";
 
 export default function App() {
   return (
@@ -20,15 +21,75 @@ export default function App() {
       <InicializarEstados />
       <Notificaciones />
       <Routes>
-        <Route path="/" element={<ViewLogin />} />
-        <Route path="/ViewSelector" element={<ViewSelector />} />
-        <Route path="/ViewGestion" element={<ViewGestion />} />
-        <Route path="/viewdisplay" element={<ViewDisplay />} />
-        <Route path="/ViewStylos" element={<ViewStylos />} />
-        <Route path="/viewTicker" element={<ViewTicker />} />
-        <Route path="/ViewMessage" element={<ViewMessage />} />
-        <Route path="/ViewPredica" element={<ViewPredica />} />
-        <Route path="/ViewVersiculo" element={<ViewVersiculo />} />
+        <Route path="/ViewLogin" element={<ViewLogin />} />
+
+        <Route
+          path="/ViewSelector"
+          element={
+            <ProtectedRoutes>
+              <ViewSelector />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/ViewGestion"
+          element={
+            <ProtectedRoutes>
+              <ViewGestion />
+            </ProtectedRoutes>
+          }
+        />
+        <Route
+          path="/viewdisplay"
+          element={
+            <ProtectedRoutes>
+              <ViewDisplay />
+            </ProtectedRoutes>
+          }
+        />
+        <Route
+          path="/ViewStylos"
+          element={
+            <ProtectedRoutes>
+              <ViewStylos />{" "}
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/viewTicker"
+          element={
+            <ProtectedRoutes>
+              <ViewTicker />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/ViewMessage"
+          element={
+            <ProtectedRoutes>
+              <ViewMessage />
+            </ProtectedRoutes>
+          }
+        />
+        <Route
+          path="/ViewPredica"
+          element={
+            <ProtectedRoutes>
+              <ViewPredica />
+            </ProtectedRoutes>
+          }
+        />
+        <Route
+          path="/ViewVersiculo"
+          element={
+            <ProtectedRoutes>
+              <ViewVersiculo />
+            </ProtectedRoutes>
+          }
+        />
       </Routes>
     </AppProvider>
   );
