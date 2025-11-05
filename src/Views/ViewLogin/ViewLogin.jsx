@@ -57,7 +57,7 @@ export default function ViewLogin() {
               value={user.email}
               onChange={handleChange}
               required
-              className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-app-main transition"
+              className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-app-main transition text-app-muted no-autofill"
             />
           </div>
 
@@ -72,7 +72,7 @@ export default function ViewLogin() {
               value={user.password}
               onChange={handleChange}
               required
-              className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-app-main transition"
+              className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-app-main transition text-app-muted no-autofill"
             />
           </div>
 
@@ -85,16 +85,17 @@ export default function ViewLogin() {
           </button>
         </form>
 
-        {/* <p className="text-center text-sm text-app-muted mt-4">
+        <p className="text-center text-sm text-app-muted mt-4">
           ¿Olvidaste tu contraseña?
           <button
-            onClick={() => navigate("/reset")}
+            onClick={() => navigate("/ResetPassword")}
             className="text-app-main hover:underline ml-1"
           >
             Recuperar
           </button>
-        </p> */}
+        </p>
       </div>
     </div>
   );
 }
+ 

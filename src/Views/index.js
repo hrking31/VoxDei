@@ -7,6 +7,7 @@ import ViewTicker from "./ViewTicker/ViewTicker";
 import ViewMessage from "./ViewMessage/ViewMenssage";
 import ViewPredica from "./ViewPredica/ViewPredica";
 import ViewVersiculo from "./ViewVersiculo/ViewVersiculo";
+import ViewResetPassword from "./ViewResetPassword/ViewResetPassword.jsx";
 
 export {
   ViewLogin,
@@ -18,4 +19,5 @@ export {
   ViewMessage,
   ViewPredica,
   ViewVersiculo,
+  ViewResetPassword
 };

@@ -30,7 +30,6 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      console.log("🔥 Usuario autenticado:", currentUser);
       setUser(currentUser);
 
       if (currentUser) {
@@ -39,7 +38,6 @@ export function AuthProvider({ children }) {
         const userDoc = await getDoc(userDocRef);
         if (userDoc.exists()) {
           setUserData(userDoc.data());
-          console.log("datos registro",userDoc.data());
         } else {
           setUserData(null);
         }

@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import {
   ViewLogin,
   ViewSelector,
@@ -9,6 +9,7 @@ import {
   ViewMessage,
   ViewPredica,
   ViewVersiculo,
+  ViewResetPassword,
 } from "./Views/index";
 import { AppProvider } from "./Components/Context/AppContext";
 import InicializarEstados from "./Components/InicializarEstados/InicializarEstados";
@@ -21,7 +22,9 @@ export default function App() {
       <InicializarEstados />
       <Notificaciones />
       <Routes>
+        <Route path="/" element={<Navigate to="/ViewLogin" />} />
         <Route path="/ViewLogin" element={<ViewLogin />} />
+        <Route path="/ResetPassword" element={<ViewResetPassword />} />
 
         <Route
           path="/ViewSelector"
