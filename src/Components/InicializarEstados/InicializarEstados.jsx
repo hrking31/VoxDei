@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { database, db } from "../../Components/Firebase/Firebase";
-import { ref, set, onValue } from "firebase/database";
+import { ref, onValue } from "firebase/database";
 import { useAppContext } from "../../Components/Context/AppContext";
 
 export default function InicializarEstados() {
@@ -69,30 +69,43 @@ export default function InicializarEstados() {
       }
     };
 
+    // Display Visible Titulo
     const visibleTitulo = async () => {
-      set(ref(database, "displayVisibleTitulo"), {
-        visibleTitulo: false,
-        timestamp: Date.now(),
-      });
+      const visibleRef = ref(database, "displayVisibleTitulo");
+      const unsubscribe = onValue(visibleRef, (snapshot) => {
+        const data = snapshot.val();
 
-      setVisibleTitulo(false);
+        if (data && typeof data.visibleTitulo === "boolean") {
+          setVisibleTitulo(data.visibleTitulo);
+        }
+      });
+      return () => unsubscribe();
     };
 
+    //Display Visible Texto
     const visibleTexto = async () => {
-      set(ref(database, "displayVisibleTexto"), {
-        visibleTexto: false,
-        timestamp: Date.now(),
-      });
+      const visibleRef = ref(database, "displayVisibleTexto");
+      const unsubscribe = onValue(visibleRef, (snapshot) => {
+        const data = snapshot.val();
 
-      setVisibleTexto(false);
+        if (data && typeof data.visibleTexto === "boolean") {
+          setVisibleTexto(data.visibleTexto);
+        }
+      });
+      return () => unsubscribe();
     };
 
+    // Speed Ticker
     const speedTicker = async () => {
-      set(ref(database, "speedTicker"), {
-        velocidad: 2,
-      });
+      const speedRef = ref(database, "speedTicker");
+      const unsubscribe = onValue(speedRef, (snapshot) => {
+        const data = snapshot.val();
 
-      setVelocidadTicker, false;
+        if (data && typeof data.velocidad !== undefined) {
+          setVelocidadTicker(data.velocidad);
+        }
+      });
+      return () => unsubscribe();
     };
 
     loadSlots();
@@ -109,20 +122,6 @@ export default function InicializarEstados() {
     setVisibleTexto,
     setVelocidadTicker,
   ]);
-
-  // Speed Ticker
-  useEffect(() => {
-    const speedRef = ref(database, "speedTicker");
-    const unsubscribe = onValue(speedRef, (snapshot) => {
-      const data = snapshot.val();
-
-      if (data && typeof data.velocidad !== undefined) {
-        setVelocidadTicker(data.velocidad);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   return null;
 }

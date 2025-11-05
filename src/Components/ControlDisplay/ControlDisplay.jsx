@@ -15,11 +15,8 @@ export default function DisplayView() {
   const [cita, setCita] = useState("");
   const {
     visibleTitulo,
-    setVisibleTitulo,
     visibleTexto,
-    setVisibleTexto,
     velocidadTicker,
-    // setVelocidadTicker,
   } = useAppContext();
 
   // Display Ticker
@@ -93,47 +90,6 @@ export default function DisplayView() {
     });
     return () => unsubscribe();
   }, []);
-
-  // Display Visible Titulo
-  useEffect(() => {
-    const visibleRef = ref(database, "displayVisibleTitulo");
-    const unsubscribe = onValue(visibleRef, (snapshot) => {
-      const data = snapshot.val();
-
-      if (data && typeof data.visibleTitulo === "boolean") {
-        setVisibleTitulo(data.visibleTitulo);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  // Display Visible Texto
-  useEffect(() => {
-    const visibleRef = ref(database, "displayVisibleTexto");
-    const unsubscribe = onValue(visibleRef, (snapshot) => {
-      const data = snapshot.val();
-
-      if (data && typeof data.visibleTexto === "boolean") {
-        setVisibleTexto(data.visibleTexto);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  // // Speed Ticker
-  // useEffect(() => {
-  //   const speedRef = ref(database, "speedTicker");
-  //   const unsubscribe = onValue(speedRef, (snapshot) => {
-  //     const data = snapshot.val();
-
-  //     if (data && typeof data.velocidad !== undefined) {
-  //       setVelocidadTicker(data.velocidad);
-  //     }
-  //   });
-
-  //   return () => unsubscribe();
-  // }, []);
 
   return (
     <div className="relative h-screen w-screen bg-black font-bold text-white flex items-center justify-center text-center overflow-hidden p-5">
