@@ -3,7 +3,7 @@ import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../Components/Firebase/Firebase";
 import { useNavigate } from "react-router-dom";
 
-export default function ResetPassword() {
+export default function ViewResetPassword() {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -16,16 +16,21 @@ export default function ResetPassword() {
 
     try {
       await sendPasswordResetEmail(auth, email);
-      setMessage("✅ Se ha enviado un enlace de recuperación a tu correo.");
+      setMessage(
+        "✅ Si existe una cuenta asociada a este correo, recibirás un enlace de recuperación."
+      );
       setTimeout(() => navigate("/ViewLogin"), 3000); // vuelve al login
     } catch (err) {
-      if (err.code === "auth/user-not-found") {
-        setError("No existe un usuario con este correo.");
-      } else if (err.code === "auth/invalid-email") {
-        setError("Correo inválido.");
-      } else {
-        setError("Error al enviar el correo de recuperación.");
-      }
+       console.log("🔥 Error Firebase:", err.code, err.message);
+      const errorMessages = {
+        "auth/missing-email": "Debes ingresar un correo electrónico.",
+        "auth/invalid-email": "El formato del correo es inválido.",
+        "auth/too-many-requests": "Demasiados intentos. Intenta más tarde.",
+        "auth/network-request-failed": "Error de conexión. Revisa tu red.",
+      };
+      setError(
+        errorMessages[err.code] || "Error al enviar el correo de recuperación."
+      );
     }
   };
 
@@ -42,11 +47,10 @@ export default function ResetPassword() {
               Correo electrónico
             </label>
             <input
-              type="email"
+              type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="tu_correo@ejemplo.com"
-              required
               className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-app-main w-full text-app-muted no-autofill"
             />
           </div>
@@ -60,9 +64,9 @@ export default function ResetPassword() {
         </form>
 
         {message && (
-          <p className="text-green-600 mt-4 text-center">{message}</p>
+          <p className="text-app-muted mt-4 text-center">{message}</p>
         )}
-        {error && <p className="text-red-600 mt-4 text-center">{error}</p>}
+        {error && <p className="text-app-error mt-4 text-center">{error}</p>}
 
         <button
           onClick={() => navigate("/ViewLogin")}

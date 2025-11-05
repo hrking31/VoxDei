@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LockClosedIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import { useAppContext } from "../../Components/Context/AppContext";
 
 export default function ViewLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [user, setUser] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const { showNotif } = useAppContext();
 
   const handleChange = ({ target: { name, value } }) =>
     setUser((prev) => ({ ...prev, [name]: value }));
@@ -23,6 +25,7 @@ export default function ViewLogin() {
     } catch (error) {
       if (error.code === "auth/wrong-password") {
         setError("Contraseña incorrecta");
+        showNotif("error", "❌ Contraseña incorrecta");
       } else if (error.code === "auth/user-not-found") {
         setError("Usuario no registrado");
       } else {
@@ -56,7 +59,6 @@ export default function ViewLogin() {
               placeholder="ejemplo@correo.com"
               value={user.email}
               onChange={handleChange}
-              required
               className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-app-main transition text-app-muted no-autofill"
             />
           </div>
@@ -71,7 +73,6 @@ export default function ViewLogin() {
               placeholder="********"
               value={user.password}
               onChange={handleChange}
-              required
               className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-app-main transition text-app-muted no-autofill"
             />
           </div>
@@ -98,4 +99,3 @@ export default function ViewLogin() {
     </div>
   );
 }
- 
