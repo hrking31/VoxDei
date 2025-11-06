@@ -46,7 +46,7 @@ export default function ViewSelector() {
         <OptionButton
           icon={<UserGroupIcon className="w-10 h-10 text-app-muted mb-2" />}
           label="Usuarios"
-          onClick={() => navigate("/ViewDisplay")}
+          onClick={() => navigate("/ViewUsers")}
         />
 
         <OptionButton

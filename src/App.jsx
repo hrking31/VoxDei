@@ -10,6 +10,7 @@ import {
   ViewPredica,
   ViewVersiculo,
   ViewResetPassword,
+  ViewUsers,
 } from "./Views/index";
 import { AppProvider } from "./Components/Context/AppContext";
 import InicializarEstados from "./Components/InicializarEstados/InicializarEstados";
@@ -51,11 +52,21 @@ export default function App() {
             </ProtectedRoutes>
           }
         />
+
         <Route
           path="/ViewStylos"
           element={
             <ProtectedRoutes>
               <ViewStylos />{" "}
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/ViewUsers"
+          element={
+            <ProtectedRoutes>
+              <ViewUsers />{" "}
             </ProtectedRoutes>
           }
         />
