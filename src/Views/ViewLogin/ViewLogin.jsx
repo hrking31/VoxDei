@@ -31,8 +31,7 @@ export default function ViewLogin() {
     setLoading(true);
     try {
       await login(user.email, user.password);
-      setMessage("✅ Inicio de sesión exitoso. Redirigiendo...");
-      setTimeout(() => navigate("/ViewSelector"), 2000);
+      navigate("/ViewSelector");
     } catch (err) {
       console.error("Error de inicio de sesión:", err.code);
 
