@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { onValue, ref } from "firebase/database";
-import { database } from "../Firebase/Firebase";
+import { database, auth } from "../Firebase/Firebase";
 import { useAppContext } from "../Context/AppContext";
 import TickerAnimacion from "../TickerAnimacion/TickerAnimacion";
 
@@ -13,11 +13,7 @@ export default function DisplayView() {
   const [versiculo, setVersiculo] = useState("");
   const [tituloVersiculo, setTituloVersiculo] = useState("");
   const [cita, setCita] = useState("");
-  const {
-    visibleTitulo,
-    visibleTexto,
-    velocidadTicker,
-  } = useAppContext();
+  const { visibleTitulo, visibleTexto, velocidadTicker } = useAppContext();
 
   // Display Ticker
   useEffect(() => {
@@ -33,7 +29,7 @@ export default function DisplayView() {
 
   // Display Message
   useEffect(() => {
-    const messageRef = ref(database, "displayMessage");
+    const messageRef = ref(database, `displayMessage/${auth.currentUser.uid}`);
     const unsubscribe = onValue(messageRef, (snapshot) => {
       const data = snapshot.val();
       if (
@@ -55,7 +51,10 @@ export default function DisplayView() {
 
   // Display Titulo
   useEffect(() => {
-    const tituloRef = ref(database, "displayTitulo");
+    const tituloRef = ref(
+      database,
+      `displayVisibleTitulo/${auth.currentUser.uid}`
+    );
     const unsubscribe = onValue(tituloRef, (snapshot) => {
       const data = snapshot.val();
       if (

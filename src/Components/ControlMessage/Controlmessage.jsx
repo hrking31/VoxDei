@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ref, set, update } from "firebase/database";
-import { database, db } from "../Firebase/Firebase";
+import { database, db, auth} from "../Firebase/Firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import EmojiButton from "../EmojiButton/EmojiButton";
@@ -47,7 +47,7 @@ export default function ControlMenssage() {
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
 
-    update(ref(database, "displayVisibleTitulo"), {
+    update(ref(database, `displayVisibleTitulo/${auth.currentUser.uid}`), {
       visibleTitulo: nuevoEstado,
       timestamp: Date.now(),
     });

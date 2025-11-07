@@ -40,10 +40,17 @@ body {
 }
 
 /* Quitar el estilo azul del autofill de Chrome */
-input:-webkit-autofill {
+.form-light input:-webkit-autofill {
   box-shadow: 0 0 0px 1000px white inset !important;
   -webkit-box-shadow: 0 0 0px 1000px white inset !important;
   -webkit-text-fill-color: #9ca3af !important; /* color de texto (gris Tailwind) */
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.form-dark input:-webkit-autofill {
+  box-shadow: 0 0 0px 1000px #2c2e30 inset !important; /* gris oscuro */
+  -webkit-box-shadow: 0 0 0px 1000px #2c2e30 inset !important;
+  -webkit-text-fill-color: #9ca3af !important; /* texto claro */
   transition: background-color 5000s ease-in-out 0s;
 }
 

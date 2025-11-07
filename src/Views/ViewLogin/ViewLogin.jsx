@@ -72,7 +72,7 @@ export default function ViewLogin() {
         <form
           onSubmit={handleSubmit}
           noValidate
-          className="flex flex-col gap-4"
+          className="flex flex-col form-light gap-4"
         >
           {/* Correo */}
           <div className="flex flex-col">

@@ -44,6 +44,7 @@ export default function App() {
             </ProtectedRoutes>
           }
         />
+
         <Route
           path="/viewdisplay"
           element={
@@ -88,6 +89,7 @@ export default function App() {
             </ProtectedRoutes>
           }
         />
+
         <Route
           path="/ViewPredica"
           element={

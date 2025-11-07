@@ -16,18 +16,22 @@ export function AuthProvider({ children }) {
   const [userData, setUserData] = useState(null); // Datos extra de Firestore
   const [loading, setLoading] = useState(true);
 
+  // Función para registrar un nuevo usuario
   const signup = (email, password) =>
     createUserWithEmailAndPassword(auth, email, password);
 
+  // Función para iniciar sesión
   const login = (email, password) =>
     signInWithEmailAndPassword(auth, email, password);
 
+  // Función para cerrar sesión
   const logout = async () => {
     await signOut(auth);
     setUser(null);
     setUserData(null);
   };
 
+  // Observador de estado de autenticación
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
