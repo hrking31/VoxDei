@@ -22,7 +22,7 @@ export default function ViewLogin() {
     setError("");
     setMessage("");
 
-    // 🔹 Validación básica antes de enviar
+    // Validación básica antes de enviar
     if (!user.email || !user.password) {
       setError("Por favor ingresa tu correo y contraseña.");
       return;
