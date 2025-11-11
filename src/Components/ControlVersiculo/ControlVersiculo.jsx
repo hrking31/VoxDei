@@ -1,6 +1,6 @@
 import { useState, useRef, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { database } from "../Firebase/Firebase";
+import { database, auth } from "../Firebase/Firebase";
 import { ref, set, update } from "firebase/database";
 import parse from "html-react-parser";
 import LibrosModal from "../ModalLibros/ModalLibros";
@@ -10,9 +10,11 @@ import { obtenerVersiculo } from "../FuncionesControlPredica/FuncionesControlPre
 import BuscadorLibros from "../BuscadorLibros/BuscadorLibros";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useAppContext } from "../Context/AppContext";
+import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function ControlVersiculos() {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const [libro, setLibro] = useState({
     sigla: null,
     nombre: null,
@@ -83,7 +85,7 @@ export default function ControlVersiculos() {
 
   const handleProjectarVersiculo = (versiculo, numero, titulo) => {
     const citaCompleta = `${resultado.libro} ${resultado.capitulo}:${numero}`;
-    set(ref(database, "displayVersiculo"), {
+    set(ref(database, `displayVersiculo/${user.uid}`), {
       titulo: titulo,
       text: versiculo,
       cita: citaCompleta,
@@ -137,7 +139,7 @@ export default function ControlVersiculos() {
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
 
-    update(ref(database, "displayVisibleTitulo"), {
+    update(ref(database, `displayVisibleTitulo/${user.uid}`), {
       visibleTitulo: nuevoEstado,
       timestamp: Date.now(),
     });
@@ -147,7 +149,7 @@ export default function ControlVersiculos() {
     const nuevoEstado = !visibleTexto;
     setVisibleTexto(nuevoEstado);
 
-    update(ref(database, "displayVisibleTexto"), {
+    update(ref(database, `displayVisibleTexto/${user.uid}`), {
       visibleTexto: nuevoEstado,
       timestamp: Date.now(),
     });

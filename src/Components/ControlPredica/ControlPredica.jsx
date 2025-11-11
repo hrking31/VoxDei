@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { database } from "../Firebase/Firebase";
-import { ref, set, update } from "firebase/database";
+import { ref, set } from "firebase/database";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import {
@@ -14,9 +14,11 @@ import LibrosModal from "../../Components/ModalLibros/ModalLibros";
 import CapituloModal from "../../Components/ModalCapitulo/ModalCapitulo";
 import VersiculoModal from "../../Components/ModalVersiculo/ModalVersiculo";
 import WhatsAppButton from "../WhatsAppButton/WhatsAppButton";
+import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function Predica() {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const [libro, setLibro] = useState({
     sigla: null,
     nombre: null,
@@ -136,20 +138,20 @@ export default function Predica() {
 
   const enviarAProyeccion = (elemento) => {
     if (elemento.tipo === "mensaje") {
-      set(ref(database, "displayMessage"), {
+      set(ref(database, `displayMessage/${user.uid}`), {
         text: elemento.contenido,
         display: "mensajePredica",
         timestamp: Date.now(),
       });
     } else if (elemento.tipo === "versiculo") {
-      set(ref(database, "displayVersiculo"), {
+      set(ref(database, `displayVersiculo/${user.uid}`), {
         text: elemento.contenido.texto,
         cita: elemento.contenido.cita,
         display: "versiculo",
         timestamp: Date.now(),
       });
     } else {
-      set(ref(database, "displayTitulo"), {
+      set(ref(database, `displayTitulo/${user.uid}`), {
         text: elemento.contenido,
         display: "titulo",
         timestamp: Date.now(),
@@ -157,25 +159,25 @@ export default function Predica() {
     }
   };
 
-const toggleVisibleTitulo = () => {
-  const nuevoEstado = !visibleTitulo;
-  setVisibleTitulo(nuevoEstado);
+  const toggleVisibleTitulo = () => {
+    const nuevoEstado = !visibleTitulo;
+    setVisibleTitulo(nuevoEstado);
 
-  update(ref(database, "displayVisibleTitulo"), {
-    visibleTitulo: nuevoEstado,
-    timestamp: Date.now(),
-  });
-};
+    set(ref(database, `displayVisibleTitulo/${user.uid}`), {
+      visibleTitulo: nuevoEstado,
+      timestamp: Date.now(),
+    });
+  };
 
-const toggleVisibleTexto = () => {
-  const nuevoEstado = !visibleTexto;
-  setVisibleTexto(nuevoEstado);
+  const toggleVisibleTexto = () => {
+    const nuevoEstado = !visibleTexto;
+    setVisibleTexto(nuevoEstado);
 
-  update(ref(database, "displayVisibleTexto"), {
-    visibleTexto: nuevoEstado,
-    timestamp: Date.now(),
-  });
-};
+    set(ref(database, `displayVisibleTexto/${user.uid}`), {
+      visibleTexto: nuevoEstado,
+      timestamp: Date.now(),
+    });
+  };
 
   return (
     <div className="pt-1 mx-auto">

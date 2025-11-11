@@ -6,9 +6,11 @@ import { doc, setDoc } from "firebase/firestore";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import EmojiButton from "../EmojiButton/EmojiButton";
 import { useAppContext } from "../Context/AppContext";
+import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function ControlMenssage() {
   const navigate = useNavigate();
+   const { user, loading } = useAuth();
   const [message, setMessage] = useState("");
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const {
@@ -36,7 +38,7 @@ export default function ControlMenssage() {
 
     if (!textToSend.trim()) return;
 
-    set(ref(database, "displayMessage"), {
+    set(ref(database, `displayMessage/${user.uid}`), {
       text: textToSend,
       display: "mensaje",
       timestamp: item?.timestamp || Date.now(),
@@ -47,7 +49,7 @@ export default function ControlMenssage() {
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
 
-    update(ref(database, `displayVisibleTitulo/${auth.currentUser.uid}`), {
+  set(ref(database, `displayVisibleTitulo/${user.uid}`), {
       visibleTitulo: nuevoEstado,
       timestamp: Date.now(),
     });
@@ -57,7 +59,7 @@ export default function ControlMenssage() {
     const nuevoEstado = !visibleTexto;
     setVisibleTexto(nuevoEstado);
 
-    update(ref(database, "displayVisibleTexto"), {
+  set(ref(database, `displayVisibleTexto/${user.uid}`), {
       visibleTexto: nuevoEstado,
       timestamp: Date.now(),
     });

@@ -5,9 +5,11 @@ import { ref, set } from "firebase/database";
 import { doc, setDoc } from "firebase/firestore";
 import EmojiButton from "../EmojiButton/EmojiButton";
 import { useAppContext } from "../Context/AppContext";
+import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function ControlTicker() {
   const navigate = useNavigate();
+   const { user, loading } = useAuth();
   const [ticker, setTicker] = useState("");
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const {
@@ -24,7 +26,7 @@ export default function ControlTicker() {
 
     if (!textToSend.trim()) return;
 
-    set(ref(database, "displayTicker"), {
+    set(ref(database, `displayTicker/${user.uid}`), {
       text: textToSend,
       timestamp: item?.timestamp || Date.now(),
     });
@@ -32,7 +34,7 @@ export default function ControlTicker() {
 
   const configSpeed = (nuevoValor) => {
     setVelocidadTicker(nuevoValor);
-    set(ref(database, "speedTicker"), {
+    set(ref(database, `speedTicker/${user.uid}`), {
       velocidad: nuevoValor,
     });
   };

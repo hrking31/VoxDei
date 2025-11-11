@@ -3,6 +3,7 @@ import { onValue, ref } from "firebase/database";
 import { database, auth } from "../Firebase/Firebase";
 import { useAppContext } from "../Context/AppContext";
 import TickerAnimacion from "../TickerAnimacion/TickerAnimacion";
+import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function DisplayView() {
   const [display, setDisplay] = useState("");
@@ -14,10 +15,11 @@ export default function DisplayView() {
   const [tituloVersiculo, setTituloVersiculo] = useState("");
   const [cita, setCita] = useState("");
   const { visibleTitulo, visibleTexto, velocidadTicker } = useAppContext();
+  const { user, loading } = useAuth();
 
   // Display Ticker
   useEffect(() => {
-    const tickerRef = ref(database, "displayTicker");
+    const tickerRef = ref(database, `displayTicker/${user.uid}`);
     const unsubscribe = onValue(tickerRef, (snapshot) => {
       const data = snapshot.val();
       if (data && typeof data.text === "string") {
@@ -29,7 +31,7 @@ export default function DisplayView() {
 
   // Display Message
   useEffect(() => {
-    const messageRef = ref(database, `displayMessage/${auth.currentUser.uid}`);
+    const messageRef = ref(database, `displayMessage/${user.uid}`);
     const unsubscribe = onValue(messageRef, (snapshot) => {
       const data = snapshot.val();
       if (
@@ -51,10 +53,9 @@ export default function DisplayView() {
 
   // Display Titulo
   useEffect(() => {
-    const tituloRef = ref(
-      database,
-      `displayVisibleTitulo/${auth.currentUser.uid}`
-    );
+    if (!auth.currentUser) return;
+
+    const tituloRef = ref(database, `displayTitulo/${user.uid}`);
     const unsubscribe = onValue(tituloRef, (snapshot) => {
       const data = snapshot.val();
       if (
@@ -71,7 +72,10 @@ export default function DisplayView() {
 
   // Display Versiculo
   useEffect(() => {
-    const versiculoRef = ref(database, "displayVersiculo");
+    const versiculoRef = ref(
+      database,
+      `displayVersiculo/${user.uid}`
+    );
     const unsubscribe = onValue(versiculoRef, (snapshot) => {
       const data = snapshot.val();
       if (
