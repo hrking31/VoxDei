@@ -25,7 +25,7 @@ export default function CapituloModal({
           </h2>
 
           <button
-            onClick={onClose}
+            onClick={() => onCapitulo("uno")}
             className=" text-app-accent hover:text-app-error"
           >
             <XMarkIcon className="h-8 w-8 " />

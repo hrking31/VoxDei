@@ -50,20 +50,36 @@ export default function ControlVersiculos() {
   };
 
   const CapituloSeleccionado = (capitulo) => {
-    setLibro((prevLibro) => ({
-      ...prevLibro,
-      capitulo: capitulo,
-    }));
-    setModalActivo("versiculo");
+    // Si es "uno", consulta el capítulo 1 directamente y cierra el modal
+    if (capitulo === "uno") {
+      setLibro((prevLibro) => ({
+        ...prevLibro,
+        capitulo: 1,
+      }));
+      consultaVersiculo(libro.sigla, 1, 1);
+      setModalActivo("false");
+    } else {
+      setLibro((prevLibro) => ({
+        ...prevLibro,
+        capitulo: capitulo,
+      }));
+      setModalActivo("versiculo");
+    }
   };
 
   const VersiculoSeleccionado = (versiculo) => {
-    setLibro((prevLibro) => ({
-      ...prevLibro,
-      versiculo: versiculo,
-    }));
-    consultaVersiculo(libro.sigla, libro.capitulo, versiculo);
-    setModalActivo("false");
+    // Si es "uno", consulta el versículo 1 directamente
+    if (versiculo === "uno") {
+      consultaVersiculo(libro.sigla, libro.capitulo, 1);
+      setModalActivo("false");
+    } else {
+      setLibro((prevLibro) => ({
+        ...prevLibro,
+        versiculo: versiculo,
+      }));
+      consultaVersiculo(libro.sigla, libro.capitulo, versiculo);
+      setModalActivo("false");
+    }
   };
 
   const consultaVersiculo = async (sigla, capitulo, versiculo) => {

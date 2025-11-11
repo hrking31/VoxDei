@@ -20,11 +20,11 @@ export default function VersiculoModal({
       >
         <div className="flex justify-between items-center ">
           <h2 className="text-2xl text-app-main font-bold ">
-            {selecLibro.nombre} Capitulo {selecLibro.capitulo}: 
+            {selecLibro.nombre} Capitulo {selecLibro.capitulo}:
           </h2>
 
           <button
-            onClick={onClose}
+            onClick={() => onVersiculo("uno")}
             className=" text-app-accent hover:text-app-error"
           >
             <XMarkIcon className="h-8 w-8 " />
