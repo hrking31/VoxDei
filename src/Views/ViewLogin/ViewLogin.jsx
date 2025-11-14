@@ -106,12 +106,12 @@ export default function ViewLogin() {
 
           {/* Mensajes */}
           {error && (
-            <p className="text-red-500 text-center text-sm font-medium mt-2">
+            <p className="text-app-error text-center text-sm font-medium mt-2">
               {error}
             </p>
           )}
           {message && (
-            <p className="text-green-600 text-center text-sm font-medium mt-2">
+            <p className="text-app-success text-center text-sm font-medium mt-2">
               {message}
             </p>
           )}

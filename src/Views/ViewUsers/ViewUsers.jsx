@@ -5,7 +5,7 @@ import { db } from "../../Components/Firebase/Firebase";
 import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import { deleteUser } from "firebase/auth";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
-import RolesPermisos from "../../Components/RolesPermisos/RolesPermisos";
+
 
 export default function ViewUsers() {
   const { signup, login, loading, setLoading, user: adminUser } = useAuth(); // usuario actual (admin)
@@ -71,8 +71,6 @@ export default function ViewUsers() {
     setError("");
     setMessage("");
 
-    const permisos = RolesPermisos[newUser.role];
-
     if (
       !newUser.name?.trim() ||
       !newUser.email?.trim() ||
@@ -96,7 +94,6 @@ export default function ViewUsers() {
         gender: newUser.gender,
         email: newUser.email,
         role: newUser.role,
-        permisos,
         createdAt: new Date(),
       });
 

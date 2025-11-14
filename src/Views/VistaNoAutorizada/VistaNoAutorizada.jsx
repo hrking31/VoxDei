@@ -1,7 +1,18 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function VistaNoAutorizada() {
   const navigate = useNavigate();
+  const location = useLocation(); // Contiene la ruta de donde vino
+  console.log("ver",location);
+
+   const handleVolver = () => {
+     // Si viene de ViewDisplay, redirige a ViewSelector, si no a ViewGestion
+     if (location.state?.from?.pathname === "/ViewDisplay") {
+       navigate("/ViewSelector");
+     } else {
+       navigate("/ViewGestion");
+     }
+   };
 
   return (
     <div className="max-w-md mx-auto text-center mt-28 p-4">
@@ -14,8 +25,8 @@ export default function VistaNoAutorizada() {
       </p>
 
       <button
-        onClick={() => navigate("/ViewSelector")}
-        className="bg-app-error text-app-muted px-6 py-2 rounded-lg hover:bg-app-accent transition"
+        onClick={handleVolver}
+        className="bg-app-error text-app-dark font-bold px-6 py-2 rounded-lg hover:bg-app-accent transition"
       >
         Volver al inicio
       </button>
