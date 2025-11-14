@@ -11,11 +11,12 @@ import {
   ViewVersiculo,
   ViewResetPassword,
   ViewUsers,
+  VistaNoAutorizada,
 } from "./Views/index";
+import { ProtectedRoutes } from "./Components/ProtectedRoutes/ProtectedRoutes.jsx";
 import { AppProvider } from "./Components/Context/AppContext";
 import InicializarEstados from "./Components/InicializarEstados/InicializarEstados";
 import Notificaciones from "./Components/Notificaciones/Notificaciones";
-import { ProtectedRoutes } from "./Components/ProtectedRoutes/ProtectedRoutes.jsx";
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/ViewLogin" />} />
         <Route path="/ViewLogin" element={<ViewLogin />} />
         <Route path="/ResetPassword" element={<ViewResetPassword />} />
+        <Route path="/VistaNoAutorizada" element={<VistaNoAutorizada />} />
 
         <Route
           path="/ViewSelector"
@@ -48,7 +50,14 @@ export default function App() {
         <Route
           path="/viewdisplay"
           element={
-            <ProtectedRoutes>
+            <ProtectedRoutes
+              rolesPermitidos={[
+                "Pastor",
+                "Pastora",
+                "Asistente",
+                "administrador",
+              ]}
+            >
               <ViewDisplay />
             </ProtectedRoutes>
           }
@@ -57,7 +66,14 @@ export default function App() {
         <Route
           path="/ViewStylos"
           element={
-            <ProtectedRoutes>
+            <ProtectedRoutes
+              rolesPermitidos={[
+                "Pastor",
+                "Pastora",
+                "Asistente",
+                "administrador",
+              ]}
+            >
               <ViewStylos />{" "}
             </ProtectedRoutes>
           }
@@ -66,7 +82,9 @@ export default function App() {
         <Route
           path="/ViewUsers"
           element={
-            <ProtectedRoutes>
+            <ProtectedRoutes
+              rolesPermitidos={["Pastor", "Pastora", "administrador"]}
+            >
               <ViewUsers />{" "}
             </ProtectedRoutes>
           }
@@ -75,7 +93,14 @@ export default function App() {
         <Route
           path="/viewTicker"
           element={
-            <ProtectedRoutes>
+            <ProtectedRoutes
+              rolesPermitidos={[
+                "Pastor",
+                "Pastora",
+                "Asistente",
+                "administrador",
+              ]}
+            >
               <ViewTicker />
             </ProtectedRoutes>
           }
@@ -84,7 +109,14 @@ export default function App() {
         <Route
           path="/ViewMessage"
           element={
-            <ProtectedRoutes>
+            <ProtectedRoutes
+              rolesPermitidos={[
+                "Pastor",
+                "Pastora",
+                "Asistente",
+                "administrador",
+              ]}
+            >
               <ViewMessage />
             </ProtectedRoutes>
           }
@@ -93,15 +125,25 @@ export default function App() {
         <Route
           path="/ViewPredica"
           element={
-            <ProtectedRoutes>
+            <ProtectedRoutes
+              rolesPermitidos={["Pastor", "Pastora", "administrador"]}
+            >
               <ViewPredica />
             </ProtectedRoutes>
           }
         />
+
         <Route
           path="/ViewVersiculo"
           element={
-            <ProtectedRoutes>
+            <ProtectedRoutes
+              rolesPermitidos={[
+                "Pastor",
+                "Pastora",
+                "Asistente",
+                "administrador",
+              ]}
+            >
               <ViewVersiculo />
             </ProtectedRoutes>
           }

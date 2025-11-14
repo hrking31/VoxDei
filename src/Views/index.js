@@ -9,6 +9,7 @@ import ViewPredica from "./ViewPredica/ViewPredica";
 import ViewVersiculo from "./ViewVersiculo/ViewVersiculo";
 import ViewResetPassword from "./ViewResetPassword/ViewResetPassword.jsx";
 import ViewUsers from "./ViewUsers/ViewUsers.jsx";
+import VistaNoAutorizada from "./VistaNoAutorizada/VistaNoAutorizada.jsx";
 
 export {
   ViewLogin,
@@ -22,4 +23,5 @@ export {
   ViewVersiculo,
   ViewResetPassword,
   ViewUsers,
+  VistaNoAutorizada
 };
