@@ -1,34 +1,27 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserPlusIcon, TrashIcon } from "@heroicons/react/24/solid";
-import { useAuth } from "../../Components/Context/AuthContext.jsx";
-import { auth, db } from "../../Components/Firebase/Firebase";
+import { db } from "../../Components/Firebase/Firebase";
 import { doc, setDoc, deleteDoc } from "firebase/firestore";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  deleteUser,
-} from "firebase/auth";
+import { deleteUser } from "firebase/auth";
+import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import RolesPermisos from "../../Components/RolesPermisos/RolesPermisos";
 
 export default function ViewUsers() {
-  const { user: adminUser } = useAuth(); // usuario actual (admin)
+  const { signup, login, loading, setLoading, user: adminUser } = useAuth(); // usuario actual (admin)
   const navigate = useNavigate();
   const refGenero = useRef(null);
-  const refRol = useRef(null);
-  const [mode, setMode] = useState("create"); // "create" o "delete"
-  const [openDropdown, setOpenDropdown] = useState(null);
-  const roleOptions = ["Pastor", "Pastora", "Asistente"];
   const genderOptions = ["Masculino", "Femenino"];
-
-  const toggleDropdown = (name) => {
-    setOpenDropdown(openDropdown === name ? null : name);
-  };
-
+  const refRol = useRef(null);
+  const roleOptions = ["Pastor", "Pastora", "Asistente", "administrador"];
+  const [openDropdown, setOpenDropdown] = useState(null); // "genero" o "rol"
+  const [mode, setMode] = useState("create"); // "create" o "delete"
   const [newUser, setNewUser] = useState({
+    name: "",
+    gender: "",
     email: "",
     password: "",
     role: "",
-    gender: "",
   });
 
   const [deleteData, setDeleteData] = useState({
@@ -38,7 +31,11 @@ export default function ViewUsers() {
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+
+  // Alternar dropdowns
+  const toggleDropdown = (name) => {
+    setOpenDropdown(openDropdown === name ? null : name);
+  };
 
   // Cerrar al hacer clic fuera
   useEffect(() => {
@@ -57,7 +54,7 @@ export default function ViewUsers() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Manejar inputs de creación y eliminación
+  // Manejo inputs de creación y eliminación
   const handleChange = ({ target: { name, value } }) => {
     if (mode === "create") setNewUser((prev) => ({ ...prev, [name]: value }));
     else setDeleteData((prev) => ({ ...prev, [name]: value }));
@@ -69,12 +66,17 @@ export default function ViewUsers() {
   // Crear usuario y guardar datos en Firestore
   const handleCreate = async (e) => {
     e.preventDefault();
+
+    // Limpiar mensajes previos
     setError("");
     setMessage("");
 
+    const permisos = RolesPermisos[newUser.role];
+
     if (
-      !newUser.email ||
-      !newUser.password ||
+      !newUser.name?.trim() ||
+      !newUser.email?.trim() ||
+      !newUser.password?.trim() ||
       !newUser.role ||
       !newUser.gender
     ) {
@@ -83,34 +85,23 @@ export default function ViewUsers() {
     }
 
     setLoading(true);
+
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        newUser.email,
-        newUser.password
-      );
-      const createdUser = userCredential.user;
+      const userCredential = await signup(newUser.email, newUser.password);
+      const uid = userCredential.user.uid;
 
       // Guardar información adicional
-      await setDoc(doc(db, "users", createdUser.uid), {
+      await setDoc(doc(db, "users", uid), {
+        name: newUser.name,
+        gender: newUser.gender,
         email: newUser.email,
         role: newUser.role,
-        gender: newUser.gender,
+        permisos,
         createdAt: new Date(),
       });
 
       setMessage("✅ Usuario creado y guardado correctamente.");
-      setNewUser({ email: "", password: "", role: "", gender: "" });
-
-      // Reautenticar admin
-      const adminPassword = prompt(
-        "Confirma tu contraseña de administrador para continuar:"
-      );
-      if (adminPassword) {
-        await signInWithEmailAndPassword(auth, adminUser.email, adminPassword);
-      }
     } catch (err) {
-      console.error(err.code);
       const errorMessages = {
         "auth/email-already-in-use": "El correo ya está registrado.",
         "auth/invalid-email": "Correo inválido.",
@@ -125,6 +116,9 @@ export default function ViewUsers() {
   // Eliminar usuario Auth y Firestore
   const handleDelete = async (e) => {
     e.preventDefault();
+    setError("");
+    setMessage("");
+
     if (!deleteData.email || !deleteData.password) {
       setError("Debes ingresar el correo y contraseña del usuario a eliminar.");
       return;
@@ -136,28 +130,18 @@ export default function ViewUsers() {
     if (!confirmDelete) return;
 
     setLoading(true);
+
     try {
-      const adminEmail = adminUser.email;
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        deleteData.email,
-        deleteData.password
-      );
+      const userCredential = await login(deleteData.email, deleteData.password);
       const userToDelete = userCredential.user;
 
       await deleteDoc(doc(db, "users", userToDelete.uid));
       await deleteUser(userToDelete);
 
-      setMessage("✅ Usuario eliminado correctamente de Firebase y Firestore.");
+      setMessage("✅ Usuario eliminado con éxito");
       setDeleteData({ email: "", password: "" });
 
-      // Reautenticar admin
-      const adminPassword = prompt("Confirma tu contraseña de administrador:");
-      if (adminPassword) {
-        await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
-      }
     } catch (err) {
-      console.error(err.code);
       const errorMessages = {
         "auth/user-not-found": "No se encontró una cuenta con ese correo.",
         "auth/wrong-password": "Contraseña incorrecta.",
@@ -186,7 +170,9 @@ export default function ViewUsers() {
         {/* Pestañas */}
         <div className="flex justify-center gap-8 mb-6">
           <button
-            onClick={() => setMode("create")}
+            onClick={() => {
+              setMode("create"), setError(""), setMessage("");
+            }}
             className={`relative pb-2 font-semibold transition ${
               mode === "create"
                 ? "text-app-main after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-full after:h-[2px] after:bg-app-main"
@@ -196,7 +182,9 @@ export default function ViewUsers() {
             Crear usuario
           </button>
           <button
-            onClick={() => setMode("delete")}
+            onClick={() => {
+              setMode("delete"), setError(""), setMessage("");
+            }}
             className={`relative pb-2 font-semibold transition ${
               mode === "delete"
                 ? "text-app-error after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-full after:h-[2px] after:bg-app-error"
@@ -212,68 +200,21 @@ export default function ViewUsers() {
           // Crear usuario
           <form
             onSubmit={handleCreate}
+            noValidate
             className="flex flex-col form-dark gap-4"
           >
             <input
-              type="email"
-              name="email"
-              placeholder="Correo electrónico"
-              value={newUser.email}
+              type="Nombre"
+              name="name"
+              placeholder="Nombre del usuario"
+              value={newUser.name}
               onChange={handleChange}
               className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
             />
-            <input
-              type="password"
-              name="password"
-              placeholder="Contraseña"
-              value={newUser.password}
-              onChange={handleChange}
-              className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
-            />
-            {/* Dropdowns para rol */}
-            <div ref={refRol}>
-              <button
-                onClick={() => toggleDropdown("rol")}
-                className="w-full p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted text-left bg-app-light"
-              >
-                {newUser.role || "Selecciona un rol"}
-              </button>
-              {openDropdown === "rol" && (
-                <ul
-                  className="
-                  absolute
-                  top-[62%]
-                  w-[70%] sm:w-[25%] 
-                  bg-app-light 
-                  border-2 border-app-border 
-                  rounded-lg 
-                  shadow-lg 
-                  max-h-64 
-                  overflow-y-auto 
-                  z-20 
-                 text-app-muted
-                  text-sm sm:text-base
-                  scrollbar-custom
-                "
-                >
-                  {roleOptions.map((roleOptions) => (
-                    <li
-                      key={roleOptions}
-                      onClick={() => {
-                        setNewUser((prev) => ({ ...prev, role: roleOptions }));
-                        setOpenDropdown(null);
-                      }}
-                      className="px-4 py-2 cursor-pointer hover:bg-app-main hover:text-white transition-colors duration-200"
-                    >
-                      {roleOptions}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
             {/* Dropdowns para genero */}
             <div ref={refGenero}>
               <button
+                type="button"
                 onClick={() => toggleDropdown("genero")}
                 className="w-full p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted text-left bg-app-light"
               >
@@ -284,7 +225,7 @@ export default function ViewUsers() {
                 <ul
                   className="
                   absolute
-                  top-[72%]
+                  top-[46%]
                   w-[70%] sm:w-[25%] 
                   bg-app-light 
                   border-2 border-app-border 
@@ -313,6 +254,65 @@ export default function ViewUsers() {
                 </ul>
               )}
             </div>
+            <input
+              type="email"
+              name="email"
+              placeholder="Correo electrónico"
+              value={newUser.email}
+              onChange={handleChange}
+              className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
+            />
+            <input
+              type="password"
+              name="password"
+              placeholder="Contraseña"
+              value={newUser.password}
+              onChange={handleChange}
+              className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
+            />
+            {/* Dropdowns para rol */}
+            <div ref={refRol}>
+              <button
+                type="button"
+                onClick={() => toggleDropdown("rol")}
+                className="w-full p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted text-left bg-app-light"
+              >
+                {newUser.role || "Selecciona un rol"}
+              </button>
+              {openDropdown === "rol" && (
+                <ul
+                  className="
+                  absolute
+                  top-[73.5%]
+                  w-[70%] sm:w-[25%] 
+                  bg-app-light 
+                  border-2 border-app-border 
+                  rounded-lg 
+                  shadow-lg 
+                  max-h-64 
+                  overflow-y-auto 
+                  z-20 
+                 text-app-muted
+                  text-sm sm:text-base
+                  scrollbar-custom
+                "
+                >
+                  {roleOptions.map((roleOptions) => (
+                    <li
+                      key={roleOptions}
+                      onClick={() => {
+                        setNewUser((prev) => ({ ...prev, role: roleOptions }));
+                        setOpenDropdown(null);
+                      }}
+                      className="px-4 py-2 cursor-pointer hover:bg-app-main hover:text-white transition-colors duration-200"
+                    >
+                      {roleOptions}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
             <button
               type="submit"
               disabled={loading}
@@ -328,6 +328,7 @@ export default function ViewUsers() {
           // Eliminar usuario
           <form
             onSubmit={handleDelete}
+            noValidate
             className="flex flex-col form-dark  gap-4"
           >
             <input
