@@ -21,6 +21,18 @@ export function AppProvider({ children }) {
     setNotif({ open: true, type, message });
   };
 
+  const confirmAction = (message) => {
+    return new Promise((resolve) => {
+      setNotif({
+        open: true,
+        type: "confirm",
+        message,
+        onConfirm: () => resolve(true),
+        onCancel: () => resolve(false),
+      });
+    });
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -41,6 +53,7 @@ export function AppProvider({ children }) {
         notif,
         setNotif,
         showNotif,
+        confirmAction,
       }}
     >
       {children}

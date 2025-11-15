@@ -1,6 +1,6 @@
 import { useState, useRef, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { database, auth } from "../Firebase/Firebase";
+import { database } from "../Firebase/Firebase";
 import { ref, set, update } from "firebase/database";
 import parse from "html-react-parser";
 import LibrosModal from "../ModalLibros/ModalLibros";
@@ -14,7 +14,7 @@ import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function ControlVersiculos() {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const [libro, setLibro] = useState({
     sigla: null,
     nombre: null,

@@ -1,14 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserPlusIcon, TrashIcon } from "@heroicons/react/24/solid";
-import { db } from "../../Components/Firebase/Firebase";
+import { db, auth } from "../../Components/Firebase/Firebase";
 import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import { deleteUser } from "firebase/auth";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
-
+import { useAppContext } from "../../Components/Context/AppContext";
 
 export default function ViewUsers() {
-  const { signup, login, loading, setLoading, user: adminUser } = useAuth(); // usuario actual (admin)
+  const { signup, login, logout, loading, setLoading } = useAuth();
+  const { showNotif, confirmAction } = useAppContext();
   const navigate = useNavigate();
   const refGenero = useRef(null);
   const genderOptions = ["Masculino", "Femenino"];
@@ -83,7 +84,6 @@ export default function ViewUsers() {
     }
 
     setLoading(true);
-
     try {
       const userCredential = await signup(newUser.email, newUser.password);
       const uid = userCredential.user.uid;
@@ -97,7 +97,10 @@ export default function ViewUsers() {
         createdAt: new Date(),
       });
 
-      setMessage("✅ Usuario creado y guardado correctamente.");
+      // setLoading(true);
+      await logout(auth);
+      // navigate("/ViewLogin");
+      showNotif("success", "✅ Usuario creado correctamente.");
     } catch (err) {
       const errorMessages = {
         "auth/email-already-in-use": "El correo ya está registrado.",
@@ -121,23 +124,25 @@ export default function ViewUsers() {
       return;
     }
 
-    const confirmDelete = window.confirm(
-      `¿Seguro que deseas eliminar la cuenta de ${deleteData.email}? Esta acción no se puede deshacer.`
+    // Espera respuesta del usuario
+    const accepted = await confirmAction(
+      `¿Seguro que deseas eliminar la cuenta de ${deleteData.email}?`
     );
-    if (!confirmDelete) return;
+    if (!accepted) return;
 
     setLoading(true);
-
     try {
+      setLoading(true);
       const userCredential = await login(deleteData.email, deleteData.password);
       const userToDelete = userCredential.user;
 
       await deleteDoc(doc(db, "users", userToDelete.uid));
       await deleteUser(userToDelete);
+      await logout();
 
-      setMessage("✅ Usuario eliminado con éxito");
+      navigate("/ViewLogin");
+      showNotif("success", "✅ Usuario eliminado con éxito");
       setDeleteData({ email: "", password: "" });
-
     } catch (err) {
       const errorMessages = {
         "auth/user-not-found": "No se encontró una cuenta con ese correo.",

@@ -15,7 +15,7 @@ export default function DisplayView() {
   const [tituloVersiculo, setTituloVersiculo] = useState("");
   const [cita, setCita] = useState("");
   const { visibleTitulo, visibleTexto, velocidadTicker } = useAppContext();
-  const { user, loading } = useAuth();
+  const { user} = useAuth();
 
   // Display Ticker
   useEffect(() => {

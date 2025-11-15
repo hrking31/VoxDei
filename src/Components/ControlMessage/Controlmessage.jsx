@@ -10,7 +10,7 @@ import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function ControlMenssage() {
   const navigate = useNavigate();
-   const { user, loading } = useAuth();
+   const { user } = useAuth();
   const [message, setMessage] = useState("");
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const {
@@ -20,9 +20,9 @@ export default function ControlMenssage() {
     setVisibleTexto,
     messageItems,
     setMessageItems,
+    showNotif,
   } = useAppContext();
-  const { showNotif } = useAppContext();
-  const textareaRef = useRef(null);
+   const textareaRef = useRef(null);
 
   useEffect(() => {
     if (textareaRef.current) {
