@@ -15,9 +15,9 @@ export function ProtectedRoutes({ children, rolesPermitidos = [] }) {
   // Si no está logueado → enviar al login
   if (!user) return <Navigate to="/ViewLogin" />;
 
-  // Si hay rolesPermitidos y el rol del usuario NO está dentro → bloquear
-  if (rolesPermitidos.length > 0) {
-    if (!userData || !rolesPermitidos.includes(userData.role)) {
+// Si hay roles permitidos definidos, verificar si el usuario tiene uno de esos roles
+  if (rolesPermitidos.length > 0 && userData) {
+    if (!rolesPermitidos.includes(userData.role)) {
       // Guarda la ruta original
       return (
         <Navigate to="/VistaNoAutorizada" state={{ from: location }} replace />

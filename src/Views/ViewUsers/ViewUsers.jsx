@@ -70,8 +70,7 @@ export default function ViewUsers() {
 
     // Limpiar mensajes previos
     setError("");
-    setMessage("");
-
+  
     if (
       !newUser.name?.trim() ||
       !newUser.email?.trim() ||
@@ -97,9 +96,6 @@ export default function ViewUsers() {
         createdAt: new Date(),
       });
 
-      // setLoading(true);
-      await logout(auth);
-      // navigate("/ViewLogin");
       showNotif("success", "✅ Usuario creado correctamente.");
     } catch (err) {
       const errorMessages = {
@@ -117,7 +113,6 @@ export default function ViewUsers() {
   const handleDelete = async (e) => {
     e.preventDefault();
     setError("");
-    setMessage("");
 
     if (!deleteData.email || !deleteData.password) {
       setError("Debes ingresar el correo y contraseña del usuario a eliminar.");
@@ -131,6 +126,7 @@ export default function ViewUsers() {
     if (!accepted) return;
 
     setLoading(true);
+
     try {
       setLoading(true);
       const userCredential = await login(deleteData.email, deleteData.password);
@@ -138,9 +134,7 @@ export default function ViewUsers() {
 
       await deleteDoc(doc(db, "users", userToDelete.uid));
       await deleteUser(userToDelete);
-      await logout();
 
-      navigate("/ViewLogin");
       showNotif("success", "✅ Usuario eliminado con éxito");
       setDeleteData({ email: "", password: "" });
     } catch (err) {
@@ -214,7 +208,7 @@ export default function ViewUsers() {
               className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
             />
             {/* Dropdowns para genero */}
-            <div ref={refGenero}>
+            <div ref={refGenero} className="relative">
               <button
                 type="button"
                 onClick={() => toggleDropdown("genero")}
@@ -227,18 +221,20 @@ export default function ViewUsers() {
                 <ul
                   className="
                   absolute
-                  top-[46%]
-                  w-[70%] sm:w-[25%] 
-                  bg-app-light 
-                  border-2 border-app-border 
-                  rounded-lg 
-                  shadow-lg 
-                  max-h-64 
-                  overflow-y-auto 
-                  z-20 
-                 text-app-muted
+                  left-0
+                  right-0
+                  top-full
+                  mt-1
+                  bg-app-light
+                  border-2 border-app-border
+                  rounded-lg
+                  shadow-lg
+                  max-h-64
+                  overflow-y-auto
+                  z-20
+                  text-app-muted
                   text-sm sm:text-base
-                  scrollbar-custom
+                  scrollbar-custo
                 "
                 >
                   {genderOptions.map((option) => (
@@ -273,7 +269,7 @@ export default function ViewUsers() {
               className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
             />
             {/* Dropdowns para rol */}
-            <div ref={refRol}>
+            <div ref={refRol} className="relative">
               <button
                 type="button"
                 onClick={() => toggleDropdown("rol")}
@@ -285,16 +281,18 @@ export default function ViewUsers() {
                 <ul
                   className="
                   absolute
-                  top-[73.5%]
-                  w-[70%] sm:w-[25%] 
-                  bg-app-light 
-                  border-2 border-app-border 
-                  rounded-lg 
-                  shadow-lg 
-                  max-h-64 
-                  overflow-y-auto 
-                  z-20 
-                 text-app-muted
+                  left-0
+                  right-0
+                  top-full
+                  mt-1
+                  bg-app-light
+                  border-2 border-app-border
+                  rounded-lg
+                  shadow-lg
+                  max-h-64
+                  overflow-y-auto
+                  z-20
+                  text-app-muted
                   text-sm sm:text-base
                   scrollbar-custom
                 "
