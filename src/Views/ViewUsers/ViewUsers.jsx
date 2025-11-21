@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserPlusIcon, TrashIcon } from "@heroicons/react/24/solid";
-import { db, auth } from "../../Components/Firebase/Firebase";
+import { db} from "../../Components/Firebase/Firebase";
 import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import { deleteUser } from "firebase/auth";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
@@ -33,6 +33,15 @@ export default function ViewUsers() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  // Manejo inputs de creación y eliminación
+  const handleChange = ({ target: { name, value } }) => {
+    if (mode === "create") setNewUser((prev) => ({ ...prev, [name]: value }));
+    else setDeleteData((prev) => ({ ...prev, [name]: value }));
+
+    setError("");
+    setMessage("");
+  };
+
   // Alternar dropdowns
   const toggleDropdown = (name) => {
     setOpenDropdown(openDropdown === name ? null : name);
@@ -55,15 +64,6 @@ export default function ViewUsers() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Manejo inputs de creación y eliminación
-  const handleChange = ({ target: { name, value } }) => {
-    if (mode === "create") setNewUser((prev) => ({ ...prev, [name]: value }));
-    else setDeleteData((prev) => ({ ...prev, [name]: value }));
-
-    setError("");
-    setMessage("");
-  };
-
   // Crear usuario y guardar datos en Firestore
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -83,6 +83,7 @@ export default function ViewUsers() {
     }
 
     setLoading(true);
+    
     try {
       const userCredential = await signup(newUser.email, newUser.password);
       const uid = userCredential.user.uid;

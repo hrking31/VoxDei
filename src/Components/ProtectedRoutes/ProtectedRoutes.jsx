@@ -6,9 +6,6 @@ export function ProtectedRoutes({ children, rolesPermitidos = [] }) {
   const { user, userData, loading } = useAuth();
   const location = useLocation(); // Ruta actual
 
-  // console.log("carga", loading);
-  // console.log("usuario", user);
-
   // Mostrar un indicador de carga mientras se verifica el estado de autenticación
   if (loading) return <Loading text="Procesando usuario..." />;
 
