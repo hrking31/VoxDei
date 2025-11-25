@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserPlusIcon, TrashIcon } from "@heroicons/react/24/solid";
-import { db} from "../../Components/Firebase/Firebase";
+import { db } from "../../Components/Firebase/Firebase";
 import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import { deleteUser } from "firebase/auth";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 import { useAppContext } from "../../Components/Context/AppContext";
 
 export default function ViewUsers() {
-  const { signup, login, logout, loading, setLoading } = useAuth();
+  const { signup, login, userData, loading, setLoading } = useAuth();
   const { showNotif, confirmAction } = useAppContext();
   const navigate = useNavigate();
   const refGenero = useRef(null);
@@ -70,7 +70,7 @@ export default function ViewUsers() {
 
     // Limpiar mensajes previos
     setError("");
-  
+
     if (
       !newUser.name?.trim() ||
       !newUser.email?.trim() ||
@@ -83,7 +83,7 @@ export default function ViewUsers() {
     }
 
     setLoading(true);
-    
+
     try {
       const userCredential = await signup(newUser.email, newUser.password);
       const uid = userCredential.user.uid;
@@ -94,6 +94,8 @@ export default function ViewUsers() {
         gender: newUser.gender,
         email: newUser.email,
         role: newUser.role,
+        churchName: userData.churchName,
+        groupId: userData.groupId,
         createdAt: new Date(),
       });
 

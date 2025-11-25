@@ -58,7 +58,7 @@ export default function App() {
                 "Pastor",
                 "Pastora",
                 "Asistente",
-                "administrador",
+                "admin",
               ]}
             >
               <ViewDisplay />
@@ -74,7 +74,7 @@ export default function App() {
                 "Pastor",
                 "Pastora",
                 "Asistente",
-                "administrador",
+                "admin",
               ]}
             >
               <ViewStylos />{" "}
@@ -86,7 +86,7 @@ export default function App() {
           path="/ViewUsers"
           element={
             <ProtectedRoutes
-              rolesPermitidos={["Pastor", "Pastora", "administrador"]}
+              rolesPermitidos={["Pastor", "Pastora", "admin"]}
             >
               <ViewUsers />{" "}
             </ProtectedRoutes>
@@ -101,7 +101,7 @@ export default function App() {
                 "Pastor",
                 "Pastora",
                 "Asistente",
-                "administrador",
+                "admin",
               ]}
             >
               <ViewTicker />
@@ -117,7 +117,7 @@ export default function App() {
                 "Pastor",
                 "Pastora",
                 "Asistente",
-                "administrador",
+                "admin",
               ]}
             >
               <ViewMessage />
@@ -129,7 +129,7 @@ export default function App() {
           path="/ViewPredica"
           element={
             <ProtectedRoutes
-              rolesPermitidos={["Pastor", "Pastora", "administrador"]}
+              rolesPermitidos={["Pastor", "Pastora", "admin"]}
             >
               <ViewPredica />
             </ProtectedRoutes>
@@ -144,7 +144,7 @@ export default function App() {
                 "Pastor",
                 "Pastora",
                 "Asistente",
-                "administrador",
+                "admin",
               ]}
             >
               <ViewVersiculo />
