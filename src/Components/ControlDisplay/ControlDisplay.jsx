@@ -15,11 +15,11 @@ export default function DisplayView() {
   const [tituloVersiculo, setTituloVersiculo] = useState("");
   const [cita, setCita] = useState("");
   const { visibleTitulo, visibleTexto, velocidadTicker } = useAppContext();
-  const { user} = useAuth();
+  const { user, userData } = useAuth();
 
   // Display Ticker
   useEffect(() => {
-    const tickerRef = ref(database, `displayTicker/${user.uid}`);
+    const tickerRef = ref(database, `displayTicker/${userData.groupId}`);
     const unsubscribe = onValue(tickerRef, (snapshot) => {
       const data = snapshot.val();
       if (data && typeof data.text === "string") {
@@ -30,32 +30,91 @@ export default function DisplayView() {
   }, []);
 
   // Display Message
+  // useEffect(() => {
+  //   const messageRef = ref(database, `displayMessage/${userData.groupId}`);
+  //   const unsubscribe = onValue(messageRef, (snapshot) => {
+  //     const data = snapshot.val();
+  //     if (
+  //       data &&
+  //       typeof data.text === "string" &&
+  //       typeof data.display === "string"
+  //     ) {
+  //       if (data.display === "mensaje") {
+  //         setMensaje(data.text);
+  //         setDisplay(data.display);
+  //       } else {
+  //         setMensajePredica(data.text);
+  //         setDisplay(data.display);
+  //       }
+  //     }
+  //   });
+  //   return () => unsubscribe();
+  // }, []);
+  // useEffect(() => {
+  //   const groupRef = ref(database, `displayMessage/${userData.groupId}`);
+
+  //   const unsubscribe = onValue(groupRef, (snapshot) => {
+  //     const data = snapshot.val();
+
+  //     if (!data) return;
+
+  //     // Recorremos todos los usuarios del grupo
+  //     Object.values(data).forEach((item) => {
+  //       if (item.display === "mensaje") {
+  //         setMensaje(item.text);
+  //         setDisplay(item.display);
+  //       } else {
+  //         setMensajePredica(item.text);
+  //         setDisplay(item.display);
+  //       }
+  //     });
+  //   });
+
+  //   return () => unsubscribe();
+  // }, []);
   useEffect(() => {
-    const messageRef = ref(database, `displayMessage/${user.uid}`);
-    const unsubscribe = onValue(messageRef, (snapshot) => {
+    if (!userData?.groupId) return;
+
+    const messagesRef = ref(database, `displayMessage/${userData.groupId}`);
+
+    const unsubscribe = onValue(messagesRef, (snapshot) => {
       const data = snapshot.val();
-      if (
-        data &&
-        typeof data.text === "string" &&
-        typeof data.display === "string"
-      ) {
-        if (data.display === "mensaje") {
-          setMensaje(data.text);
-          setDisplay(data.display);
-        } else {
-          setMensajePredica(data.text);
-          setDisplay(data.display);
-        }
+      if (!data) {
+        setMensaje("");
+        setMensajePredica("");
+        setDisplay("");
+        return;
       }
+
+      // Convertir el objeto { uid1: {...}, uid2: {...} } en array
+      const messages = Object.values(data);
+
+      // Ordenar por timestamp (el más reciente primero)
+      messages.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+      // Tomar el mensaje más reciente
+      const latest = messages[0];
+
+      if (latest?.display === "mensaje") {
+        setMensaje(latest.text || "");
+        setMensajePredica(""); // opcional: limpiar el otro
+      } else if (latest?.display === "predica") {
+        setMensajePredica(latest.text || "");
+        setMensaje(""); // opcional
+      }
+
+      setDisplay(latest?.display || "");
     });
+
     return () => unsubscribe();
-  }, []);
+  }, [userData?.groupId]);
+
 
   // Display Titulo
   useEffect(() => {
     if (!auth.currentUser) return;
 
-    const tituloRef = ref(database, `displayTitulo/${user.uid}`);
+    const tituloRef = ref(database, `displayTitulo/${userData.groupId}`);
     const unsubscribe = onValue(tituloRef, (snapshot) => {
       const data = snapshot.val();
       if (
@@ -72,10 +131,7 @@ export default function DisplayView() {
 
   // Display Versiculo
   useEffect(() => {
-    const versiculoRef = ref(
-      database,
-      `displayVersiculo/${user.uid}`
-    );
+    const versiculoRef = ref(database, `displayVersiculo/${userData.groupId}`);
     const unsubscribe = onValue(versiculoRef, (snapshot) => {
       const data = snapshot.val();
       if (

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ref, set, update } from "firebase/database";
-import { database, db, auth} from "../Firebase/Firebase";
+import { database, db, auth } from "../Firebase/Firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import EmojiButton from "../EmojiButton/EmojiButton";
@@ -10,7 +10,7 @@ import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function ControlMenssage() {
   const navigate = useNavigate();
-   const { user } = useAuth();
+  const { user, userData } = useAuth();
   const [message, setMessage] = useState("");
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const {
@@ -22,7 +22,7 @@ export default function ControlMenssage() {
     setMessageItems,
     showNotif,
   } = useAppContext();
-   const textareaRef = useRef(null);
+  const textareaRef = useRef(null);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -38,7 +38,7 @@ export default function ControlMenssage() {
 
     if (!textToSend.trim()) return;
 
-    set(ref(database, `displayMessage/${user.uid}`), {
+    set(ref(database, `displayMessage/${userData.groupId}/${user.uid}`), {
       text: textToSend,
       display: "mensaje",
       timestamp: item?.timestamp || Date.now(),
@@ -49,7 +49,7 @@ export default function ControlMenssage() {
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
 
-  set(ref(database, `displayVisibleTitulo/${user.uid}`), {
+    set(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
       visibleTitulo: nuevoEstado,
       timestamp: Date.now(),
     });
@@ -59,7 +59,7 @@ export default function ControlMenssage() {
     const nuevoEstado = !visibleTexto;
     setVisibleTexto(nuevoEstado);
 
-  set(ref(database, `displayVisibleTexto/${user.uid}`), {
+    set(ref(database, `displayVisibleTexto/${userData.groupId}`), {
       visibleTexto: nuevoEstado,
       timestamp: Date.now(),
     });
@@ -73,6 +73,7 @@ export default function ControlMenssage() {
 
       const nuevoMessage = {
         text: message,
+        authorId: user.uid,
         timestamp: Date.now(),
       };
 
@@ -82,7 +83,7 @@ export default function ControlMenssage() {
         const messageFinal = { ...nuevoMessage, num };
 
         // Guardar en Firestore
-        await setDoc(doc(db, "messages", `message${num}`), messageFinal);
+        await setDoc(doc(db, "messages",`message${num}`), messageFinal);
 
         // Actualizar estado local
         setMessageItems((prev) => [...prev, messageFinal]);
@@ -102,7 +103,7 @@ export default function ControlMenssage() {
 
         // Sobrescribir en Firestore
         await setDoc(
-          doc(db, "messages", `message${masAntiguo.num}`),
+          doc(db, `groups/${groupId}/messages`, `message${masAntiguo.num}`),
           messageFinal
         );
 

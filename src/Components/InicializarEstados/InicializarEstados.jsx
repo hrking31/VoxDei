@@ -6,7 +6,7 @@ import { useAppContext } from "../../Components/Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function InicializarEstados() {
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
   const {
     setSlots,
     setTickerItems,
@@ -86,7 +86,11 @@ export default function InicializarEstados() {
     // };
 
     const visibleTitulo = async () => {
-      const visibleRef = ref(database, `displayVisibleTitulo/${user.uid}`);
+       if (!userData || !userData.groupId) return;
+      const visibleRef = ref(
+        database,
+        `displayVisibleTitulo/${userData.groupId}`
+      );
 
       // Escribe el valor inicial false si no existe
       set(visibleRef, { visibleTitulo: false, timestamp: Date.now() });
@@ -114,7 +118,11 @@ export default function InicializarEstados() {
     // };
 
     const visibleTexto = async () => {
-      const visibleRef = ref(database, `displayVisibleTexto/${user.uid}`);
+       if (!userData || !userData.groupId) return;
+      const visibleRef = ref(
+        database,
+        `displayVisibleTexto/${userData.groupId}`
+      );
 
       set(visibleRef, { visibleTexto: false, timestamp: Date.now() });
 
@@ -129,7 +137,11 @@ export default function InicializarEstados() {
 
     // Speed Ticker
     const speedTicker = async () => {
-      const speedRef = ref(database, `speedTicker/${user.uid}`);
+       if (!userData || !userData.groupId) return;
+      const speedRef = ref(
+        database,
+        `speedTicker/${userData.groupId}}`
+      );
       const unsubscribe = onValue(speedRef, (snapshot) => {
         const data = snapshot.val();
 
