@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { database, db } from "../../Components/Firebase/Firebase";
-import { ref, set, onValue } from "firebase/database";
+import { ref, onValue } from "firebase/database";
 import { useAppContext } from "../../Components/Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
@@ -18,7 +18,7 @@ export default function InicializarEstados() {
   } = useAppContext();
 
   useEffect(() => {
-    if (loading || !user) return;
+    if (loading || !user) return
     const loadSlots = async () => {
       try {
         const estados = [];
@@ -73,30 +73,12 @@ export default function InicializarEstados() {
     };
 
     // Display Visible Titulo
-    // const visibleTitulo = async () => {
-    //   const visibleRef = ref(database, `displayVisibleTitulo/${user.uid}`);
-    //   const unsubscribe = onValue(visibleRef, (snapshot) => {
-    //     const data = snapshot.val();
-
-    //     if (data && typeof data.visibleTitulo === "boolean") {
-    //       setVisibleTitulo(data.visibleTitulo);
-    //     }
-    //   });
-    //   return () => unsubscribe();
-    // };
-
     const visibleTitulo = async () => {
-       if (!userData || !userData.groupId) return;
-      const visibleRef = ref(
-        database,
-        `displayVisibleTitulo/${userData.groupId}`
-      );
-
-      // Escribe el valor inicial false si no existe
-      set(visibleRef, { visibleTitulo: false, timestamp: Date.now() });
-
+      if (!userData || !userData.groupId) return;
+      const visibleRef = ref(database, `displayVisibleTitulo/${user.uid}`);
       const unsubscribe = onValue(visibleRef, (snapshot) => {
         const data = snapshot.val();
+
         if (data && typeof data.visibleTitulo === "boolean") {
           setVisibleTitulo(data.visibleTitulo);
         }
@@ -104,30 +86,16 @@ export default function InicializarEstados() {
       return () => unsubscribe();
     };
 
-    //Display Visible Texto
-    // const visibleTexto = async () => {
-    //   const visibleRef = ref(database, `displayVisibleTexto/${user.uid}`);
-    //   const unsubscribe = onValue(visibleRef, (snapshot) => {
-    //     const data = snapshot.val();
-
-    //     if (data && typeof data.visibleTexto === "boolean") {
-    //       setVisibleTexto(data.visibleTexto);
-    //     }
-    //   });
-    //   return () => unsubscribe();
-    // };
-
-    const visibleTexto = async () => {
-       if (!userData || !userData.groupId) return;
+   // Display Visible Texto
+   const visibleTexto = async () => {
+      if (!userData || !userData.groupId) return;
       const visibleRef = ref(
         database,
         `displayVisibleTexto/${userData.groupId}`
       );
-
-      set(visibleRef, { visibleTexto: false, timestamp: Date.now() });
-
       const unsubscribe = onValue(visibleRef, (snapshot) => {
         const data = snapshot.val();
+
         if (data && typeof data.visibleTexto === "boolean") {
           setVisibleTexto(data.visibleTexto);
         }

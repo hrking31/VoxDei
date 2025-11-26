@@ -9,7 +9,7 @@ import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function ControlTicker() {
   const navigate = useNavigate();
-   const { user, loading } = useAuth();
+   const { user } = useAuth();
   const [ticker, setTicker] = useState("");
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const {

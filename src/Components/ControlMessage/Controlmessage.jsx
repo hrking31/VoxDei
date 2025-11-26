@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ref, set, update } from "firebase/database";
-import { database, db, auth } from "../Firebase/Firebase";
+import { ref, set} from "firebase/database";
+import { database, db } from "../Firebase/Firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import EmojiButton from "../EmojiButton/EmojiButton";
@@ -38,7 +38,7 @@ export default function ControlMenssage() {
 
     if (!textToSend.trim()) return;
 
-    set(ref(database, `displayMessage/${userData.groupId}/${user.uid}`), {
+    set(ref(database, `displayMessage/${userData.groupId}`), {
       text: textToSend,
       display: "mensaje",
       timestamp: item?.timestamp || Date.now(),
@@ -83,7 +83,7 @@ export default function ControlMenssage() {
         const messageFinal = { ...nuevoMessage, num };
 
         // Guardar en Firestore
-        await setDoc(doc(db, "messages",`message${num}`), messageFinal);
+        await setDoc(doc(db, "messages", `message${num}`), messageFinal);
 
         // Actualizar estado local
         setMessageItems((prev) => [...prev, messageFinal]);
@@ -163,11 +163,11 @@ export default function ControlMenssage() {
               agregarElemento(message), setMessage("");
             }}
             className={`w-full h-10 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-xs lg:text-base break-words
-               ${
-                 !message
-                   ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-not-allowed"
-                   : "bg-green-500 text-white cursor-pointer"
-               }`}
+              ${
+                !message
+                  ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-not-allowed"
+                  : "bg-green-500 text-white cursor-pointer"
+              }`}
             disabled={!message}
           >
             Guardar
