@@ -14,7 +14,6 @@ export default function ControlTicker() {
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const {
     tickerItems,
-    setTickerItems,
     velocidadTicker,
     setVelocidadTicker,
     showNotif,
@@ -59,9 +58,6 @@ export default function ControlTicker() {
         // Guardar en Firestore
         await setDoc(doc(db, "tickers", `ticker${num}`), tickerFinal);
 
-        // Actualizar estado local
-        setTickerItems((prev) => [...prev, tickerFinal]);
-
         showNotif("success", `✅ Ticker ${num} agregado correctamente`);
       } else {
         // Si ya hay 6, sobrescribir el más antiguo
@@ -81,12 +77,6 @@ export default function ControlTicker() {
           tickerFinal
         );
 
-        setTickerItems((prev) => {
-          const actualizados = prev.map((item) =>
-            item.num === masAntiguo.num ? tickerFinal : item
-          );
-          return actualizados.sort((a, b) => a.num - b.num);
-        });
         showNotif(
           "info",
           `🔄 Se reemplazó el ticker ${masAntiguo.num} por uno nuevo`
@@ -208,10 +198,10 @@ export default function ControlTicker() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-4">
         {tickerItems.map((item) => (
           <div
-            key={item.num}
+            key={item.id || `msg-${item.num}-${Date.now()}`}
             onClick={() => {
               handleTicker(item);
-              setItemSeleccionado(item.timestamp);
+              setItemSeleccionado(item.id || item.num);
             }}
             className={`relative p-3 border-app-border rounded-lg cursor-pointer transition-colors ${
               itemSeleccionado === item.timestamp
