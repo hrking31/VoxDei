@@ -18,7 +18,7 @@ import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function Predica() {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { userData } = useAuth();
   const [libro, setLibro] = useState({
     sigla: null,
     nombre: null,
@@ -138,20 +138,20 @@ export default function Predica() {
 
   const enviarAProyeccion = (elemento) => {
     if (elemento.tipo === "mensaje") {
-      set(ref(database, `displayMessage/${user.uid}`), {
+      set(ref(database, `displayMessage/${userData.groupId}`), {
         text: elemento.contenido,
         display: "mensajePredica",
         timestamp: Date.now(),
       });
     } else if (elemento.tipo === "versiculo") {
-      set(ref(database, `displayVersiculo/${user.uid}`), {
+      set(ref(database, `displayVersiculo/${userData.groupId}`), {
         text: elemento.contenido.texto,
         cita: elemento.contenido.cita,
         display: "versiculo",
         timestamp: Date.now(),
       });
     } else {
-      set(ref(database, `displayTitulo/${user.uid}`), {
+      set(ref(database, `displayTitulo/${userData.groupId}`), {
         text: elemento.contenido,
         display: "titulo",
         timestamp: Date.now(),
@@ -163,7 +163,7 @@ export default function Predica() {
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
 
-    set(ref(database, `displayVisibleTitulo/${user.uid}`), {
+    set(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
       visibleTitulo: nuevoEstado,
       timestamp: Date.now(),
     });
@@ -173,7 +173,7 @@ export default function Predica() {
     const nuevoEstado = !visibleTexto;
     setVisibleTexto(nuevoEstado);
 
-    set(ref(database, `displayVisibleTexto/${user.uid}`), {
+    set(ref(database, `displayVisibleTexto/${userData.groupId}`), {
       visibleTexto: nuevoEstado,
       timestamp: Date.now(),
     });

@@ -16,7 +16,7 @@ export default function TickerMessage({ message, velocidad }) {
     if (!container || !text) return;
 
     const textWidth = text.offsetWidth / 3; // Dividir por 3 ya que el mensaje se repite tres veces
-    const containerWidth = container.offsetWidth;
+    // const containerWidth = container.offsetWidth;
 
     const animar = () => {
       positionRef.current -= velocidad;

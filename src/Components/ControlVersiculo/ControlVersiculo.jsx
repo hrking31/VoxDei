@@ -14,7 +14,7 @@ import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function ControlVersiculos() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { userData } = useAuth();
   const [libro, setLibro] = useState({
     sigla: null,
     nombre: null,
@@ -101,7 +101,7 @@ export default function ControlVersiculos() {
 
   const handleProjectarVersiculo = (versiculo, numero, titulo) => {
     const citaCompleta = `${resultado.libro} ${resultado.capitulo}:${numero}`;
-    set(ref(database, `displayVersiculo/${user.uid}`), {
+    set(ref(database, `displayVersiculo/${userData.groupId}`), {
       titulo: titulo,
       text: versiculo,
       cita: citaCompleta,
@@ -155,7 +155,7 @@ export default function ControlVersiculos() {
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
 
-    update(ref(database, `displayVisibleTitulo/${user.uid}`), {
+    update(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
       visibleTitulo: nuevoEstado,
       timestamp: Date.now(),
     });
@@ -165,7 +165,7 @@ export default function ControlVersiculos() {
     const nuevoEstado = !visibleTexto;
     setVisibleTexto(nuevoEstado);
 
-    update(ref(database, `displayVisibleTexto/${user.uid}`), {
+    update(ref(database, `displayVisibleTexto/${userData.groupId}`), {
       visibleTexto: nuevoEstado,
       timestamp: Date.now(),
     });

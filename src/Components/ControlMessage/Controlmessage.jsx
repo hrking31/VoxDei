@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ref, set} from "firebase/database";
+import { ref, set } from "firebase/database";
 import { database, db } from "../Firebase/Firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
@@ -10,7 +10,7 @@ import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function ControlMenssage() {
   const navigate = useNavigate();
-  const { user, userData } = useAuth();
+  const { userData } = useAuth();
   const [message, setMessage] = useState("");
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const {
@@ -19,7 +19,6 @@ export default function ControlMenssage() {
     visibleTexto,
     setVisibleTexto,
     messageItems,
-    setMessageItems,
     showNotif,
   } = useAppContext();
   const textareaRef = useRef(null);
@@ -73,7 +72,6 @@ export default function ControlMenssage() {
 
       const nuevoMessage = {
         text: message,
-        authorId: user.uid,
         timestamp: Date.now(),
       };
 
@@ -84,10 +82,6 @@ export default function ControlMenssage() {
 
         // Guardar en Firestore
         await setDoc(doc(db, "messages", `message${num}`), messageFinal);
-
-        // Actualizar estado local
-        setMessageItems((prev) => [...prev, messageFinal]);
-
         showNotif("success", `✅ Mensaje ${num} agregado correctamente`);
       } else {
         // Si ya hay 6, sobrescribir el más antiguo
@@ -103,17 +97,11 @@ export default function ControlMenssage() {
 
         // Sobrescribir en Firestore
         await setDoc(
-          doc(db, `groups/${groupId}/messages`, `message${masAntiguo.num}`),
+          doc(db, "messages", `message${masAntiguo.num}`),
           messageFinal
         );
 
-        setMessageItems((prev) => {
-          const actualizados = prev.map((item) =>
-            item.num === masAntiguo.num ? messageFinal : item
-          );
-          return actualizados.sort((a, b) => a.num - b.num);
-        });
-        showNotif(
+       showNotif(
           "info",
           `🔄 Se reemplazó el mensaje ${masAntiguo.num} por uno nuevo`
         );
@@ -239,10 +227,10 @@ export default function ControlMenssage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-1 sm:p-4">
         {messageItems.map((item) => (
           <div
-            key={item.num}
+            key={item.id || `msg-${item.num}-${Date.now()}`}
             onClick={() => {
               handleMessage(item);
-              setItemSeleccionado(item.timestamp);
+              setItemSeleccionado(item.id || item.num);
             }}
             className={`relative p-3 border-app-border rounded-lg cursor-pointer transition-colors ${
               itemSeleccionado === item.timestamp

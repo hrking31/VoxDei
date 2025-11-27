@@ -9,7 +9,7 @@ import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function ControlTicker() {
   const navigate = useNavigate();
-   const { user } = useAuth();
+   const { userData } = useAuth();
   const [ticker, setTicker] = useState("");
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const {
@@ -26,15 +26,16 @@ export default function ControlTicker() {
 
     if (!textToSend.trim()) return;
 
-    set(ref(database, `displayTicker/${user.uid}`), {
+    set(ref(database, `displayTicker/${userData.groupId}`), {
       text: textToSend,
       timestamp: item?.timestamp || Date.now(),
     });
   };
 
+  // configura la velocidad del ticker
   const configSpeed = (nuevoValor) => {
     setVelocidadTicker(nuevoValor);
-    set(ref(database, `speedTicker/${user.uid}`), {
+    set(ref(database, `speedTicker/${userData.groupId}`), {
       velocidad: nuevoValor,
     });
   };
