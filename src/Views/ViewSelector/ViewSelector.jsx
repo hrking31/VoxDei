@@ -18,7 +18,7 @@ export default function ViewSelector() {
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-app-light/50 to-white">
       {userData && (
-        <div className="flex items-center gap-3 w-full max-w-3xl border-2 sm:border border-app-border rounded-full px-4 py-2 mb-8 ">
+        <div className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-4 py-2 mb-8 hover:shadow-inner hover:shadow-app-muted transition-shadow duration-300">
           <img
             src={userData.photoURL || "https://ui-avatars.com/api/?name=User"}
             alt="user"
@@ -48,7 +48,7 @@ export default function ViewSelector() {
       )}
 
       {/* Encabezado */}
-      <div className="text-center mb-10">
+      <div className="text-center mb-6">
         <h1 className="text-3xl sm:text-4xl font-bold text-app-main tracking-tight">
           Bienvenidos a VOXDEI
         </h1>
@@ -58,34 +58,37 @@ export default function ViewSelector() {
       </div>
 
       {/* Contenedor de botones */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-3xl">
-        {/* Botón Presentación */}
-        <button
-          onClick={() => navigate("/ViewDisplay")}
-          className="flex flex-col items-center justify-center p-8 sm:p-10 bg-white rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 border border-gray-100"
-        >
-          <PlayCircleIcon className="w-14 h-14 text-app-main mb-3" />
-          <span className="text-base sm:text-lg font-semibold text-app-main text-center">
-            Presentación
-          </span>
-          <p className="text-sm text-app-muted mt-1 text-center">
-            Muestra el contenido en la pantalla principal
-          </p>
-        </button>
+      <div className="flex-1 flex items-center justify-center w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-3xl">
+          {/* Botón Presentación */}
+          <button
+            onClick={() => navigate("/ViewDisplay")}
+            className="group flex flex-col items-center justify-center p-8 sm:p-10 bg-white rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 border border-gray-100"
+          >
+            <PlayCircleIcon className="w-14 h-14 text-app-main mb-3 transform transition-all duration-300 group-hover:scale-125 group-hover:-translate-y-1" />
+            <span className="text-base sm:text-lg font-semibold text-app-main text-center">
+              Presentación
+            </span>
+            <p className="text-sm text-app-muted mt-1 text-center">
+              Muestra el contenido en la pantalla principal
+            </p>
+          </button>
 
-        {/* Botón Administrador */}
-        <button
-          onClick={() => navigate("/ViewGestion")}
-          className="flex flex-col items-center justify-center p-8 sm:p-10 bg-white rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 border border-gray-100"
-        >
-          <Squares2X2Icon className="w-14 h-14 text-app-main mb-3" />
-          <span className="text-base sm:text-lg font-semibold text-app-main text-center">
-            Administrador
-          </span>
-          <p className="text-sm text-app-muted mt-1 text-center">
-            Gestiona tickers, mensajes, predicas, versiculos, usuarios y estilos
-          </p>
-        </button>
+          {/* Botón Administrador */}
+          <button
+            onClick={() => navigate("/ViewGestion")}
+            className="group flex flex-col items-center justify-center p-8 sm:p-10 bg-white rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 border border-gray-100"
+          >
+            <Squares2X2Icon className="w-14 h-14 text-app-main mb-3 transform transition-all duration-300 group-hover:scale-125 group-hover:-translate-y-1" />
+            <span className="text-base sm:text-lg font-semibold text-app-main text-center">
+              Administrador
+            </span>
+            <p className="text-sm text-app-muted mt-1 text-center">
+              Gestiona tickers, mensajes, predicas, versiculos, usuarios y
+              estilos
+            </p>
+          </button>
+        </div>
       </div>
       <Footer />
     </div>

@@ -20,7 +20,7 @@ export default function ViewSelector() {
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-app-dark">
       {userData && (
-        <div className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-4 py-2 mb-8 hover:bg-app-light transition">
+        <div className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-4 py-2 mb-8 hover:shadow-inner hover:shadow-app-main transition-shadow duration-300">
           <img
             src={userData.photoURL || "https://ui-avatars.com/api/?name=User"}
             alt="user"
@@ -60,56 +60,58 @@ export default function ViewSelector() {
       </div>
 
       {/* Cuadrícula de botones */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 w-full max-w-3xl">
-        <OptionButton
-          icon={<PaintBrushIcon className="w-10 h-10 text-app-muted mb-2" />}
-          label="Estilos y colores"
-          onClick={() => navigate("/ViewStylos")}
-        />
+      <div className="flex-1 flex items-center justify-center w-full">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 w-full max-w-3xl">
+          <OptionButton
+            icon={<PaintBrushIcon className="w-10 h-10 text-app-muted mb-2" />}
+            label="Estilos y colores"
+            onClick={() => navigate("/ViewStylos")}
+          />
 
-        <OptionButton
-          icon={<UserGroupIcon className="w-10 h-10 text-app-muted mb-2" />}
-          label="Usuarios"
-          onClick={() => navigate("/ViewUsers")}
-        />
+          <OptionButton
+            icon={<UserGroupIcon className="w-10 h-10 text-app-muted mb-2" />}
+            label="Usuarios"
+            onClick={() => navigate("/ViewUsers")}
+          />
 
-        <OptionButton
-          icon={<TagIcon className="w-10 h-10 text-app-muted mb-2" />}
-          label="Gestión Ticker"
-          onClick={() => navigate("/ViewTicker")}
-        />
+          <OptionButton
+            icon={<TagIcon className="w-10 h-10 text-app-muted mb-2" />}
+            label="Gestión Ticker"
+            onClick={() => navigate("/ViewTicker")}
+          />
 
-        <OptionButton
-          icon={
-            <ChatBubbleLeftRightIcon className="w-10 h-10 text-app-muted mb-2" />
-          }
-          label="Gestión Mensaje"
-          onClick={() => navigate("/ViewMessage")}
-        />
+          <OptionButton
+            icon={
+              <ChatBubbleLeftRightIcon className="w-10 h-10 text-app-muted mb-2" />
+            }
+            label="Gestión Mensaje"
+            onClick={() => navigate("/ViewMessage")}
+          />
 
-        <OptionButton
-          icon={<PhotoIcon className="w-10 h-10 text-app-muted mb-2" />}
-          label="Gestión Imagen"
-          onClick={() => navigate("/ViewPanel")}
-        />
+          <OptionButton
+            icon={<PhotoIcon className="w-10 h-10 text-app-muted mb-2" />}
+            label="Gestión Imagen"
+            onClick={() => navigate("/ViewPanel")}
+          />
 
-        <OptionButton
-          icon={<VideoCameraIcon className="w-10 h-10 text-app-muted mb-2" />}
-          label="Gestión Video"
-          onClick={() => navigate("/ViewPanel")}
-        />
+          <OptionButton
+            icon={<VideoCameraIcon className="w-10 h-10 text-app-muted mb-2" />}
+            label="Gestión Video"
+            onClick={() => navigate("/ViewPanel")}
+          />
 
-        <OptionButton
-          icon={<MicrophoneIcon className="w-10 h-10 text-app-muted mb-2" />}
-          label="Gestión Predica"
-          onClick={() => navigate("/ViewPredica")}
-        />
+          <OptionButton
+            icon={<MicrophoneIcon className="w-10 h-10 text-app-muted mb-2" />}
+            label="Gestión Predica"
+            onClick={() => navigate("/ViewPredica")}
+          />
 
-        <OptionButton
-          icon={<BookOpenIcon className="w-10 h-10 text-app-muted mb-2 " />}
-          label="Biblia"
-          onClick={() => navigate("/ViewVersiculo")}
-        />
+          <OptionButton
+            icon={<BookOpenIcon className="w-10 h-10 text-app-muted mb-2 " />}
+            label="Biblia"
+            onClick={() => navigate("/ViewVersiculo")}
+          />
+        </div>
       </div>
       <Footer />
     </div>
@@ -121,10 +123,13 @@ function OptionButton({ icon, label, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="flex flex-col items-center justify-center p-6 bg-app-light rounded-xl shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-300 sm:aspect-square"
+      className="group flex flex-col items-center justify-center p-6 bg-app-light rounded-xl shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-300 sm:aspect-square"
     >
-      {icon}
-      <span className="text-sm sm:text-base font-medium text-app-main text-center">
+      <span className="text-app-main transform transition-all duration-300 group-hover:scale-125 group-hover:-translate-y-1">
+        {icon}
+      </span>
+
+      <span className="text-sm sm:text-base font-medium text-app-main text-center mt-2">
         {label}
       </span>
     </button>

@@ -78,8 +78,6 @@ export default function UserProfileCard() {
                 </span>
               </div>
 
-              {/* Botón opcional para ir a gestión */}
-
               <button
                 onClick={() => {
                   setIsModalOpen(false);
