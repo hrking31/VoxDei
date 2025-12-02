@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { db } from "../../Components/Firebase/Firebase";
-import { doc, setDoc, getDocs, collection } from "firebase/firestore";
+import { doc, setDoc} from "firebase/firestore";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { UserPlusIcon } from "@heroicons/react/24/solid";

@@ -14,6 +14,7 @@ import LibrosModal from "../../Components/ModalLibros/ModalLibros";
 import CapituloModal from "../../Components/ModalCapitulo/ModalCapitulo";
 import VersiculoModal from "../../Components/ModalVersiculo/ModalVersiculo";
 import WhatsAppButton from "../WhatsAppButton/WhatsAppButton";
+import UserProfileCard from "../UserProfileCard/UserProfileCard.jsx";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function Predica() {
@@ -180,8 +181,8 @@ export default function Predica() {
   };
 
   return (
-    <div className="pt-1 mx-auto">
-      <div>
+    <div className="pt-1 pr-1 mx-auto">
+      <div className="flex items-center justify-between w-full bg-app-ligh">
         <button
           onClick={() => setVisible(!visible)}
           className={`font-bold text-center ml-2 border-b-2 ${
@@ -190,40 +191,43 @@ export default function Predica() {
               : "text-app-muted border-app-muted"
           }`}
         >
-          Asistente de Prédica
+          {visible ? "Prédica" : "Asistente Prédica"}
         </button>
 
-        {!visible && (
-          <div className="flex justify-center float-right mr-4 gap-6">
-            {predicaItems?.length > 0 && (
-              <WhatsAppButton message={predicaItems} />
-            )}
+        <div className="flex items-center gap-4">
+          {!visible && (
+            <div className="flex mr-4 gap-6">
+              {predicaItems?.length > 0 && (
+                <WhatsAppButton message={predicaItems} />
+              )}
 
-            <button
-              onClick={toggleVisibleTitulo}
-              className="font-semibold text-app-accent transition-all
+              <button
+                onClick={toggleVisibleTitulo}
+                className="font-semibold text-app-accent transition-all
               duration-200 "
-            >
-              {visibleTitulo ? (
-                <EyeIcon className="w-8 h-8" />
-              ) : (
-                <EyeSlashIcon className="w-8 h-8" />
-              )}
-            </button>
+              >
+                {visibleTitulo ? (
+                  <EyeIcon className="w-8 h-8" />
+                ) : (
+                  <EyeSlashIcon className="w-8 h-8" />
+                )}
+              </button>
 
-            <button
-              onClick={toggleVisibleTexto}
-              className="font-semibold text-app-main transition-all duration-200
+              <button
+                onClick={toggleVisibleTexto}
+                className="font-semibold text-app-main transition-all duration-200
               "
-            >
-              {visibleTexto ? (
-                <EyeIcon className="w-8 h-8" />
-              ) : (
-                <EyeSlashIcon className="w-8 h-8" />
-              )}
-            </button>
-          </div>
-        )}
+              >
+                {visibleTexto ? (
+                  <EyeIcon className="w-8 h-8" />
+                ) : (
+                  <EyeSlashIcon className="w-8 h-8" />
+                )}
+              </button>
+            </div>
+          )}
+          <UserProfileCard />
+        </div>
       </div>
 
       {visible && (

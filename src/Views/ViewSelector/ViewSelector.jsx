@@ -4,11 +4,12 @@ import {
   Squares2X2Icon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
+import Footer from "../../Components/Footer/Footer.jsx";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function ViewSelector() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, userData } = useAuth();
 
   const handlerLogout = async () => {
     await logout();
@@ -16,14 +17,35 @@ export default function ViewSelector() {
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-app-light/50 to-white">
-      {/* Botón Cerrar */}
-      <button
-        onClick={handlerLogout}
-        className="absolute top-4 right-4 p-2 rounded-full hover:bg-app-main transition"
-        aria-label="Cerrar"
-      >
-        <XMarkIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
-      </button>
+      {userData && (
+        <div className="flex items-center gap-3 w-full max-w-3xl border-2 sm:border border-app-border rounded-full px-4 py-2 mb-8 ">
+          <img
+            src={userData.photoURL || "https://ui-avatars.com/api/?name=User"}
+            alt="user"
+            className="w-10 h-10 rounded-full object-cover"
+          />
+
+          <div className="flex flex-col flex-1 leading-tight">
+            <span className="text-sm font-medium text-app-main">
+              {userData.name || "Usuario"}
+            </span>
+            <span className="text-[11px] text-app-muted">
+              {userData.email || userData.role || ""}
+            </span>
+          </div>
+
+          <span className="text-[11px] bg-app-main/10 text-app-main px-3 py-1 rounded-full capitalize font-medium">
+            {userData.role || "Sin rol"}
+          </span>
+          <button
+            onClick={handlerLogout}
+            className="p-2 rounded-full hover:bg-app-main transition"
+            aria-label="Cerrar"
+          >
+            <XMarkIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
+          </button>
+        </div>
+      )}
 
       {/* Encabezado */}
       <div className="text-center mb-10">
@@ -65,6 +87,7 @@ export default function ViewSelector() {
           </p>
         </button>
       </div>
+      <Footer />
     </div>
   );
 }

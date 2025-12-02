@@ -10,20 +10,44 @@ import {
   UserGroupIcon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
+import Footer from "../../Components/Footer/Footer.jsx";
+import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function ViewSelector() {
+  const { userData } = useAuth();
   const navigate = useNavigate();
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-app-dark">
-      {/* Botón de cerrar */}
-      <button
-        onClick={() => navigate("/ViewSelector")}
-        className="absolute top-4 right-4 p-2 rounded-full hover:bg-app-main transition"
-        aria-label="Cerrar"
-      >
-        <XMarkIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
-      </button>
+      {userData && (
+        <div className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-4 py-2 mb-8 hover:bg-app-light transition">
+          <img
+            src={userData.photoURL || "https://ui-avatars.com/api/?name=User"}
+            alt="user"
+            className="w-10 h-10 rounded-full object-cover"
+          />
+
+          <div className="flex flex-col flex-1 leading-tight">
+            <span className="text-sm font-medium text-app-main">
+              {userData.name || "Usuario"}
+            </span>
+            <span className="text-[11px] text-app-muted">
+              {userData.email || userData.role || ""}
+            </span>
+          </div>
+
+          <span className="text-[11px] bg-app-main/10 text-app-main px-3 py-1 rounded-full capitalize font-medium">
+            {userData.role || "Sin rol"}
+          </span>
+          <button
+            onClick={() => navigate("/ViewSelector")}
+            className="p-2 rounded-full hover:bg-app-main transition"
+            aria-label="Cerrar"
+          >
+            <XMarkIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
+          </button>
+        </div>
+      )}
 
       {/* Encabezado */}
       <div className="text-center mb-8 sm:mb-10">
@@ -36,7 +60,7 @@ export default function ViewSelector() {
       </div>
 
       {/* Cuadrícula de botones */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 w-full max-w-5xl">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 w-full max-w-3xl">
         <OptionButton
           icon={<PaintBrushIcon className="w-10 h-10 text-app-muted mb-2" />}
           label="Estilos y colores"
@@ -82,11 +106,12 @@ export default function ViewSelector() {
         />
 
         <OptionButton
-          icon={<BookOpenIcon className="w-10 h-10 text-app-muted mb-2" />}
+          icon={<BookOpenIcon className="w-10 h-10 text-app-muted mb-2 " />}
           label="Biblia"
           onClick={() => navigate("/ViewVersiculo")}
         />
       </div>
+      <Footer />
     </div>
   );
 }
