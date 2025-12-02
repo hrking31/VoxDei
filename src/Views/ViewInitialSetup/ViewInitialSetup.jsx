@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { db } from "../../Components/Firebase/Firebase";
-import { doc, setDoc} from "firebase/firestore";
+import { db, storage } from "../../Components/Firebase/Firebase";
+import { doc, setDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
-import { UserPlusIcon } from "@heroicons/react/24/solid";
+import { UserPlusIcon, UserIcon } from "@heroicons/react/24/solid";
+import Footer from "../../Components/Footer/Footer.jsx";
 
 export default function ViewInitialSetup() {
   const { signup, loading, setLoading } = useAuth();
@@ -11,7 +13,7 @@ export default function ViewInitialSetup() {
 
   const refGenero = useRef(null);
   const genderOptions = ["Masculino", "Femenino"];
-
+  const [preview, setPreview] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [error, setError] = useState("");
 
@@ -20,18 +22,30 @@ export default function ViewInitialSetup() {
     name: "",
     gender: "",
     email: "",
+    photo: "",
     password: "",
   });
 
+  // Manejar cambios en el formulario
   const handleChange = ({ target: { name, value } }) => {
     setForm((prev) => ({ ...prev, [name]: value }));
     setError("");
   };
 
+  // Toggle dropdown
   const toggleDropdown = (name) => {
     setOpenDropdown(openDropdown === name ? null : name);
   };
 
+  // Manejar cambio de foto
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setForm((prev) => ({ ...prev, photo: file }));
+    setPreview(URL.createObjectURL(file));
+  };
+
+  // Cerrar dropdown al hacer clic fuera
   useEffect(() => {
     function handleClickOutside(e) {
       if (refGenero.current && !refGenero.current.contains(e.target)) {
@@ -42,6 +56,7 @@ export default function ViewInitialSetup() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Crear usuario y guardar datos
   const handleCreate = async (e) => {
     e.preventDefault();
     setError("");
@@ -57,6 +72,11 @@ export default function ViewInitialSetup() {
       return;
     }
 
+    if (!form.photo) {
+      setError("Por favor sube una foto");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -64,16 +84,29 @@ export default function ViewInitialSetup() {
       const userCred = await signup(form.email, form.password);
       const uid = userCred.user.uid;
 
+      // Subir la imagen a Firebase Storage
+      const imageRef = ref(storage, `users/${uid}/profile.jpg`);
+      await uploadBytes(imageRef, form.photo);
+
+      // Obtener URL de la imagen
+      const photoURL = await getDownloadURL(imageRef);
+
+      const role =
+        form.gender.toLowerCase() === "femenino" ? "Pastora" : "Pastor";
+
       // Guardar datos en Firestore
       await setDoc(doc(db, "users", uid), {
         churchName: form.churchName,
         name: form.name,
         gender: form.gender,
         email: form.email,
-        role: "admin", // Asignación automática
-        groupId: uid, // Grupo raíz creado por este admin
+        photo: photoURL,
+        role: role,
+        groupId: uid,
         createdAt: new Date(),
       });
+      
+      setUserData(userData);
 
       navigate("/ViewSelector");
     } catch (err) {
@@ -82,6 +115,8 @@ export default function ViewInitialSetup() {
         "auth/weak-password": "La contraseña debe tener al menos 6 caracteres.",
         "auth/invalid-email": "Correo inválido.",
       };
+
+      console.error(err);
       setError(errors[err.code] || "Error al crear el usuario.");
     } finally {
       setLoading(false);
@@ -101,6 +136,33 @@ export default function ViewInitialSetup() {
 
       <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 rounded-2xl shadow-xl p-8">
         <form onSubmit={handleCreate} className="flex flex-col gap-4">
+          {/* Foto de perfil */}
+          <div className="flex flex-col items-center gap-4">
+            <label className="text-white">Tu foto de perfil</label>
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              className="hidden"
+              id="photoInput"
+            />
+
+            <label htmlFor="photoInput" className="cursor-pointer">
+              {preview ? (
+                <img
+                  src={preview}
+                  className="w-24 h-24 rounded-full object-cover"
+                  alt="preview"
+                />
+              ) : (
+                <div className="w-22 h-22 rounded-full bg-gray-200 flex items-center justify-center">
+                  <UserIcon className="w-10 h-10 text-gray-500" />
+                </div>
+              )}
+            </label>
+          </div>
+
           {/* Nombre iglesia */}
           <input
             type="text"
@@ -183,6 +245,7 @@ export default function ViewInitialSetup() {
           <p className="text-red-400 text-center mt-4 font-semibold">{error}</p>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

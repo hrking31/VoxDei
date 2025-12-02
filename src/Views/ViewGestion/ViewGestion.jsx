@@ -22,7 +22,7 @@ export default function ViewSelector() {
       {userData && (
         <div className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-4 py-2 mb-8 hover:shadow-inner hover:shadow-app-main transition-shadow duration-300">
           <img
-            src={userData.photoURL || "https://ui-avatars.com/api/?name=User"}
+            src={userData.photo || "https://ui-avatars.com/api/?name=User"}
             alt="user"
             className="w-10 h-10 rounded-full object-cover"
           />

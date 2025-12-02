@@ -22,7 +22,7 @@ export default function UserProfileCard() {
         className="group relative focus:outline-none"
       >
         <img
-          src={userData.photoURL || "https://ui-avatars.com/api/?name=User"}
+          src={userData.photo || "https://ui-avatars.com/api/?name=User"}
           alt="user"
           className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover ring-4 ring-transparent group-hover:ring-app-border transition-all duration-200"
         />
@@ -53,7 +53,7 @@ export default function UserProfileCard() {
             <div className="relative -mt-16 px-8 text-center">
               <img
                 src={
-                  userData.photoURL || "https://ui-avatars.com/api/?name=User"
+                  userData.photo || "https://ui-avatars.com/api/?name=User"
                 }
                 alt="user"
                 className="w-32 h-32 rounded-full object-cover border-4 border-gray-900 shadow-xl mx-auto"
