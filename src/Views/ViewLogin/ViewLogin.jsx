@@ -57,92 +57,111 @@ export default function ViewLogin() {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-app-light/50 to-white">
-      {/* Encabezado */}
-        <div className="text-center mb-6">
-          <h1 className="text-3xl sm:text-4xl font-bold text-app-main tracking-tight">
-            Iniciar Sesión
-          </h1>
-          <p className="text-app-muted text-base sm:text-lg mt-2">
-            Accede a tu cuenta para continuar
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex flex-col ">
+      {/* <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-app-light/50 to-white"> */}
+      <div className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
+        <div className="w-full max-w-md space-y-4">
+          {/* Encabezado */}
+          <div className="text-center mb-6">
+            <h1 className="text-3xl sm:text-4xl font-bold text-app-main tracking-tight">
+              Iniciar Sesión
+            </h1>
+            <p className="text-app-muted text-base sm:text-lg mt-2">
+              Accede a tu cuenta para continuar
+            </p>
+          </div>
 
-      <div className="flex-1 flex items-center justify-center w-full">
-        {/* Formulario */}
-        <div className="w-full max-w-sm bg-white rounded-2xl shadow-md p-8 border border-gray-100">
-          <form
-            onSubmit={handleSubmit}
-            noValidate
-            className="flex flex-col form-light gap-4"
-          >
-            {/* Correo */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-app-main mb-1">
-                Correo electrónico
-              </label>
-              <input
-                type="email"
-                name="email"
-                placeholder="ejemplo@correo.com"
-                value={user.email}
-                onChange={handleChange}
-                className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-app-main transition text-app-muted"
-              />
-            </div>
-
-            {/* Contraseña */}
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-app-main mb-1">
-                Contraseña
-              </label>
-              <input
-                type="password"
-                name="password"
-                placeholder="********"
-                value={user.password}
-                onChange={handleChange}
-                className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-app-main transition text-app-muted"
-              />
-            </div>
-
-            {/* Mensajes */}
-            {error && (
-              <p className="text-app-error text-center text-sm font-medium mt-2">
-                {error}
-              </p>
-            )}
-            {message && (
-              <p className="text-app-success text-center text-sm font-medium mt-2">
-                {message}
-              </p>
-            )}
-
-            {/* Botón de envío */}
-            <button
-              type="submit"
-              disabled={loading}
-              className={`flex items-center justify-center gap-2 bg-app-main text-white py-3 rounded-lg font-semibold hover:bg-app-main/90 transition mt-4 ${
-                loading ? "opacity-70 cursor-not-allowed" : ""
-              }`}
+          {/* Formulario */}
+          <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-8">
+            {/* <div className="w-full max-w-sm bg-white rounded-2xl shadow-md p-8 border border-gray-100"> */}
+            <form
+              onSubmit={handleSubmit}
+              noValidate
+              className="flex flex-col form-light gap-4"
             >
-              <LockClosedIcon className="w-5 h-5" />
-              {loading ? "Iniciando sesión..." : "Iniciar sesión"}
-            </button>
-          </form>
+              {/* Correo */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-app-main mb-1">
+                  Correo electrónico
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="ejemplo@correo.com"
+                  value={user.email}
+                  onChange={handleChange}
+                  className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-app-main transition text-app-muted"
+                />
+              </div>
 
-          {/* Enlace de recuperación */}
-          <p className="text-center text-sm text-app-muted mt-4">
-            ¿Olvidaste tu contraseña?
-            <button
-              onClick={() => navigate("/ResetPassword")}
-              className="text-app-main hover:underline ml-1"
-            >
-              Recuperar
-            </button>
-          </p>
+              {/* Contraseña */}
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-app-main mb-1">
+                  Contraseña
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="********"
+                  value={user.password}
+                  onChange={handleChange}
+                  className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-app-main transition text-app-muted"
+                />
+              </div>
+
+              {/* Mensajes */}
+              {error && (
+                <p className="text-app-error text-center text-sm font-medium mt-2">
+                  {error}
+                </p>
+              )}
+              {message && (
+                <p className="text-app-success text-center text-sm font-medium mt-2">
+                  {message}
+                </p>
+              )}
+
+              {/* Botón de envío */}
+              <button
+                type="submit"
+                disabled={loading}
+                className={`flex items-center justify-center gap-2 bg-app-main text-white py-3 rounded-lg font-semibold hover:bg-app-main/90 transition mt-4 ${
+                  loading ? "opacity-70 cursor-not-allowed" : ""
+                }`}
+              >
+                <LockClosedIcon className="w-5 h-5" />
+                {loading ? "Iniciando sesión..." : "Iniciar sesión"}
+              </button>
+            </form>
+
+            {/* Enlace de recuperación */}
+            <p className="text-center text-sm text-app-muted mt-6">
+              ¿Olvidaste tu contraseña?{" "}
+              <button
+                onClick={() => navigate("/ResetPassword")}
+                className="text-app-main font-semibold hover:underline"
+              >
+                Recuperar
+              </button>
+            </p>
+          </div>
+
+          {/* Enlace de registro */}
+          <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-8 text-center">
+            {/* <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center"> */}
+            <p className="text-sm text-app-muted">
+              ¿Tu iglesia aún no está registrada?{" "}
+              <button
+                onClick={() => navigate("/ViewInitialSetup")}
+                className="text-app-main font-semibold hover:underline"
+              >
+                Regístrala aquí
+              </button>
+            </p>
+          </div>
         </div>
       </div>
+
       <Footer />
     </div>
   );
