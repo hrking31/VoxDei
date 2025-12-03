@@ -19,9 +19,10 @@ export default function ViewSelector() {
   const navigate = useNavigate();
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-app-dark">
+    // <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-app-dark">
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-app-dark/50 to-app-light/50 ">
       {userData && (
-        <div className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-4 py-2 mb-8 hover:shadow-inner hover:shadow-app-main transition-shadow duration-300">
+        <div className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-4 py-2 mt-4 mb-3 hover:shadow-inner hover:shadow-app-muted transition-shadow duration-300">
           {userData.photo ? (
             <img
               src={userData.photo}
@@ -56,7 +57,7 @@ export default function ViewSelector() {
       )}
 
       {/* Encabezado */}
-      <div className="text-center mb-8 sm:mb-10">
+      <div className="text-center sm:mb-10">
         <h1 className="text-3xl sm:text-4xl font-bold text-app-main">
           Panel de Gestión
         </h1>
@@ -66,8 +67,8 @@ export default function ViewSelector() {
       </div>
 
       {/* Cuadrícula de botones */}
-      <div className="flex-1 flex items-center justify-center w-full">
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 w-full max-w-3xl">
+      <div className="flex-1 flex items-center justify-center w-full p-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-6 w-full max-w-3xl">
           <OptionButton
             icon={<PaintBrushIcon className="w-10 h-10 text-app-muted mb-2" />}
             label="Estilos y colores"
@@ -119,6 +120,7 @@ export default function ViewSelector() {
           />
         </div>
       </div>
+      
       <Footer />
     </div>
   );
@@ -129,7 +131,7 @@ function OptionButton({ icon, label, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="group flex flex-col items-center justify-center p-6 bg-app-light rounded-xl shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-300 sm:aspect-square"
+      className="group flex flex-col items-center justify-center p-3.5 sm:p-6 bg-gradient-to-b from-app-muted/40 to-app-dark rounded-2xl shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-app-border sm:aspect-square"
     >
       <span className="text-app-main transform transition-all duration-300 group-hover:scale-125 group-hover:-translate-y-1">
         {icon}
