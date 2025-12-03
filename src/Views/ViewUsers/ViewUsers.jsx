@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserPlusIcon, TrashIcon } from "@heroicons/react/24/solid";
-import { db } from "../../Components/Firebase/Firebase";
-import { doc, setDoc, deleteDoc } from "firebase/firestore";
+import { db, storage } from "../../Components/Firebase/Firebase";
+import { doc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
+import { ref, deleteObject } from "firebase/storage";
 import { deleteUser } from "firebase/auth";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 import { useAppContext } from "../../Components/Context/AppContext";
@@ -135,10 +136,30 @@ export default function ViewUsers() {
       const userCredential = await login(deleteData.email, deleteData.password);
       const userToDelete = userCredential.user;
 
-      await deleteDoc(doc(db, "users", userToDelete.uid));
+      // Obtiene datos del usuario desde Firestore
+      const userRef = doc(db, "users", userToDelete.uid);
+      const userSnap = await getDoc(userRef);
+
+      // 🔴 Eliminar imagen del STORAGE
+      if (userSnap.exists() && userSnap.data().photo) {
+        const imageUrl = userSnap.data().photo;
+
+        try {
+          const imageRef = ref(storage, imageUrl);
+          await deleteObject(imageRef);
+          console.log("✅ Imagen eliminada del storage");
+        } catch (error) {
+          console.warn("⚠ No se pudo eliminar la imagen:", error.message);
+        }
+      }
+
+      // 🔴 Eliminar documento de Firestore
+      await deleteDoc(userRef);
+
+      // 🔴 Eliminar usuario de Authentication
       await deleteUser(userToDelete);
 
-      showNotif("success", "✅ Usuario eliminado con éxito");
+      showNotif("success", "✅ Usuario eliminados con éxito");
       setDeleteData({ email: "", password: "" });
     } catch (err) {
       const errorMessages = {
@@ -148,6 +169,7 @@ export default function ViewUsers() {
         "auth/too-many-requests":
           "Demasiados intentos fallidos. Intenta de nuevo más tarde.",
       };
+
       setError(errorMessages[err.code] || "Error al eliminar el usuario.");
     } finally {
       setLoading(false);

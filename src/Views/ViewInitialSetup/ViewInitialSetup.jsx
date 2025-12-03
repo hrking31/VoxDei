@@ -8,7 +8,7 @@ import { UserPlusIcon, UserIcon } from "@heroicons/react/24/solid";
 import Footer from "../../Components/Footer/Footer.jsx";
 
 export default function ViewInitialSetup() {
-  const { signup, loading, setLoading } = useAuth();
+  const { signup, loading, setLoading, setUserData } = useAuth();
   const navigate = useNavigate();
 
   const refGenero = useRef(null);
@@ -95,7 +95,7 @@ export default function ViewInitialSetup() {
         form.gender.toLowerCase() === "femenino" ? "Pastora" : "Pastor";
 
       // Guardar datos en Firestore
-      await setDoc(doc(db, "users", uid), {
+      const newUserData = {
         churchName: form.churchName,
         name: form.name,
         gender: form.gender,
@@ -104,9 +104,12 @@ export default function ViewInitialSetup() {
         role: role,
         groupId: uid,
         createdAt: new Date(),
-      });
-      
-      setUserData(userData);
+      };
+
+      await setDoc(doc(db, "users", uid), newUserData);
+
+      // Actualizar contexto
+      setUserData(newUserData);
 
       navigate("/ViewSelector");
     } catch (err) {

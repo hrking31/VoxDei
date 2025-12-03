@@ -6,14 +6,19 @@ import {
 } from "@heroicons/react/24/solid";
 import Footer from "../../Components/Footer/Footer.jsx";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import Loading from "../../Components/Loading/Loading.jsx";
 
 export default function ViewSelector() {
   const navigate = useNavigate();
-  const { logout, userData } = useAuth();
+  const { logout, userData, loading } = useAuth();
 
   const handlerLogout = async () => {
     await logout();
   };
+
+  if (loading || !userData) {
+    return <Loading text="Creando iglesia..." />;
+  }
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-app-light/50 to-white">
