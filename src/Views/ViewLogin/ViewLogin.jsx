@@ -72,7 +72,7 @@ export default function ViewLogin() {
           </div>
 
           {/* Formulario */}
-          <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-8">
+          <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-5">
             {/* <div className="w-full max-w-sm bg-white rounded-2xl shadow-md p-8 border border-gray-100"> */}
             <form
               onSubmit={handleSubmit}

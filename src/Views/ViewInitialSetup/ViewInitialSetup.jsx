@@ -127,135 +127,151 @@ export default function ViewInitialSetup() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-gradient-to-b from-gray-900 to-gray-800">
-      <div className="text-center mb-10">
-        <h1 className="text-4xl font-extrabold text-yellow-400 drop-shadow-md">
-          Crear Iglesia
-        </h1>
-        <p className="text-gray-400 mt-2 text-lg">
-          Completa la información para iniciar tu plataforma.
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex flex-col">
+      <div className="flex-1 flex items-center justify-center px-4 py-2 sm:py-12">
+        <div className="w-full max-w-md space-y-4">
+          {/* Encabezado */}
+          <div className="text-center mb-4">
+            <h1 className="text-4xl font-extrabold text-yellow-400 drop-shadow-md">
+              Regístrar Iglesia
+            </h1>
+            <p className="text-gray-400 mt-2 text-lg">
+              Completa la información para iniciar.
+            </p>
+          </div>
 
-      <div className="flex-1 flex items-center justify-center w-full">
-        <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 rounded-2xl shadow-xl p-8">
-          <form onSubmit={handleCreate} className="flex flex-col gap-4">
-            {/* Foto de perfil */}
-            <div className="flex flex-col items-center gap-4">
-              <label className="text-white">Tu foto de perfil</label>
+          {/* Formulario */}
+          <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-5">
+            <form onSubmit={handleCreate} className="flex flex-col gap-4">
+              {/* Foto de perfil */}
+              <div className="flex flex-col items-center gap-2 sm:gap-4">
+                {!preview && (
+                  <label className="text-white">Tu foto de perfil</label>
+                )}
 
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className="hidden"
+                  id="photoInput"
+                />
+
+                <label htmlFor="photoInput" className="cursor-pointer">
+                  {preview ? (
+                    <img
+                      src={preview}
+                      className="w-14 h-14 sm:w-24 sm:h-24 rounded-full object-cover"
+                      alt="preview"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 sm:w-24 sm:h-24 rounded-full bg-gray-200 flex items-center justify-center">
+                      <UserIcon className="w-10 h-10 sm:w-14 sm:h-14 text-gray-500" />
+                    </div>
+                  )}
+                </label>
+              </div>
+
+              {/* Nombre iglesia */}
               <input
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoChange}
-                className="hidden"
-                id="photoInput"
+                type="text"
+                name="churchName"
+                placeholder="Nombre de la iglesia"
+                value={form.churchName}
+                onChange={handleChange}
+                className="p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
               />
 
-              <label htmlFor="photoInput" className="cursor-pointer">
-                {preview ? (
-                  <img
-                    src={preview}
-                    className="w-24 h-24 rounded-full object-cover"
-                    alt="preview"
-                  />
-                ) : (
-                  <div className="w-22 h-22 rounded-full bg-gray-200 flex items-center justify-center">
-                    <UserIcon className="w-10 h-10 text-gray-500" />
-                  </div>
+              {/* Nombre usuario */}
+              <input
+                type="text"
+                name="name"
+                placeholder="Nombre completo"
+                value={form.name}
+                onChange={handleChange}
+                className="p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              />
+
+              {/* Género */}
+              <div ref={refGenero} className="relative">
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown("gender")}
+                  className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-left text-gray-400 focus:ring-2 focus:ring-yellow-400"
+                >
+                  {form.gender || "Selecciona un género"}
+                </button>
+
+                {openDropdown === "gender" && (
+                  <ul className="absolute left-0 right-0 bg-gray-800 border border-gray-700 rounded-lg mt-1 shadow-lg z-20">
+                    {genderOptions.map((g) => (
+                      <li
+                        key={g}
+                        className="px-4 py-2 text-gray-300 hover:bg-yellow-400 hover:text-black cursor-pointer"
+                        onClick={() => {
+                          setForm((prev) => ({ ...prev, gender: g }));
+                          setOpenDropdown(null);
+                        }}
+                      >
+                        {g}
+                      </li>
+                    ))}
+                  </ul>
                 )}
-              </label>
-            </div>
+              </div>
 
-            {/* Nombre iglesia */}
-            <input
-              type="text"
-              name="churchName"
-              placeholder="Nombre de la iglesia"
-              value={form.churchName}
-              onChange={handleChange}
-              className="p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
+              {/* Email */}
+              <input
+                type="email"
+                name="email"
+                placeholder="Correo electrónico"
+                value={form.email}
+                onChange={handleChange}
+                className="p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              />
 
-            {/* Nombre usuario */}
-            <input
-              type="text"
-              name="name"
-              placeholder="Nombre completo"
-              value={form.name}
-              onChange={handleChange}
-              className="p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
+              {/* Password */}
+              <input
+                type="password"
+                name="password"
+                placeholder="Contraseña"
+                value={form.password}
+                onChange={handleChange}
+                className="p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              />
 
-            {/* Género */}
-            <div ref={refGenero} className="relative">
               <button
-                type="button"
-                onClick={() => toggleDropdown("gender")}
-                className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-left text-gray-400 focus:ring-2 focus:ring-yellow-400"
+                type="submit"
+                disabled={loading}
+                className="flex items-center justify-center gap-2 bg-yellow-400 text-black py-3 rounded-lg font-bold hover:bg-yellow-300 transition"
               >
-                {form.gender || "Selecciona un género"}
+                <UserPlusIcon className="w-5 h-5" />
+                {loading ? "Creando..." : "Crear iglesia"}
               </button>
+            </form>
 
-              {openDropdown === "gender" && (
-                <ul className="absolute left-0 right-0 bg-gray-800 border border-gray-700 rounded-lg mt-1 shadow-lg z-20">
-                  {genderOptions.map((g) => (
-                    <li
-                      key={g}
-                      className="px-4 py-2 text-gray-300 hover:bg-yellow-400 hover:text-black cursor-pointer"
-                      onClick={() => {
-                        setForm((prev) => ({ ...prev, gender: g }));
-                        setOpenDropdown(null);
-                      }}
-                    >
-                      {g}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            {/* Email */}
-            <input
-              type="email"
-              name="email"
-              placeholder="Correo electrónico"
-              value={form.email}
-              onChange={handleChange}
-              className="p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
-
-            {/* Password */}
-            <input
-              type="password"
-              name="password"
-              placeholder="Contraseña"
-              value={form.password}
-              onChange={handleChange}
-              className="p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center justify-center gap-2 bg-yellow-400 text-black py-3 rounded-lg font-bold hover:bg-yellow-300 transition"
-            >
-              <UserPlusIcon className="w-5 h-5" />
-              {loading ? "Creando..." : "Crear iglesia"}
-            </button>
-          </form>
-
-          {error && (
-            <p className="text-red-400 text-center mt-4 font-semibold">
-              {error}
+            {error && (
+              <p className="text-red-400 text-center mt-4 font-semibold">
+                {error}
+              </p>
+            )}
+          </div>
+          {/* Enlace de inicio */}
+          <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-8 text-center">
+            <p className="text-sm text-app-muted">
+              ¿Tienes una cuenta?{" "}
+              <button
+                onClick={() => navigate("/ViewLogin")}
+                className="text-app-main font-semibold hover:underline"
+              >
+                Inicia sesión
+              </button>
             </p>
-          )}
+          </div>
         </div>
       </div>
+
       <Footer />
     </div>
   );
 }
-
-
-
