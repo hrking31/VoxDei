@@ -3,6 +3,7 @@ import {
   PlayCircleIcon,
   Squares2X2Icon,
   XMarkIcon,
+  UserIcon,
 } from "@heroicons/react/24/solid";
 import Footer from "../../Components/Footer/Footer.jsx";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
@@ -24,12 +25,17 @@ export default function ViewSelector() {
     <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-app-light/50 to-white">
       {userData && (
         <div className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-4 py-2 mb-8 hover:shadow-inner hover:shadow-app-muted transition-shadow duration-300">
-          <img
-            src={userData.photo || "https://ui-avatars.com/api/?name=User"}
-            alt="user"
-            className="w-10 h-10 rounded-full object-cover"
-          />
-
+          {userData.photo ? (
+            <img
+              src={userData.photo }
+              alt="user"
+              className="w-10 h-10 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+              <UserIcon className="w-5 h-5 text-gray-500" />
+            </div>
+          )}
           <div className="flex flex-col flex-1 leading-tight">
             <span className="text-sm font-medium text-app-main">
               {userData.name || "Usuario"}
