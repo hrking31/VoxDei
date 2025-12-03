@@ -54,6 +54,13 @@ body {
   transition: background-color 5000s ease-in-out 0s;
 }
 
+.form-dark2 input:-webkit-autofill {
+  box-shadow: 0 0 0px 1000px #11182766 inset !important; /* gris oscuro */
+  -webkit-box-shadow: 0 0 0px 1000px #11182766 inset !important;
+  -webkit-text-fill-color: #9ca3af !important; /* texto claro */
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 /* Estilos para botones */
 .boton-salida {
   @apply flex items-center justify-center text-center text-xs sm:text-sm md:text-base 

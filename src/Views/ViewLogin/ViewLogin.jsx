@@ -63,7 +63,7 @@ export default function ViewLogin() {
         <div className="w-full max-w-md space-y-4">
           {/* Encabezado */}
           <div className="text-center mb-6">
-            <h1 className="text-3xl sm:text-4xl font-bold text-app-main tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-app-main drop-shadow-md">
               Iniciar Sesión
             </h1>
             <p className="text-app-muted text-base sm:text-lg mt-2">
@@ -72,40 +72,34 @@ export default function ViewLogin() {
           </div>
 
           {/* Formulario */}
-          <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-5">
+          <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-3 sm:p-5">
             {/* <div className="w-full max-w-sm bg-white rounded-2xl shadow-md p-8 border border-gray-100"> */}
             <form
               onSubmit={handleSubmit}
               noValidate
-              className="flex flex-col form-light gap-4"
+              className="flex flex-col form-dark2 gap-4"
             >
               {/* Correo */}
-              <div className="flex flex-col">
-                <label className="text-sm font-medium text-app-main mb-1">
-                  Correo electrónico
-                </label>
+              <div className="flex flex-col mt-3">
                 <input
                   type="email"
                   name="email"
                   placeholder="ejemplo@correo.com"
                   value={user.email}
                   onChange={handleChange}
-                  className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-app-main transition text-app-muted"
+                  className="p-2.5 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
                 />
               </div>
 
               {/* Contraseña */}
               <div className="flex flex-col">
-                <label className="text-sm font-medium text-app-main mb-1">
-                  Contraseña
-                </label>
                 <input
                   type="password"
                   name="password"
                   placeholder="********"
                   value={user.password}
                   onChange={handleChange}
-                  className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-app-main transition text-app-muted"
+                  className="p-2.5 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
                 />
               </div>
 
@@ -125,9 +119,7 @@ export default function ViewLogin() {
               <button
                 type="submit"
                 disabled={loading}
-                className={`flex items-center justify-center gap-2 bg-app-main text-white py-3 rounded-lg font-semibold hover:bg-app-main/90 transition mt-4 ${
-                  loading ? "opacity-70 cursor-not-allowed" : ""
-                }`}
+                className="flex items-center justify-center gap-2 bg-app-main text-white py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-app-main/90 transition mt-4"
               >
                 <LockClosedIcon className="w-5 h-5" />
                 {loading ? "Iniciando sesión..." : "Iniciar sesión"}

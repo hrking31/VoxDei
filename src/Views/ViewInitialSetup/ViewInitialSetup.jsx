@@ -132,17 +132,20 @@ export default function ViewInitialSetup() {
         <div className="w-full max-w-md space-y-4">
           {/* Encabezado */}
           <div className="text-center mb-4">
-            <h1 className="text-4xl font-extrabold text-yellow-400 drop-shadow-md">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-app-main drop-shadow-md">
               Regístrar Iglesia
             </h1>
-            <p className="text-gray-400 mt-2 text-lg">
+            <p className="text-app-muted text-base sm:text-lg mt-2">
               Completa la información para iniciar.
             </p>
           </div>
 
           {/* Formulario */}
-          <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-5">
-            <form onSubmit={handleCreate} className="flex flex-col gap-4">
+          <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-3 sm:p-5">
+            <form
+              onSubmit={handleCreate}
+              className="flex flex-col form-dark2 gap-3.5 sm:gap-4"
+            >
               {/* Foto de perfil */}
               <div className="flex flex-col items-center gap-2 sm:gap-4">
                 {!preview && (
@@ -179,7 +182,7 @@ export default function ViewInitialSetup() {
                 placeholder="Nombre de la iglesia"
                 value={form.churchName}
                 onChange={handleChange}
-                className="p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="p-2.5 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
               />
 
               {/* Nombre usuario */}
@@ -189,7 +192,7 @@ export default function ViewInitialSetup() {
                 placeholder="Nombre completo"
                 value={form.name}
                 onChange={handleChange}
-                className="p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="p-2.5 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
               />
 
               {/* Género */}
@@ -197,7 +200,7 @@ export default function ViewInitialSetup() {
                 <button
                   type="button"
                   onClick={() => toggleDropdown("gender")}
-                  className="w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-left text-gray-400 focus:ring-2 focus:ring-yellow-400"
+                  className="w-full p-2.5 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-left text-gray-400 focus:ring-2 focus:ring-app-main"
                 >
                   {form.gender || "Selecciona un género"}
                 </button>
@@ -207,7 +210,7 @@ export default function ViewInitialSetup() {
                     {genderOptions.map((g) => (
                       <li
                         key={g}
-                        className="px-4 py-2 text-gray-300 hover:bg-yellow-400 hover:text-black cursor-pointer"
+                        className="px-4 py-2 text-gray-300 hover:bg-app-main hover:text-black cursor-pointer"
                         onClick={() => {
                           setForm((prev) => ({ ...prev, gender: g }));
                           setOpenDropdown(null);
@@ -227,7 +230,7 @@ export default function ViewInitialSetup() {
                 placeholder="Correo electrónico"
                 value={form.email}
                 onChange={handleChange}
-                className="p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="p-2.5 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
               />
 
               {/* Password */}
@@ -237,13 +240,14 @@ export default function ViewInitialSetup() {
                 placeholder="Contraseña"
                 value={form.password}
                 onChange={handleChange}
-                className="p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="p-2.5 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
               />
 
+              {/* Botón de envío */}
               <button
                 type="submit"
                 disabled={loading}
-                className="flex items-center justify-center gap-2 bg-yellow-400 text-black py-3 rounded-lg font-bold hover:bg-yellow-300 transition"
+                className="flex items-center justify-center gap-2 bg-app-main text-white py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-app-main/90 transition"
               >
                 <UserPlusIcon className="w-5 h-5" />
                 {loading ? "Creando..." : "Crear iglesia"}

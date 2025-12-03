@@ -36,48 +36,59 @@ export default function ViewResetPassword() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-app-light/50 to-white">
-      <div className="flex-1 flex items-center justify-center w-full">
-        <div className="w-full max-w-sm bg-white rounded-2xl shadow-md p-8 border border-gray-100">
-          <h2 className="text-2xl font-bold text-app-main text-center mb-6">
-            Recuperar Contraseña
-          </h2>
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex flex-col ">
+      <div className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
+        <div className="w-full max-w-md space-y-4">
+          {/* Encabezado */}
+          <div className="text-center mb-6">
+            <h1 className="text-3xl sm:text-4xl font-bold text-app-main tracking-tight">
+              Recuperar Contraseña
+            </h1>
+            <p className="text-app-muted text-base sm:text-lg mt-2">
+              Ingresa tu correo para continuar
+            </p>
+          </div>
 
-          <form onSubmit={handleReset} className="flex flex-col gap-4">
-            <div>
-              <label className="text-sm font-medium text-app-main mb-1 block">
-                Correo electrónico
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu_correo@ejemplo.com"
-                className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-app-main w-full text-app-muted no-autofill"
-              />
-            </div>
+          <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-6">
+            <form
+              onSubmit={handleReset}
+              className="flex flex-col form-dark2 gap-4"
+            >
+              <div className="flex flex-col mt-3">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="tu_correo@ejemplo.com"
+                  className="p-2.5 sm:p-3  bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-app-main w-full text-gray-300 no-autofill"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="flex items-center justify-center gap-2 bg-app-main text-white py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-app-main/90 transition mt-4"
+              >
+                Enviar enlace de recuperación
+              </button>
+            </form>
+
+            {message && (
+              <p className="text-app-muted mt-4 text-center">{message}</p>
+            )}
+            {error && (
+              <p className="text-app-error mt-4 text-center">{error}</p>
+            )}
 
             <button
-              type="submit"
-              className="bg-app-main text-white py-3 rounded-lg font-semibold hover:bg-app-main/90 transition"
+              onClick={() => navigate("/ViewLogin")}
+              className="text-app-main hover:underline mt-6 text-sm w-full text-center"
             >
-              Enviar enlace de recuperación
+              Volver al inicio de sesión
             </button>
-          </form>
-
-          {message && (
-            <p className="text-app-muted mt-4 text-center">{message}</p>
-          )}
-          {error && <p className="text-app-error mt-4 text-center">{error}</p>}
-
-          <button
-            onClick={() => navigate("/ViewLogin")}
-            className="text-app-main hover:underline mt-6 text-sm w-full text-center"
-          >
-            Volver al inicio de sesión
-          </button>
+          </div>
         </div>
       </div>
+
       <Footer />
     </div>
   );
