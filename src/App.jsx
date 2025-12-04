@@ -14,7 +14,7 @@ import {
   VistaNoAutorizada,
   ViewInitialSetup,
 } from "./Views/index";
-// import InitialSetupGuard from "./Components/InitialSetupGuard/InitialSetupGuard.jsx";
+import InitialSetupGuard from "./Components/InitialSetupGuard/InitialSetupGuard.jsx";
 import { ProtectedRoutes } from "./Components/ProtectedRoutes/ProtectedRoutes.jsx";
 import { AppProvider } from "./Components/Context/AppContext";
 import InicializarEstados from "./Components/InicializarEstados/InicializarEstados";
@@ -26,9 +26,7 @@ export default function App() {
       <InicializarEstados />
       <Notificaciones />
       <Routes>
-        {/* <Route path="/" element={<Navigate to="/ViewLogin" />} /> */}
-        {/* <Route path="/" element={<InitialSetupGuard />} /> */}
-        <Route path="/" element={<ViewLogin />} />
+        <Route path="/" element={<InitialSetupGuard />} />
         <Route path="/ViewLogin" element={<ViewLogin />} />
         <Route path="/ResetPassword" element={<ViewResetPassword />} />
         <Route path="/VistaNoAutorizada" element={<VistaNoAutorizada />} />
