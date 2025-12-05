@@ -5,6 +5,7 @@ import { useAuth } from "../../Components/Context/AuthContext.jsx";
 import Footer from "../../Components/Footer/Footer.jsx";
 
 export default function ViewLogin() {
+  const width = window.innerWidth;
   const navigate = useNavigate();
   const { login } = useAuth();
   const [user, setUser] = useState({ email: "", password: "" });
@@ -30,9 +31,15 @@ export default function ViewLogin() {
     }
 
     setLoading(true);
+
     try {
       await login(user.email, user.password);
-      navigate("/ViewSelector");
+
+      if (width < 1024) {
+        navigate("/ViewGestion");
+      } else {
+        navigate("/ViewSelector");
+      }
     } catch (err) {
       console.error("Error de inicio de sesión:", err.code);
 
