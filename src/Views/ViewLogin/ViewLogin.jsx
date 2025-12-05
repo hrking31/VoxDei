@@ -5,7 +5,6 @@ import { useAuth } from "../../Components/Context/AuthContext.jsx";
 import Footer from "../../Components/Footer/Footer.jsx";
 
 export default function ViewLogin() {
-  const width = window.innerWidth;
   const navigate = useNavigate();
   const { login } = useAuth();
   const [user, setUser] = useState({ email: "", password: "" });
@@ -31,15 +30,9 @@ export default function ViewLogin() {
     }
 
     setLoading(true);
-
     try {
       await login(user.email, user.password);
-
-      if (width < 1024) {
-        navigate("/ViewGestion");
-      } else {
-        navigate("/ViewSelector");
-      }
+      navigate("/ViewSelector");
     } catch (err) {
       console.error("Error de inicio de sesión:", err.code);
 
@@ -151,7 +144,7 @@ export default function ViewLogin() {
             <p className="text-sm text-app-muted">
               ¿Tu iglesia aún no está registrada?{" "}
               <button
-                onClick={() => navigate("/ViewRegister")}
+                onClick={() => navigate("/ViewInitialSetup")}
                 className="text-app-main font-semibold hover:underline"
               >
                 Regístrala aquí
