@@ -59,11 +59,9 @@
 // }
 
 import { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import Reloj from "../Reloj/Reloj";
 
 export default function TickerMessage({ message, velocidad = 1 }) {
-  const navigate = useNavigate();
   const containerRef = useRef(null);
   const textRef = useRef(null);
 
@@ -81,11 +79,18 @@ export default function TickerMessage({ message, velocidad = 1 }) {
 
     if (!container || !text) return;
 
+    // Velocidad según tipo de pantalla
+    let speed = velocidad;
+
+    if (mode === "projector") speed = velocidad * 1.8;
+    if (mode === "desktop") speed = velocidad * 1.2;
+    if (mode === "mobile") speed = velocidad * 0.6;
+
     let position = container.offsetWidth; // empieza desde la derecha
     const textWidth = text.offsetWidth;
 
     const animate = () => {
-      position -= velocidad;
+      position -= speed;
 
       // Cuando el texto salga completamente, vuelve a empezar
       if (position < -textWidth) {
@@ -125,4 +130,3 @@ export default function TickerMessage({ message, velocidad = 1 }) {
     </div>
   );
 }
-
