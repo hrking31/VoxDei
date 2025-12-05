@@ -34,6 +34,17 @@ export default function ViewUsers() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  // Navegación según tamaño de pantalla
+  const handleNavigate = () => {
+    const width = window.innerWidth;
+
+    if (width < 1024) {
+      navigate("/ViewGestion");
+    } else {
+      navigate("/ViewSelector");
+    }
+  };
+
   // Manejo inputs de creación y eliminación
   const handleChange = ({ target: { name, value } }) => {
     if (mode === "create") setNewUser((prev) => ({ ...prev, [name]: value }));
@@ -397,11 +408,11 @@ export default function ViewUsers() {
         )}
       </div>
 
-      {/* gresar a vista selector */}
+      {/* gresar a vista selector o gestion */}
       <p className="text-center text-sm text-app-muted mt-4">
         ¿Regresar al inicio?
         <button
-          onClick={() => navigate("/ViewSelector")}
+          onClick={handleNavigate}
           className="text-app-main hover:underline ml-1"
         >
           Inicio

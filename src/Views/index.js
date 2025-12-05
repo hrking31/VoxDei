@@ -1,6 +1,7 @@
 import ViewLogin from "./ViewLogin/ViewLogin";
 import ViewSelector from "./ViewSelector/ViewSelector";
 import ViewGestion from "./ViewGestion/ViewGestion";
+import ViewImagenes from "./ViewImagenes/ViewImagenes";
 import ViewDisplay from "./ViewDisplay/ViewDisplay";
 import ViewStylos from "./ViewStylos/ViewStylos";
 import ViewTicker from "./ViewTicker/ViewTicker";
@@ -15,6 +16,7 @@ import VistaNoAutorizada from "./VistaNoAutorizada/VistaNoAutorizada.jsx";
 export {
   ViewLogin,
   ViewGestion,
+  ViewImagenes,
   ViewSelector,
   ViewDisplay,
   ViewStylos,

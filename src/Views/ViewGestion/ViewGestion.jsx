@@ -98,7 +98,7 @@ export default function ViewSelector() {
           <OptionButton
             icon={<PhotoIcon className="w-10 h-10 text-app-muted mb-2" />}
             label="Gestión Imagen"
-            onClick={() => navigate("/ViewPanel")}
+            onClick={() => navigate("/ViewImagenes")}
           />
 
           <OptionButton

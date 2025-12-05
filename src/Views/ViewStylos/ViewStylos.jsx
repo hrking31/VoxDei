@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import ColorPicker from "../../Components/ColorPicker/ColorPicker";
 
-export default function ViewVersiculo() {
+export default function ViewStylos() {
   const navigate = useNavigate();
 
   return (

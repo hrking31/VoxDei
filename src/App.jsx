@@ -3,6 +3,7 @@ import {
   ViewLogin,
   ViewSelector,
   ViewGestion,
+  ViewImagenes,
   ViewDisplay,
   ViewStylos,
   ViewTicker,
@@ -45,6 +46,15 @@ export default function App() {
           element={
             <ProtectedRoutes>
               <ViewGestion />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/ViewImagenes"
+          element={
+            <ProtectedRoutes>
+              <ViewImagenes />
             </ProtectedRoutes>
           }
         />
