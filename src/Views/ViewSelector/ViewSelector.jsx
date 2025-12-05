@@ -21,44 +21,42 @@ export default function ViewSelector() {
     return <Loading text="Creando iglesia..." />;
   }
 
-  // const abrirVisor = () => {
-  //   const ancho = 1280;
-  //   const alto = 720;
-
-  //   window.open(
-  //     "/VOXDEI",
-  //     "VisorProyector",
-  //     `
-  //     width=${ancho},
-  //     height=${alto},
-  //     menubar=no,
-  //     toolbar=no,
-  //     location=no,
-  //     status=no,
-  //     scrollbars=no,
-  //     resizable=no
-  //   `
-  //   );
-  // };
-
   const abrirVisor = () => {
-    const w = window.open(
+    const ancho = 900;
+    const alto = 600;
+
+    window.open(
       "/VOXDEI",
       "VisorProyector",
-      "menubar=no,toolbar=no,location=no,status=no,scrollbars=no,resizable=no"
+      `
+      width=${ancho},
+      height=${alto},
+      menubar=no,
+      toolbar=no,
+      location=no,
+      status=no,
+      scrollbars=no,
+      resizable=no
+    `
     );
-
-    if (!w) return;
-
-    w.moveTo(0, 0);
-
-    // Forzamos tamaño pantalla completa (como Proyektor)
-    w.resizeTo(window.screen.availWidth, window.screen.availHeight);
-
-    w.focus();
   };
 
+  // const abrirVisor = () => {
+  //   const w = window.open(
+  //     "/VOXDEI",
+  //     "VisorProyector",
+  //     "menubar=no,toolbar=no,location=no,status=no,scrollbars=no,resizable=no"
+  //   );
 
+  //   if (!w) return;
+
+  //   w.moveTo(0, 0);
+
+  //   // Forzamos tamaño pantalla completa (como Proyektor)
+  //   w.resizeTo(window.screen.availWidth, window.screen.availHeight);
+
+  //   w.focus();
+  // };
 
   return (
     // <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-app-light/50 to-white">
@@ -113,7 +111,7 @@ export default function ViewSelector() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-3xl">
           {/* Botón Presentación */}
           <button
-            onClick={() => navigate("/ViewDisplay")}
+            onClick={abrirVisor}
             className="group flex flex-col items-center justify-center p-8 sm:p-10 bg-gradient-to-b from-app-main/40 to-app-light rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 border border-app-border"
           >
             <PlayCircleIcon className="w-14 h-14 text-app-main mb-3 transform transition-all duration-300 group-hover:scale-125 group-hover:-translate-y-1" />
@@ -124,8 +122,6 @@ export default function ViewSelector() {
               Muestra el contenido en la pantalla principal
             </p>
           </button>
-
-          <button onClick={abrirVisor}>Abrir visor de proyección</button>
 
           {/* Botón Administrador */}
           <button

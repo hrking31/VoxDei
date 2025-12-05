@@ -5,8 +5,10 @@ import { useAppContext } from "../Context/AppContext";
 import TickerAnimacion from "../TickerAnimacion/TickerAnimacion";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 import useScreenType from "../../Components/Hooks/useScreenType.js";
+import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
 
 export default function DisplayView() {
+  const [visible, setVisible] = useState(true);
   const screenType = useScreenType();
   const [display, setDisplay] = useState("");
   const [ticker, setTicker] = useState("");
@@ -41,6 +43,34 @@ export default function DisplayView() {
   };
 
   const style = sizes[screenType];
+
+  const activarFullscreen = () => {
+    const el = document.documentElement;
+
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen(); // Safari
+    else if (el.msRequestFullscreen) el.msRequestFullscreen(); // Edge viejo
+
+    setVisible(false); // Ocultar el botón
+  };
+    useEffect(() => {
+      const detectarCambio = () => {
+        if (!document.fullscreenElement) {
+          // Si el usuario sale de fullscreen → vuelve a mostrar botón
+          setVisible(true);
+        } else {
+          setVisible(false);
+        }
+      };
+
+      document.addEventListener("fullscreenchange", detectarCambio);
+      document.addEventListener("webkitfullscreenchange", detectarCambio);
+
+      return () => {
+        document.removeEventListener("fullscreenchange", detectarCambio);
+        document.removeEventListener("webkitfullscreenchange", detectarCambio);
+      };
+    }, []);
 
   // Display Ticker
   useEffect(() => {
@@ -122,6 +152,27 @@ export default function DisplayView() {
     <div
       className={`relative h-screen w-screen bg-black font-bold text-white flex items-center justify-center text-center overflow-hidden ${style.padding}`}
     >
+      {visible && (
+        <button
+          onClick={activarFullscreen}
+          className="
+            fixed
+            inset-0
+            flex
+            items-center
+            justify-center
+            z-50
+            bg-black/40
+          "
+        >
+          <div className="flex flex-col items-center gap-4">
+            <ArrowsPointingOutIcon className="w-24 h-24 text-white animate-pulse" />
+            <p className="text-white text-xl tracking-wider">
+              ACTIVAR PANTALLA COMPLETA
+            </p>
+          </div>
+        </button>
+      )}
       {visibleTitulo && (
         // <div className="absolute top-2 left-0 w-full text-5xl font-bold text-app-muted text-center z-10 pointer-events-none">
         <div className="absolute top-12 left-0 w-full text-center px-6">
@@ -159,9 +210,7 @@ export default function DisplayView() {
                   {versiculo}
                 </div>
                 {/* <div className="text-[1.5rem] self-end mt-4 text-right"> */}
-                <div className="absolute -bottom-6 right-0">
-                  {cita}
-                </div>
+                <div className="absolute -bottom-6 right-0">{cita}</div>
               </div>
             </>
           ) : null}

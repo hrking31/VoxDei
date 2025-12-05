@@ -64,51 +64,65 @@ import Reloj from "../Reloj/Reloj";
 
 export default function TickerMessage({ message, velocidad = 1 }) {
   const navigate = useNavigate();
-  const trackRef = useRef(null);
-  const req = useRef(null);
-  const pos = useRef(0);
+  const containerRef = useRef(null);
+  const textRef = useRef(null);
+
+  // En la ventana de proyección
+  const volver = () => {
+    if (window.opener) {
+      window.opener.focus(); // Lleva el foco a la ventana original
+    }
+    window.close(); // Cierra la ventana de proyección
+  };
 
   useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
+    const container = containerRef.current;
+    const text = textRef.current;
 
-    const singleTextWidth = track.scrollWidth / 2;
+    if (!container || !text) return;
+
+    let position = container.offsetWidth; // empieza desde la derecha
+    const textWidth = text.offsetWidth;
 
     const animate = () => {
-      pos.current -= velocidad;
+      position -= velocidad;
 
-      // Cuando la primera copia salió completamente
-      if (Math.abs(pos.current) >= singleTextWidth) {
-        pos.current = 0;
+      // Cuando el texto salga completamente, vuelve a empezar
+      if (position < -textWidth) {
+        position = container.offsetWidth;
       }
 
-      track.style.transform = `translateX(${pos.current}px)`;
-      req.current = requestAnimationFrame(animate);
+      text.style.transform = `translateX(${position}px)`;
+
+      requestAnimationFrame(animate);
     };
 
-    req.current = requestAnimationFrame(animate);
-
-    return () => cancelAnimationFrame(req.current);
-  }, [velocidad]);
+    requestAnimationFrame(animate);
+  }, [message, velocidad]);
 
   return (
-    <div className="w-full fixed bottom-0 left-0 z-40 bg-blue-600 h-14 flex items-center overflow-hidden">
+    <div
+      ref={containerRef}
+      className="w-screen fixed bottom-0 left-0 z-40 flex
+        items-center bg-blue-600 h-14 overflow-hidden"
+    >
+      {/* Botón reloj */}
       <button
-        onClick={() => navigate("/ViewSelector")}
-        className="absolute left-0 z-50 flex items-center h-14 px-3 bg-blue-600"
+        // onClick={() => navigate("/ViewSelector")}
+        onClick={volver}
+        className="absolute  z-50 flex items-center h-14"
       >
         <Reloj />
       </button>
 
-      <div className="flex-1 overflow-hidden">
-        <div
-          ref={trackRef}
-          className="flex whitespace-nowrap text-white font-bold text-2xl"
-        >
-          <span className="mr-20">{message}</span>
-          <span className="mr-20">{message}</span>
-        </div>
+      {/* Texto en movimiento */}
+      <div
+        ref={textRef}
+        className="absolute left-0 text-white font-bold text-2xl whitespace-nowrap"
+      >
+        {message}
       </div>
     </div>
   );
 }
+
