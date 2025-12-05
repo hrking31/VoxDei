@@ -19,6 +19,11 @@ export default function ControlTicker() {
     showNotif,
   } = useAppContext();
 
+  const abrirProyector = () => {
+    window.open("/visor?modo=proyector", "_blank", "width=1920,height=1080");
+  };
+
+
   // proyecta un ticker de la bd o del imput
   const handleTicker = (item) => {
     const textToSend = item?.text || ticker;
@@ -159,6 +164,7 @@ export default function ControlTicker() {
             </span>
           </div>
         </div>
+        <button onClick={abrirProyector}>Iniciar Proyección</button>
 
         <div className="w-full flex justify-center col-span-12 md:col-span-6 gap-2 p-2">
           <button

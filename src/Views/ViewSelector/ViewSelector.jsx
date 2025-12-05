@@ -21,6 +21,45 @@ export default function ViewSelector() {
     return <Loading text="Creando iglesia..." />;
   }
 
+  // const abrirVisor = () => {
+  //   const ancho = 1280;
+  //   const alto = 720;
+
+  //   window.open(
+  //     "/VOXDEI",
+  //     "VisorProyector",
+  //     `
+  //     width=${ancho},
+  //     height=${alto},
+  //     menubar=no,
+  //     toolbar=no,
+  //     location=no,
+  //     status=no,
+  //     scrollbars=no,
+  //     resizable=no
+  //   `
+  //   );
+  // };
+
+  const abrirVisor = () => {
+    const w = window.open(
+      "/VOXDEI",
+      "VisorProyector",
+      "menubar=no,toolbar=no,location=no,status=no,scrollbars=no,resizable=no"
+    );
+
+    if (!w) return;
+
+    w.moveTo(0, 0);
+
+    // Forzamos tamaño pantalla completa (como Proyektor)
+    w.resizeTo(window.screen.availWidth, window.screen.availHeight);
+
+    w.focus();
+  };
+
+
+
   return (
     // <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-app-light/50 to-white">
     <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-app-dark/50 to-app-light/50">
@@ -85,6 +124,8 @@ export default function ViewSelector() {
               Muestra el contenido en la pantalla principal
             </p>
           </button>
+
+          <button onClick={abrirVisor}>Abrir visor de proyección</button>
 
           {/* Botón Administrador */}
           <button

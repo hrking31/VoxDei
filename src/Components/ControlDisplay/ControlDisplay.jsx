@@ -92,7 +92,8 @@ export default function DisplayView() {
   }, []);
 
   return (
-    <div className="relative h-screen w-screen bg-black font-bold text-white flex items-center justify-center text-center overflow-hidden p-5">
+    // <div className="relative h-screen w-screen bg-black font-bold text-white flex items-center justify-center text-center overflow-hidden p-5">
+    <div className="fixed inset-0 bg-black font-bold text-white flex items-center justify-center text-center overflow-hidden p-4">
       {visibleTitulo && (
         <div className="absolute top-2 left-0 w-full text-5xl font-bold text-app-muted text-center z-10 pointer-events-none">
           {tituloPredica}

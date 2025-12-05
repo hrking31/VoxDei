@@ -60,7 +60,7 @@ export default function App() {
         />
 
         <Route
-          path="/viewdisplay"
+          path="/VOXDEI"
           element={
             <ProtectedRoutes
               rolesPermitidos={["Pastor", "Pastora", "Asistente", "admin"]}
