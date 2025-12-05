@@ -151,7 +151,7 @@ export default function ViewLogin() {
             <p className="text-sm text-app-muted">
               ¿Tu iglesia aún no está registrada?{" "}
               <button
-                onClick={() => navigate("/ViewInitialSetup")}
+                onClick={() => navigate("/ViewRegister")}
                 className="text-app-main font-semibold hover:underline"
               >
                 Regístrala aquí

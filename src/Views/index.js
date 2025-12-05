@@ -10,7 +10,7 @@ import ViewPredica from "./ViewPredica/ViewPredica";
 import ViewVersiculo from "./ViewVersiculo/ViewVersiculo";
 import ViewResetPassword from "./ViewResetPassword/ViewResetPassword.jsx";
 import ViewUsers from "./ViewUsers/ViewUsers.jsx";
-import ViewInitialSetup from "./ViewInitialSetup/ViewInitialSetup.jsx";
+import ViewRegister from "./ViewRegister/ViewRegister.jsx";
 import VistaNoAutorizada from "./VistaNoAutorizada/VistaNoAutorizada.jsx";
 
 export {
@@ -26,6 +26,6 @@ export {
   ViewVersiculo,
   ViewResetPassword,
   ViewUsers,
-  ViewInitialSetup,
-  VistaNoAutorizada
+  ViewRegister,
+  VistaNoAutorizada,
 };

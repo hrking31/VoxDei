@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { db, storage } from "../../Components/Firebase/Firebase";
+import { db, storage } from "../../Components/Firebase/Firebase.js";
 import { doc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { UserPlusIcon, UserIcon } from "@heroicons/react/24/solid";
 import Footer from "../../Components/Footer/Footer.jsx";
 
-export default function ViewInitialSetup() {
+export default function ViewRegister() {
   const { signup, loading, setLoading, setUserData } = useAuth();
   const navigate = useNavigate();
 

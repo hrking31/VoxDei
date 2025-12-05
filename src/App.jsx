@@ -13,7 +13,7 @@ import {
   ViewResetPassword,
   ViewUsers,
   VistaNoAutorizada,
-  ViewInitialSetup,
+  ViewRegister,
 } from "./Views/index";
 import { ProtectedRoutes } from "./Components/ProtectedRoutes/ProtectedRoutes.jsx";
 import { AppProvider } from "./Components/Context/AppContext";
@@ -30,7 +30,7 @@ export default function App() {
         <Route path="/ViewLogin" element={<ViewLogin />} />
         <Route path="/ResetPassword" element={<ViewResetPassword />} />
         <Route path="/VistaNoAutorizada" element={<VistaNoAutorizada />} />
-        <Route path="/ViewInitialSetup" element={<ViewInitialSetup />} />
+        <Route path="/ViewRegister" element={<ViewRegister />} />
 
         <Route
           path="/ViewSelector"
