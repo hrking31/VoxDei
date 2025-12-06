@@ -51,15 +51,6 @@ export default function App() {
         />
 
         <Route
-          path="/ViewImagenes"
-          element={
-            <ProtectedRoutes>
-              <ViewImagenes />
-            </ProtectedRoutes>
-          }
-        />
-
-        <Route
           path="/VOXDEI"
           element={
             <ProtectedRoutes
@@ -71,12 +62,23 @@ export default function App() {
         />
 
         <Route
+          path="/ViewImagenes"
+          element={
+            <ProtectedRoutes
+              rolesPermitidos={["Pastor", "Pastora", "Asistente", "admin"]}
+            >
+              <ViewImagenes />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
           path="/ViewStylos"
           element={
             <ProtectedRoutes
               rolesPermitidos={["Pastor", "Pastora", "Asistente", "admin"]}
             >
-              <ViewStylos />{" "}
+              <ViewStylos />
             </ProtectedRoutes>
           }
         />
@@ -85,7 +87,7 @@ export default function App() {
           path="/ViewUsers"
           element={
             <ProtectedRoutes rolesPermitidos={["Pastor", "Pastora", "admin"]}>
-              <ViewUsers />{" "}
+              <ViewUsers />
             </ProtectedRoutes>
           }
         />

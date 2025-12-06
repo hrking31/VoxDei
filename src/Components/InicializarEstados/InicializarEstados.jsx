@@ -13,6 +13,7 @@ export default function InicializarEstados() {
     setMessageItems,
     setVisibleTitulo,
     setVisibleTexto,
+    setVisibleTicker,
     setVelocidadTicker,
     showNotif,
   } = useAppContext();
@@ -75,6 +76,17 @@ export default function InicializarEstados() {
       }
     );
 
+    // Display Visible Ticker
+    const visibleTicker = onValue(
+      ref(database, `displayVisibleTicker/${userData.groupId}`),
+      (snapshot) => {
+        const data = snapshot.val();
+        if (data?.visibleTicker !== undefined) {
+          setVisibleTicker(data.visibleTicker);
+        }
+      }
+    );
+
     // Speed Ticker
     const speedTicker = onValue(
       ref(database, `speedTicker/${userData.groupId}`),
@@ -93,6 +105,7 @@ export default function InicializarEstados() {
       loadMessage();
       visibleTitulo();
       visibleTexto();
+       visibleTicker();
       speedTicker();
     };
   }, [loading, user, userData?.groupId, setSlots]);

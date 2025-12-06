@@ -18,9 +18,10 @@ export default function ViewSelector() {
   };
 
   if (loading || !userData) {
-    return <Loading text="Creando iglesia..." />;
+    return <Loading text="Preparando la pantalla de adoración..." />;
   }
 
+  // Abrir ventana a proyectar
   const abrirVisor = () => {
     const ancho = 900;
     const alto = 600;

@@ -10,6 +10,7 @@ export function AppProvider({ children }) {
   const [velocidadTicker, setVelocidadTicker] = useState(2);
   const [visibleTitulo, setVisibleTitulo] = useState("");
   const [visibleTexto, setVisibleTexto] = useState("");
+  const [visibleTicker, setVisibleTicker] = useState("");
   const [authUser, setAuthUser] = useState(null);
   const [notif, setNotif] = useState({
     open: false,
@@ -48,6 +49,8 @@ export function AppProvider({ children }) {
         setVisibleTitulo,
         visibleTexto,
         setVisibleTexto,
+        visibleTicker,
+        setVisibleTicker,
         authUser,
         setAuthUser,
         notif,

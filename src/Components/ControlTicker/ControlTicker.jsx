@@ -4,27 +4,30 @@ import { database, db } from "../Firebase/Firebase";
 import { ref, set } from "firebase/database";
 import { doc, setDoc } from "firebase/firestore";
 import EmojiButton from "../EmojiButton/EmojiButton";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function ControlTicker() {
   const navigate = useNavigate();
-   const { userData } = useAuth();
+  const { userData } = useAuth();
   const [ticker, setTicker] = useState("");
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const {
     tickerItems,
     velocidadTicker,
     setVelocidadTicker,
+    visibleTicker,
+    setVisibleTicker,
     showNotif,
   } = useAppContext();
 
+  // Abre una nueva ventana con el proyector
   const abrirProyector = () => {
     window.open("/visor?modo=proyector", "_blank", "width=1920,height=1080");
   };
 
-
-  // proyecta un ticker de la bd o del imput
+  // Proyecta un ticker de la bd o del imput
   const handleTicker = (item) => {
     const textToSend = item?.text || ticker;
 
@@ -36,7 +39,18 @@ export default function ControlTicker() {
     });
   };
 
-  // configura la velocidad del ticker
+  // Visibilidad del ticker
+  const toggleVisibleTicker = () => {
+    const nuevoEstado = !visibleTicker;
+    setVisibleTicker(nuevoEstado);
+
+    set(ref(database, `displayVisibleTicker/${userData.groupId}`), {
+      visibleTicker: nuevoEstado,
+      timestamp: Date.now(),
+    });
+  };
+
+  // Configura la velocidad del ticker
   const configSpeed = (nuevoValor) => {
     setVelocidadTicker(nuevoValor);
     set(ref(database, `speedTicker/${userData.groupId}`), {
@@ -44,7 +58,7 @@ export default function ControlTicker() {
     });
   };
 
-  // agrega un ticker a la bd
+  // Agrega un ticker a la bd
   const agregarElemento = async () => {
     try {
       // Validar campo
@@ -113,7 +127,7 @@ export default function ControlTicker() {
           />
         </div>
 
-        {/* boton guardar */}
+        {/* Boton guardar */}
         <div className="col-span-3 flex flex-col sm:flex-row items-center justify-center gap-2 p-2">
           <div className=" flex items-center justify-center">
             <EmojiButton
@@ -149,8 +163,9 @@ export default function ControlTicker() {
             </label>
             <input
               type="range"
-              min="1"
-              max="10"
+              min="0.1"
+              max="2"
+              step="0.1"
               value={velocidadTicker}
               onChange={(e) => {
                 const nuevaVelocidad = Number(e.target.value);
@@ -181,16 +196,25 @@ export default function ControlTicker() {
           >
             Proyectar
           </button>
-
-          {/* boton cancelar */}
+          {/* Boton cancelar */}
           <button
             onClick={() => setTicker("")}
             className="w-full py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded  inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
           >
             Cancelar
           </button>
-
-          {/* boton salir */}
+          {/* Boton visibilidad ticker */}
+          <button
+            onClick={toggleVisibleTicker}
+            className="w-full py-1.5 xl:py-3 flex items-center justify-center border-2 rounded font-semibold text-app-success transition-all duration-200"
+          >
+            {visibleTicker ? (
+              <EyeIcon className="w-6 h-6" />
+            ) : (
+              <EyeSlashIcon className="w-6 h-6" />
+            )}
+          </button>
+          {/* Boton salir */}
           <button
             type="button"
             onClick={() => navigate("/ViewGestion")}
