@@ -7,17 +7,18 @@ export default function useScreenType() {
     const detectScreen = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
+      const minSide = Math.min(width, height);
       const isTouch = window.matchMedia("(pointer: coarse)").matches;
 
-      // Proyector / TV / Pantalla gigante
-      if (width >= 1600 && height >= 900 && !isTouch) {
+      // 🖥 Proyector / TV / Monitores grandes
+      if (minSide >= 900 && width >= 1280 && !isTouch) {
         setScreenType("proyector");
       }
-      // Móvil o tablet
-      else if (isTouch && width < 1024) {
+      // 📱 Teléfonos (incluye tableta pequeña)
+      else if (isTouch && minSide < 820) {
         setScreenType("movil");
       }
-      // PC normal
+      // 💻 Todo lo demás = desktop / laptop
       else {
         setScreenType("desktop");
       }
@@ -31,16 +32,3 @@ export default function useScreenType() {
 
   return screenType;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
