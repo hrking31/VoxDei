@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect } from "react";
+import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { database } from "../Firebase/Firebase";
 import { ref, set, update } from "firebase/database";
@@ -8,19 +8,19 @@ import CapituloModal from "../ModalCapitulo/ModalCapitulo";
 import VersiculoModal from "../ModalVersiculo/ModalVersiculo";
 import { obtenerVersiculo } from "../FuncionesControlPredica/FuncionesControlPredica";
 import BuscadorLibros from "../BuscadorLibros/BuscadorLibros";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import {
-  TrashIcon,
   DocumentTextIcon,
   ChatBubbleLeftRightIcon,
   TagIcon,
 } from "@heroicons/react/24/solid";
 import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import BotonesVisibilidad from "../../Components/BotonesVisibilidad/BotonesVisibilidad.jsx";
 
 export default function ControlVersiculos() {
   const navigate = useNavigate();
   const { userData } = useAuth();
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
   const [libro, setLibro] = useState({
     sigla: null,
     nombre: null,
@@ -192,12 +192,18 @@ export default function ControlVersiculos() {
     });
   };
 
+  useEffect(() => {
+    const handler = () => setIsDesktop(window.innerWidth >= 768);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+
   return (
     <div className="flex flex-col justify-center">
       {/* BLOQUE STICKY */}
       <div className="grid grid-cols-12 w-full sticky bg-app-dark top-0 z-10 pt-3 pb-4">
         {/* Fila de capítulos */}
-        <div className="col-span-12 xl:col-span-10 overflow-x-auto scrollbar-custom [&::-webkit-scrollbar]:hidden xl:[&::-webkit-scrollbar]:block pb-2">
+        <div className="col-span-12  overflow-x-auto scrollbar-custom [&::-webkit-scrollbar]:hidden xl:[&::-webkit-scrollbar]:block  border">
           <div className="flex gap-2 whitespace-nowrap">
             {Array.from({ length: libro.capitulos }, (_, i) => {
               const capitulo = i + 1;
@@ -241,7 +247,7 @@ export default function ControlVersiculos() {
 
         {/* Botones */}
         <div
-          className={`flex p-2 ${
+          className={`flex p-2 border ${
             open
               ? "col-span-12 row-start-3 sm:row-start-auto sm:col-span-6"
               : "col-span-2 sm:col-span-1"
@@ -255,10 +261,10 @@ export default function ControlVersiculos() {
         </div>
 
         <div
-          className={`flex justify-center gap-2 p-2 ${
+          className={`flex justify-center gap-2 p-2 border ${
             open
-              ? "col-span-8 sm:col-span-4 xl:col-span-6"
-              : "col-span-6 sm:col-span-9 xl:col-span-11"
+              ? "col-span-12 sm:col-span-4 xl:col-span-6"
+              : "col-span-10 sm:col-span-9 xl:col-span-11"
           }`}
         >
           <button
@@ -284,66 +290,52 @@ export default function ControlVersiculos() {
           >
             Salida
           </button>
-        </div>
 
-        {/* botones visisbilidad */}
-        <div className="col-span-4 sm:col-span-2 xl:col-span-2 xl:col-start-11 xl:row-start-1 row-start-auto flex items-center justify-center xl:px-2.5 gap-6 p-2 xl:p-0 border">
-          {/* <button
-            onClick={toggleVisibleTitulo}
-            className="w-full py-1.5 xl:py-3 flex items-center justify-center border-2 rounded font-semibold text-app-accent transition-all duration-200"
-          >
-            {visibleTitulo ? (
-              <EyeIcon className="w-6 h-6" />
-            ) : (
-              <EyeSlashIcon className="w-6 h-6" />
-            )}
-          </button>
-
-          <button
-            onClick={toggleVisibleTexto}
-            className="w-full py-1.5 xl:py-3 flex items-center justify-center border-2 rounded font-semibold text-app-main transition-all duration-200"
-          >
-            {visibleTexto ? (
-              <EyeIcon className="w-6 h-6" />
-            ) : (
-              <EyeSlashIcon className="w-6 h-6" />
-            )}
-          </button> */}
-          {/* Boton visibilidad ticker */}
-          <button
-            onClick={toggleVisibleTicker}
-            className="font-semibold text-app-muted py-1.5 xl:py-3 flex items-center justify-center transition-all
-              duration-200 border"
-          >
-            {visibleTicker ? (
-              <TagIcon className="w-8 h-8 text-app-success" />
-            ) : (
-              <TagIcon className="w-8 h-8" />
-            )}
-          </button>
-          {/* Boton visibilidad titulo */}
-          <button
-            onClick={toggleVisibleTitulo}
-            className="font-semibold text-app-muted py-1.5 xl:py-3 flex items-center justify-center transition-all
-              duration-200 border"
-          >
-            {visibleTitulo ? (
-              <DocumentTextIcon className="w-8 h-8 text-app-accent" />
-            ) : (
-              <DocumentTextIcon className="w-8 h-8" />
-            )}
-          </button>
-          {/* Boton visibilidad texto */}
-          <button
-            onClick={toggleVisibleTexto}
-            className="font-semibold text-app-muted py-1.5 xl:py-3 flex items-center justify-center transition-all duration-200 border"
-          >
-            {visibleTexto ? (
-              <ChatBubbleLeftRightIcon className="w-8 h-8 text-app-main" />
-            ) : (
-              <ChatBubbleLeftRightIcon className="w-8 h-8" />
-            )}
-          </button>
+          {isDesktop ? (
+            <div className="flex items-center gap-4 border">
+              {/* Boton visibilidad ticker */}
+              <button
+                onClick={toggleVisibleTicker}
+                className="h-full font-semibold text-app-muted px-2 flex items-center justify-center transition-all
+              duration-200"
+              >
+                {visibleTicker ? (
+                  <TagIcon className="w-8 h-8 text-app-success" />
+                ) : (
+                  <TagIcon className="w-8 h-8" />
+                )}
+              </button>
+              {/* Boton visibilidad titulo */}
+              <button
+                onClick={toggleVisibleTitulo}
+                className="h-full font-semibold text-app-muted px-2 flex items-center justify-center transition-all
+              duration-200"
+              >
+                {visibleTitulo ? (
+                  <DocumentTextIcon className="w-8 h-8 text-app-accent" />
+                ) : (
+                  <DocumentTextIcon className="w-8 h-8" />
+                )}
+              </button>
+              {/* Boton visibilidad texto */}
+              <button
+                onClick={toggleVisibleTexto}
+                className="h-full font-semibold text-app-muted px-2 flex items-center justify-center transition-all duration-200"
+              >
+                {visibleTexto ? (
+                  <ChatBubbleLeftRightIcon className="w-8 h-8 text-app-main" />
+                ) : (
+                  <ChatBubbleLeftRightIcon className="w-8 h-8" />
+                )}
+              </button>
+            </div>
+          ) : (
+            <BotonesVisibilidad
+              toggleVisibleTicker={toggleVisibleTicker}
+              toggleVisibleTitulo={toggleVisibleTitulo}
+              toggleVisibleTexto={toggleVisibleTexto}
+            />
+          )}
         </div>
       </div>
       {/* FIN BLOQUE STICKY */}
