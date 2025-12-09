@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { database } from "../Firebase/Firebase";
 import { ref, set } from "firebase/database";
-import { TrashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import {
   handleSlotClick,
   obtenerVersiculo,
 } from "../FuncionesControlPredica/FuncionesControlPredica";
 import { useAppContext } from "../Context/AppContext";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import {
+  TrashIcon,
+  DocumentTextIcon,
+  ChatBubbleLeftRightIcon,
+  TagIcon,
+} from "@heroicons/react/24/solid";
 import EmojiButton from "../EmojiButton/EmojiButton";
 import LibrosModal from "../../Components/ModalLibros/ModalLibros";
 import CapituloModal from "../../Components/ModalCapitulo/ModalCapitulo";
@@ -28,6 +32,8 @@ export default function Predica() {
   });
   const [visible, setVisible] = useState(false);
   const {
+    visibleTicker,
+    setVisibleTicker,
     visibleTitulo,
     setVisibleTitulo,
     visibleTexto,
@@ -160,6 +166,7 @@ export default function Predica() {
     }
   };
 
+  // Visibilidad del título
   const toggleVisibleTitulo = () => {
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
@@ -170,12 +177,24 @@ export default function Predica() {
     });
   };
 
+  // Visibilidad del texto
   const toggleVisibleTexto = () => {
     const nuevoEstado = !visibleTexto;
     setVisibleTexto(nuevoEstado);
 
     set(ref(database, `displayVisibleTexto/${userData.groupId}`), {
       visibleTexto: nuevoEstado,
+      timestamp: Date.now(),
+    });
+  };
+
+  // Visibilidad del ticker
+  const toggleVisibleTicker = () => {
+    const nuevoEstado = !visibleTicker;
+    setVisibleTicker(nuevoEstado);
+
+    set(ref(database, `displayVisibleTicker/${userData.groupId}`), {
+      visibleTicker: nuevoEstado,
       timestamp: Date.now(),
     });
   };
@@ -201,27 +220,40 @@ export default function Predica() {
                 <WhatsAppButton message={predicaItems} />
               )}
 
+              {/* Boton visibilidad ticker */}
+              <button
+                onClick={toggleVisibleTicker}
+                className="font-semibold text-app-muted transition-all
+              duration-200 "
+              >
+                {visibleTicker ? (
+                  <TagIcon className="w-8 h-8 text-app-success" />
+                ) : (
+                  <TagIcon className="w-8 h-8" />
+                )}
+              </button>
+              {/* Boton visibilidad titulo */}
               <button
                 onClick={toggleVisibleTitulo}
-                className="font-semibold text-app-accent transition-all
+                className="font-semibold text-app-muted transition-all
               duration-200 "
               >
                 {visibleTitulo ? (
-                  <EyeIcon className="w-8 h-8" />
+                  <  DocumentTextIcon className="w-8 h-8 text-app-accent" />
                 ) : (
-                  <EyeSlashIcon className="w-8 h-8" />
+                  <  DocumentTextIcon className="w-8 h-8" />
                 )}
               </button>
-
+              {/* Boton visibilidad texto */}
               <button
                 onClick={toggleVisibleTexto}
-                className="font-semibold text-app-main transition-all duration-200
+                className="font-semibold text-app-muted transition-all duration-200
               "
               >
                 {visibleTexto ? (
-                  <EyeIcon className="w-8 h-8" />
+                  <ChatBubbleLeftRightIcon className="w-8 h-8 text-app-main" />
                 ) : (
-                  <EyeSlashIcon className="w-8 h-8" />
+                  <ChatBubbleLeftRightIcon className="w-8 h-8" />
                 )}
               </button>
             </div>

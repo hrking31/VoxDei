@@ -9,6 +9,12 @@ import VersiculoModal from "../ModalVersiculo/ModalVersiculo";
 import { obtenerVersiculo } from "../FuncionesControlPredica/FuncionesControlPredica";
 import BuscadorLibros from "../BuscadorLibros/BuscadorLibros";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import {
+  TrashIcon,
+  DocumentTextIcon,
+  ChatBubbleLeftRightIcon,
+  TagIcon,
+} from "@heroicons/react/24/solid";
 import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
@@ -29,6 +35,8 @@ export default function ControlVersiculos() {
   const [versiculoNumero, setVersiculoNumero] = useState(null);
   const [versiculoTexto, setVersiculoTexto] = useState(null);
   const {
+    visibleTicker,
+    setVisibleTicker,
     visibleTitulo,
     setVisibleTitulo,
     visibleTexto,
@@ -151,6 +159,7 @@ export default function ControlVersiculos() {
 
   let currentTitulo = "";
 
+  // Visibilidad del titulo
   const toggleVisibleTitulo = () => {
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
@@ -161,12 +170,24 @@ export default function ControlVersiculos() {
     });
   };
 
+  // Visibilidad del texto
   const toggleVisibleTexto = () => {
     const nuevoEstado = !visibleTexto;
     setVisibleTexto(nuevoEstado);
 
     update(ref(database, `displayVisibleTexto/${userData.groupId}`), {
       visibleTexto: nuevoEstado,
+      timestamp: Date.now(),
+    });
+  };
+
+  // Visibilidad del ticker
+  const toggleVisibleTicker = () => {
+    const nuevoEstado = !visibleTicker;
+    setVisibleTicker(nuevoEstado);
+
+    set(ref(database, `displayVisibleTicker/${userData.groupId}`), {
+      visibleTicker: nuevoEstado,
       timestamp: Date.now(),
     });
   };
@@ -243,7 +264,7 @@ export default function ControlVersiculos() {
           <button
             type="button"
             onClick={() => abrirModalConTipo("antiguo")}
-            className="w-full py-2 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
+            className="w-full py-2 flex items-center justify-center text-center text-xs sm:text-sm md:text-base font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
           >
             Antiguo
           </button>
@@ -251,7 +272,7 @@ export default function ControlVersiculos() {
           <button
             type="button"
             onClick={() => abrirModalConTipo("nuevo")}
-            className="w-full py-2 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
+            className="w-full py-2 flex items-center justify-center text-center text-xs sm:text-sm md:text-base font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main hover:inset-shadow-app-main cursor-pointer"
           >
             Nuevo
           </button>
@@ -266,8 +287,8 @@ export default function ControlVersiculos() {
         </div>
 
         {/* botones visisbilidad */}
-        <div className="col-span-4 sm:col-span-2 xl:col-span-2 xl:col-start-11 xl:row-start-1 row-start-auto flex items-center justify-center xl:px-2.5 gap-4 p-2 xl:p-0">
-          <button
+        <div className="col-span-4 sm:col-span-2 xl:col-span-2 xl:col-start-11 xl:row-start-1 row-start-auto flex items-center justify-center xl:px-2.5 gap-6 p-2 xl:p-0 border">
+          {/* <button
             onClick={toggleVisibleTitulo}
             className="w-full py-1.5 xl:py-3 flex items-center justify-center border-2 rounded font-semibold text-app-accent transition-all duration-200"
           >
@@ -286,6 +307,41 @@ export default function ControlVersiculos() {
               <EyeIcon className="w-6 h-6" />
             ) : (
               <EyeSlashIcon className="w-6 h-6" />
+            )}
+          </button> */}
+          {/* Boton visibilidad ticker */}
+          <button
+            onClick={toggleVisibleTicker}
+            className="font-semibold text-app-muted py-1.5 xl:py-3 flex items-center justify-center transition-all
+              duration-200 border"
+          >
+            {visibleTicker ? (
+              <TagIcon className="w-8 h-8 text-app-success" />
+            ) : (
+              <TagIcon className="w-8 h-8" />
+            )}
+          </button>
+          {/* Boton visibilidad titulo */}
+          <button
+            onClick={toggleVisibleTitulo}
+            className="font-semibold text-app-muted py-1.5 xl:py-3 flex items-center justify-center transition-all
+              duration-200 border"
+          >
+            {visibleTitulo ? (
+              <DocumentTextIcon className="w-8 h-8 text-app-accent" />
+            ) : (
+              <DocumentTextIcon className="w-8 h-8" />
+            )}
+          </button>
+          {/* Boton visibilidad texto */}
+          <button
+            onClick={toggleVisibleTexto}
+            className="font-semibold text-app-muted py-1.5 xl:py-3 flex items-center justify-center transition-all duration-200 border"
+          >
+            {visibleTexto ? (
+              <ChatBubbleLeftRightIcon className="w-8 h-8 text-app-main" />
+            ) : (
+              <ChatBubbleLeftRightIcon className="w-8 h-8" />
             )}
           </button>
         </div>
