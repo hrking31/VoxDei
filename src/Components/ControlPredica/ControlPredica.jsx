@@ -12,13 +12,13 @@ import {
   DocumentTextIcon,
   ChatBubbleLeftRightIcon,
   TagIcon,
+  ArrowLeftEndOnRectangleIcon,
 } from "@heroicons/react/24/solid";
 import EmojiButton from "../EmojiButton/EmojiButton";
 import LibrosModal from "../../Components/ModalLibros/ModalLibros";
 import CapituloModal from "../../Components/ModalCapitulo/ModalCapitulo";
 import VersiculoModal from "../../Components/ModalVersiculo/ModalVersiculo";
 import WhatsAppButton from "../WhatsAppButton/WhatsAppButton";
-import UserProfileCard from "../UserProfileCard/UserProfileCard.jsx";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
 export default function Predica() {
@@ -200,72 +200,90 @@ export default function Predica() {
   };
 
   return (
-    <div className="pt-1 pr-1 mx-auto">
-      <div className="flex items-center justify-between w-full bg-app-ligh">
-        <button
-          onClick={() => setVisible(!visible)}
-          className={`font-bold text-center ml-2 border-b-2 ${
-            visible
-              ? "text-app-main border-app-main"
-              : "text-app-muted border-app-muted"
-          }`}
-        >
-          {visible ? "Prédica" : "Asistente Prédica"}
-        </button>
+    <div className="mx-auto">
+      <div className="sticky top-0 shadow-[inset_0_-2px_0_rgba(250,204,21,0.9)] bg-app-light  z-10 px-2 ">
+        <div className="flex items-center justify-between w-full h-12 ">
+          <button
+            onClick={() => setVisible(!visible)}
+            className={`font-bold text-center ${
+              visible
+                ? "text-app-main border-app-main"
+                : "text-app-muted border-app-muted"
+            }`}
+          >
+            {visible ? "Prédica" : "Asistente Prédica"}
+          </button>
 
-        <div className="flex items-center gap-4">
-          {!visible && (
-            <div className="flex mr-4 gap-6">
-              {predicaItems?.length > 0 && (
-                <WhatsAppButton message={predicaItems} />
-              )}
+          <div className="flex items-center gap-4">
+            {!visible ? (
+              <div className="flex items-center justify-center mr-2 gap-6">
+                {/* Boton visibilidad ticker */}
+                <button
+                  onClick={toggleVisibleTicker}
+                  className="h-full font-semibold text-app-muted transition-all duration-200"
+                >
+                  {visibleTicker ? (
+                    <TagIcon className="w-6 h-6 text-app-success" />
+                  ) : (
+                    <TagIcon className="w-6 h-6" />
+                  )}
+                </button>
 
-              {/* Boton visibilidad ticker */}
-              <button
-                onClick={toggleVisibleTicker}
-                className="font-semibold text-app-muted transition-all
-              duration-200 "
-              >
-                {visibleTicker ? (
-                  <TagIcon className="w-8 h-8 text-app-success" />
-                ) : (
-                  <TagIcon className="w-8 h-8" />
+                {/* Boton visibilidad titulo */}
+                <button
+                  onClick={toggleVisibleTitulo}
+                  className="h-full font-semibold text-app-muted transition-all duration-200"
+                >
+                  {visibleTitulo ? (
+                    <DocumentTextIcon className="w-6 h-6 text-app-accent" />
+                  ) : (
+                    <DocumentTextIcon className="w-6 h-6" />
+                  )}
+                </button>
+
+                {/* Boton visibilidad texto */}
+                <button
+                  onClick={toggleVisibleTexto}
+                  className="h-full font-semibold text-app-muted transition-all duration-200"
+                >
+                  {visibleTexto ? (
+                    <ChatBubbleLeftRightIcon className="w-6 h-6 text-app-main" />
+                  ) : (
+                    <ChatBubbleLeftRightIcon className="w-6 h-6" />
+                  )}
+                </button>
+
+                {/* Boton salida */}
+                <button
+                  onClick={() => navigate("/ViewGestion")}
+                  className="p-2 rounded-full hover:bg-app-main transition active:bg-app-error active:text-app-muted"
+                  aria-label="Cerrar"
+                >
+                  <ArrowLeftEndOnRectangleIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center mr-2 gap-6">
+                {predicaItems?.length > 0 && (
+                  <WhatsAppButton message={predicaItems} />
                 )}
-              </button>
-              {/* Boton visibilidad titulo */}
-              <button
-                onClick={toggleVisibleTitulo}
-                className="font-semibold text-app-muted transition-all
-              duration-200 "
-              >
-                {visibleTitulo ? (
-                  <  DocumentTextIcon className="w-8 h-8 text-app-accent" />
-                ) : (
-                  <  DocumentTextIcon className="w-8 h-8" />
-                )}
-              </button>
-              {/* Boton visibilidad texto */}
-              <button
-                onClick={toggleVisibleTexto}
-                className="font-semibold text-app-muted transition-all duration-200
-              "
-              >
-                {visibleTexto ? (
-                  <ChatBubbleLeftRightIcon className="w-8 h-8 text-app-main" />
-                ) : (
-                  <ChatBubbleLeftRightIcon className="w-8 h-8" />
-                )}
-              </button>
-            </div>
-          )}
-          <UserProfileCard />
+
+                {/* Boton salida */}
+                <button
+                  onClick={() => navigate("/ViewGestion")}
+                  className="p-2 rounded-full hover:bg-app-main transition active:bg-app-error active:text-app-muted"
+                  aria-label="Cerrar"
+                >
+                  <ArrowLeftEndOnRectangleIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      {visible && (
-        <>
-          {/* agregar elementos */}
-          <div className="sticky top-0 shadow-[inset_0_-2px_0_rgba(250,204,21,0.9)] bg-app-light p-2 z-10  ">
+        {visible && (
+          <>
+            {/* <div className="shadow-[inset_0_-2px_0_rgba(250,204,21,0.9)] bg-app-light p-2 z-10  "> */}
             {/* Input de titulo */}
             <div className="grid grid-cols-6 md:grid-cols-12 gap-1 mb-2 ">
               <div className="col-span-4 flex">
@@ -288,6 +306,7 @@ export default function Predica() {
                 />
               </div>
 
+              {/* Input de mensaje */}
               <div className="col-span-6 flex">
                 <textarea
                   value={texts.mensaje}
@@ -308,6 +327,7 @@ export default function Predica() {
                 />
               </div>
 
+              {/* botones de emoji */}
               <div className="col-start-5 row-end-1 md:col-start-auto md:row-end-auto flex items-center justify-center">
                 <EmojiButton
                   onSelect={(emoji) => {
@@ -330,16 +350,17 @@ export default function Predica() {
                 />
               </div>
 
+              {/* botones de agregar */}
               <div className="col-start-6 row-end-1 md:col-start-auto md:row-end-auto flex items-center justify-center">
                 <button
                   type="button"
                   onClick={() => agregarElemento("mensaje")}
                   className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-xs lg:text-base break-normal
-    ${
-      !texts.titulo && !texts.mensaje
-        ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-not-allowed"
-        : "bg-green-500 text-white cursor-pointer"
-    }`}
+                  ${
+                    !texts.titulo && !texts.mensaje
+                      ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-not-allowed"
+                      : "bg-green-500 text-white cursor-pointer"
+                  }`}
                   disabled={!texts.titulo && !texts.mensaje}
                 >
                   Agregar
@@ -348,7 +369,7 @@ export default function Predica() {
             </div>
 
             {/* Selección de testamento, versículo y slots */}
-            <div className="grid grid-cols-6 md:grid-cols-6 lg:grid-cols-6 gap-1 ">
+            <div className="grid grid-cols-6 md:grid-cols-6 lg:grid-cols-6 gap-1 pb-2">
               {/* slots y edicion*/}
               <div className="col-span-4 sm:col-span-6 gap-2 grid grid-cols-3 sm:grid-cols-6 p-0.5">
                 {slots.map((ocupado, index) => {
@@ -419,12 +440,8 @@ export default function Predica() {
 
               {/* limpiar y salida */}
               <div className="col-span-2 gap-2 grid grid-cols-1 sm:grid-cols-2 p-0.5">
-                <button
-                  type="button"
-                  onClick={() => navigate("/ViewGestion")}
-                  className="w-full py-1.5 boton-salida"
-                >
-                  Salida
+                <button type="button" className="w-full py-1.5 boton-salida">
+                  Imagenes
                 </button>
 
                 <button
@@ -515,12 +532,11 @@ export default function Predica() {
                 </button>
               </div>
             </div>
-          </div>
-        </>
-      )}
-
+          </>
+        )}
+      </div>
       {/* Lista de elementos */}
-      <div className="space-y-2 mt-2">
+      <div className="space-y-2 mt-2 px-2">
         {visible && numSlots && (
           <div className="text-center">
             <h1 className="font-bold text-sm sm:text-lg text-app-main">

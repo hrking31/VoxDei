@@ -97,7 +97,8 @@ export default function ModalVisibilidad({
           transform-gpu origin-top-right transition-all duration-150
           ${alignLeft ? "right-0" : "left-0"}
           animate-menu-open
-          `}
+          z-50
+`}
         >
           {/* Botones menú */}
           {options.map((item, i) => (

@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { database, db } from "../Firebase/Firebase";
-import { ref, set } from "firebase/database";
+import { ref, set, update } from "firebase/database";
 import { doc, setDoc } from "firebase/firestore";
 import EmojiButton from "../EmojiButton/EmojiButton";
+import {
+  BookmarkIcon,
+  ChatBubbleLeftRightIcon,
+  TagIcon,
+} from "@heroicons/react/24/solid";
 import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
@@ -23,6 +28,7 @@ export default function ControlTicker() {
     setVisibleTitulo,
     visibleTexto,
     setVisibleTexto,
+    isDesktop,
     showNotif,
   } = useAppContext();
 
@@ -38,12 +44,12 @@ export default function ControlTicker() {
     });
   };
 
-  // Visibilidad del título
+  // Visibilidad del titulo
   const toggleVisibleTitulo = () => {
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
 
-    set(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
+    update(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
       visibleTitulo: nuevoEstado,
       timestamp: Date.now(),
     });
@@ -54,7 +60,7 @@ export default function ControlTicker() {
     const nuevoEstado = !visibleTexto;
     setVisibleTexto(nuevoEstado);
 
-    set(ref(database, `displayVisibleTexto/${userData.groupId}`), {
+    update(ref(database, `displayVisibleTexto/${userData.groupId}`), {
       visibleTexto: nuevoEstado,
       timestamp: Date.now(),
     });
@@ -132,113 +138,155 @@ export default function ControlTicker() {
 
   return (
     <div>
-      <h1 className="text-2xl text-left font-bold text-app-main p-2">
-        Panel de Control Ticker
-      </h1>
+      <div className="sticky top-0 shadow-[inset_0_-2px_0_rgba(250,204,21,0.9)] bg-app-light p-2 z-10 ">
+        <h1 className="text-2xl text-left font-bold text-app-main p-2">
+          Panel de Control Ticker
+        </h1>
 
-      <div className="grid grid-cols-12">
-        {/*textarea de mensaje*/}
-        <div className="col-span-9 flex flex-col p-2 md:p-2">
-          <textarea
-            className="w-full border text-app-muted border-app-border rounded resize-none focus:outline-none focus:ring-2 focus:ring-app-main scrollbar-custom text-sm md:text-base break-normal h-24 sm:h-16 p-1"
-            name="ticker"
-            value={ticker}
-            onChange={(e) => setTicker(e.target.value)}
-            placeholder="Escribe tu mensaje aquí..."
-          />
-        </div>
-
-        {/* Boton guardar */}
-        <div className="col-span-3 flex flex-col sm:flex-row items-center justify-center gap-2 p-2">
-          <div className=" flex items-center justify-center">
-            <EmojiButton
-              onSelect={(emoji) => setTicker((prev) => prev + emoji)}
+        <div className="grid grid-cols-12">
+          {/*textarea de mensaje*/}
+          <div className="col-span-9 flex flex-col p-2 md:p-2">
+            <textarea
+              className="w-full border text-app-muted border-app-border rounded resize-none focus:outline-none focus:ring-2 focus:ring-app-main scrollbar-custom text-sm md:text-base break-normal h-24 sm:h-16 p-1"
+              name="ticker"
+              value={ticker}
+              onChange={(e) => setTicker(e.target.value)}
+              placeholder="Escribe tu mensaje aquí..."
             />
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              agregarElemento(ticker), setTicker("");
-            }}
-            className={`w-full h-10 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-xs lg:text-base break-normal
+          {/* Boton guardar */}
+          <div className="col-span-3 flex flex-col sm:flex-row items-center justify-center gap-2 p-2">
+            <div className=" flex items-center justify-center">
+              <EmojiButton
+                onSelect={(emoji) => setTicker((prev) => prev + emoji)}
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                agregarElemento(ticker), setTicker("");
+              }}
+              className={`w-full h-10 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-xs lg:text-base break-normal
               ${
                 !ticker
                   ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-default"
                   : "bg-green-500 text-white cursor-pointer"
               }`}
-            disabled={!ticker}
-          >
-            Guardar
-          </button>
-        </div>
-      </div>
-
-      {/* botones y velocidad */}
-      <div className="grid grid-cols-12 md:gris-cols-6">
-        {/* velocidad de lectura */}
-        <div className="flex flex-col lg:flex-row justify-center items-center col-span-12 md:col-span-6">
-          <div className="w-full flex items-center space-x-0.5 sm:space-x-2 p-2 gap-1">
-            <label className="flex justify-center items-center text-app-muted text-xs sm:text-sm md:text-base break-normal">
-              Velocidad de Lectura
-            </label>
-            <input
-              type="range"
-              min="0.1"
-              max="2"
-              step="0.1"
-              value={velocidadTicker}
-              onChange={(e) => {
-                const nuevaVelocidad = Number(e.target.value);
-                setVelocidadTicker(nuevaVelocidad);
-                configSpeed(nuevaVelocidad);
-              }}
-              className="w-full accent-app-main"
-            />
-            <span className="w-10 flex justify-center text-app-muted text-xs sm:text-sm md:text-base break-normal p-2">
-              {velocidadTicker}s
-            </span>
+              disabled={!ticker}
+            >
+              Guardar
+            </button>
           </div>
         </div>
 
-        <div className="w-full flex justify-center col-span-12 md:col-span-6 gap-2 p-2">
-          <button
-            type="button"
-            onClick={() => {
-              handleTicker(ticker), setTicker("");
-            }}
-            className={`w-full py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-base break-normal ${
-              !ticker
-                ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-default"
-                : "bg-green-500 text-white cursor-pointer"
-            }`}
-            disabled={!ticker}
-          >
-            Proyectar
-          </button>
-          {/* Boton cancelar */}
-          <button
-            onClick={() => setTicker("")}
-            className="w-full py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-normal font-bold text-app-muted rounded  inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
-          >
-            Cancelar
-          </button>
+        {/* botones y velocidad */}
+        <div className="grid grid-cols-12 md:gris-cols-6">
+          {/* velocidad de lectura */}
+          <div className="flex flex-col lg:flex-row justify-center items-center col-span-12 md:col-span-6">
+            <div className="w-full flex items-center space-x-0.5 sm:space-x-2 p-2 gap-1">
+              <label className="flex justify-center items-center text-app-muted text-xs sm:text-sm md:text-base break-normal">
+                Velocidad de Lectura
+              </label>
+              <input
+                type="range"
+                min="0.1"
+                max="2"
+                step="0.1"
+                value={velocidadTicker}
+                onChange={(e) => {
+                  const nuevaVelocidad = Number(e.target.value);
+                  setVelocidadTicker(nuevaVelocidad);
+                  configSpeed(nuevaVelocidad);
+                }}
+                className="w-full accent-app-main"
+              />
+              <span className="w-10 flex justify-center text-app-muted text-xs sm:text-sm md:text-base break-normal p-2">
+                {velocidadTicker}s
+              </span>
+            </div>
+          </div>
 
-          {/* Boton salir */}
-          <button
-            type="button"
-            onClick={() => navigate("/ViewGestion")}
-            className="w-full py-1.5 boton-salida"
-          >
-            Salida
-          </button>
+          <div className="w-full flex justify-center col-span-12 md:col-span-6 gap-2 p-2">
+            <button
+              type="button"
+              onClick={() => {
+                handleTicker(ticker), setTicker("");
+              }}
+              className={`w-full py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-base break-normal ${
+                !ticker
+                  ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-default"
+                  : "bg-green-500 text-white cursor-pointer"
+              }`}
+              disabled={!ticker}
+            >
+              Proyectar
+            </button>
+            {/* Boton cancelar */}
+            <button
+              onClick={() => setTicker("")}
+              className="w-full py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-normal font-bold text-app-muted rounded  inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
+            >
+              Cancelar
+            </button>
 
-          {/* Boton visibilidad ticker, titulo, texto */}
-          <ModalVisibilidad
-            toggleVisibleTicker={toggleVisibleTicker}
-            toggleVisibleTitulo={toggleVisibleTitulo}
-            toggleVisibleTexto={toggleVisibleTexto}
-          />
+            {/* Boton salir */}
+            <button
+              type="button"
+              onClick={() => navigate("/ViewGestion")}
+              className="w-full py-1.5 boton-salida"
+            >
+              Salida
+            </button>
+
+            {/* Boton visibilidad ticker, titulo, texto */}
+            {isDesktop ? (
+              <div className="flex items-center gap-4">
+                {/* Boton visibilidad ticker */}
+                <button
+                  onClick={toggleVisibleTicker}
+                  className="h-full font-semibold text-app-muted px-2 flex items-center justify-center transition-all
+              duration-200"
+                >
+                  {visibleTicker ? (
+                    <TagIcon className="w-8 h-8 text-app-success" />
+                  ) : (
+                    <TagIcon className="w-8 h-8" />
+                  )}
+                </button>
+                {/* Boton visibilidad titulo */}
+                <button
+                  onClick={toggleVisibleTitulo}
+                  className="h-full font-semibold text-app-muted px-2 flex items-center justify-center transition-all
+              duration-200"
+                >
+                  {visibleTitulo ? (
+                    <BookmarkIcon className="w-8 h-8 text-app-accent" />
+                  ) : (
+                    <BookmarkIcon className="w-8 h-8" />
+                  )}
+                </button>
+                {/* Boton visibilidad texto */}
+                <button
+                  onClick={toggleVisibleTexto}
+                  className="h-full font-semibold text-app-muted px-2 flex items-center justify-center transition-all duration-200"
+                >
+                  {visibleTexto ? (
+                    <ChatBubbleLeftRightIcon className="w-8 h-8 text-app-main" />
+                  ) : (
+                    <ChatBubbleLeftRightIcon className="w-8 h-8" />
+                  )}
+                </button>
+              </div>
+            ) : (
+              <ModalVisibilidad
+                toggleVisibleTicker={toggleVisibleTicker}
+                toggleVisibleTitulo={toggleVisibleTitulo}
+                toggleVisibleTexto={toggleVisibleTexto}
+              />
+            )}
+          </div>
         </div>
       </div>
 
