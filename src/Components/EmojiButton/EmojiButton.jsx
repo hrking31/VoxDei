@@ -27,10 +27,10 @@ export default function EmojiButton({ onSelect, disabled }) {
       {/* Picker flotante */}
       {showPicker && (
         <div
-          className={`z-[9000] ${
+          className={`z-9000 ${
             isMobile
-              ? "fixed bottom-5 left-1/2 w-[90%] -translate-x-1/2 rounded-xl shadow-lg bg-[#2c2e30]"
-              : "absolute top-10 left-[20%] -translate-x-[80%] bg-[#2c2e30]"
+              ? "fixed bottom-5 left-1/2 w-[90%] -translate-x-1/2 rounded-xl shadow-lg bg-app-light"
+              : "absolute top-10 left-[20%] -translate-x-[80%] bg-app-light"
           }`}
         >
           <Picker

@@ -152,7 +152,7 @@ export default function ControlMenssage() {
           <div className="col-span-9 flex flex-col p-2 md:p-2">
             <textarea
               ref={textareaRef}
-              className="w-full border text-app-muted border-app-border rounded resize-none focus:outline-none focus:ring-2 focus:ring-app-main scrollbar-custom text-sm md:text-base wrap-break-words min-h-[4rem] p-1"
+              className="w-full border text-app-muted border-app-border rounded resize-none focus:outline-none focus:ring-2 focus:ring-app-main scrollbar-custom text-sm md:text-base wrap-break-words min-h-16 p-1"
               name="message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
