@@ -63,9 +63,23 @@ body {
 
 /* Estilos para botones */
 .boton-salida {
-  @apply flex items-center justify-center text-center text-xs sm:text-sm md:text-base 
-  break-words font-bold rounded cursor-pointer 
-  text-app-error sm:text-app-muted 
-  inset-shadow-sm inset-shadow-app-error sm:inset-shadow-app-muted 
-  hover:text-app-error hover:inset-shadow-app-error;
+  @apply flex items-center justify-center text-center text-xs sm:text-sm md:text-base font-bold rounded cursor-pointer text-app-muted 
+  inset-shadow-sm inset-shadow-app-muted 
+  hover:text-app-error hover:inset-shadow-app-error active:bg-app-error transition active:text-app-muted;
 }
+
+@keyframes menuOpen {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(-5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-menu-open {
+  animation: menuOpen 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+

@@ -15,7 +15,7 @@ import {
 } from "@heroicons/react/24/solid";
 import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
-import BotonesVisibilidad from "../../Components/BotonesVisibilidad/BotonesVisibilidad.jsx";
+import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
 
 export default function ControlVersiculos() {
   const navigate = useNavigate();
@@ -192,6 +192,7 @@ export default function ControlVersiculos() {
     });
   };
 
+  // Detectar tamaño de pantalla
   useEffect(() => {
     const handler = () => setIsDesktop(window.innerWidth >= 768);
     window.addEventListener("resize", handler);
@@ -223,7 +224,7 @@ export default function ControlVersiculos() {
                     versiculosRef.current = {};
                     consultaVersiculo(libro.sigla, capitulo, 1);
 
-                    // 👇 Centra el capítulo seleccionado en el contenedor
+                    // Centra el capítulo seleccionado en el contenedor
                     setTimeout(() => {
                       capitulosRef.current[capitulo]?.scrollIntoView({
                         behavior: "smooth",
@@ -263,8 +264,8 @@ export default function ControlVersiculos() {
         <div
           className={`flex justify-center gap-2 p-2 border ${
             open
-              ? "col-span-12 sm:col-span-4 xl:col-span-6"
-              : "col-span-10 sm:col-span-9 xl:col-span-11"
+              ? "col-span-12 sm:col-span-6 xl:col-span-6"
+              : "col-span-10 sm:col-span-11 xl:col-span-11"
           }`}
         >
           <button
@@ -330,7 +331,7 @@ export default function ControlVersiculos() {
               </button>
             </div>
           ) : (
-            <BotonesVisibilidad
+            <ModalVisibilidad
               toggleVisibleTicker={toggleVisibleTicker}
               toggleVisibleTitulo={toggleVisibleTitulo}
               toggleVisibleTexto={toggleVisibleTexto}
@@ -393,7 +394,7 @@ export default function ControlVersiculos() {
                               }`}
                             >
                               <div className="flex">
-                                <span className="text-right pr-3 font-bold text-app-main flex-shrink-0 flex items-center justify-end">
+                                <span className="text-right pr-3 font-bold text-app-main shrink-0 flex items-center justify-end">
                                   {numero}
                                 </span>
 
