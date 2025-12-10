@@ -9,6 +9,7 @@ export default function InicializarEstados() {
   const { user, userData, loading } = useAuth();
   const {
     setSlots,
+    setIsDesktop,
     setTickerItems,
     setMessageItems,
     setVisibleTitulo,
@@ -17,6 +18,13 @@ export default function InicializarEstados() {
     setVelocidadTicker,
     showNotif,
   } = useAppContext();
+
+  // Detectar tamaño de pantalla
+  useEffect(() => {
+    const handler = () => setIsDesktop(window.innerWidth >= 768);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
 
   useEffect(() => {
     if (loading || !user || !userData?.groupId) return;
@@ -105,7 +113,7 @@ export default function InicializarEstados() {
       loadMessage();
       visibleTitulo();
       visibleTexto();
-       visibleTicker();
+      visibleTicker();
       speedTicker();
     };
   }, [loading, user, userData?.groupId, setSlots]);

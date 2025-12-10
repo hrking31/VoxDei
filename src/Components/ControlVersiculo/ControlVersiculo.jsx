@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useLayoutEffect } from "react";
+import { useState, useRef, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { database } from "../Firebase/Firebase";
 import { ref, set, update } from "firebase/database";
@@ -20,7 +20,6 @@ import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
 export default function ControlVersiculos() {
   const navigate = useNavigate();
   const { userData } = useAuth();
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
   const [libro, setLibro] = useState({
     sigla: null,
     nombre: null,
@@ -41,6 +40,7 @@ export default function ControlVersiculos() {
     setVisibleTitulo,
     visibleTexto,
     setVisibleTexto,
+    isDesktop,
     showNotif,
   } = useAppContext();
   const [open, setOpen] = useState(false);
@@ -191,13 +191,6 @@ export default function ControlVersiculos() {
       timestamp: Date.now(),
     });
   };
-
-  // Detectar tamaño de pantalla
-  useEffect(() => {
-    const handler = () => setIsDesktop(window.innerWidth >= 768);
-    window.addEventListener("resize", handler);
-    return () => window.removeEventListener("resize", handler);
-  }, []);
 
   return (
     <div className="flex flex-col justify-center">

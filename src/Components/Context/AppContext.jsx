@@ -5,6 +5,7 @@ const AppContext = createContext();
 export function AppProvider({ children }) {
   // Estados globales iniciales
   const [slots, setSlots] = useState([false, false, false, false, false]);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
   const [tickerItems, setTickerItems] = useState([]);
   const [messageItems, setMessageItems] = useState([]);
   const [velocidadTicker, setVelocidadTicker] = useState(2);
@@ -39,6 +40,8 @@ export function AppProvider({ children }) {
       value={{
         slots,
         setSlots,
+        isDesktop,
+        setIsDesktop,
         tickerItems,
         setTickerItems,
         velocidadTicker,

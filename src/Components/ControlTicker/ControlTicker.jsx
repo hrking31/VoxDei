@@ -4,9 +4,9 @@ import { database, db } from "../Firebase/Firebase";
 import { ref, set } from "firebase/database";
 import { doc, setDoc } from "firebase/firestore";
 import EmojiButton from "../EmojiButton/EmojiButton";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
 
 export default function ControlTicker() {
   const navigate = useNavigate();
@@ -19,13 +19,12 @@ export default function ControlTicker() {
     setVelocidadTicker,
     visibleTicker,
     setVisibleTicker,
+    visibleTitulo,
+    setVisibleTitulo,
+    visibleTexto,
+    setVisibleTexto,
     showNotif,
   } = useAppContext();
-
-  // Abre una nueva ventana con el proyector
-  const abrirProyector = () => {
-    window.open("/visor?modo=proyector", "_blank", "width=1920,height=1080");
-  };
 
   // Proyecta un ticker de la bd o del imput
   const handleTicker = (item) => {
@@ -36,6 +35,28 @@ export default function ControlTicker() {
     set(ref(database, `displayTicker/${userData.groupId}`), {
       text: textToSend,
       timestamp: item?.timestamp || Date.now(),
+    });
+  };
+
+  // Visibilidad del título
+  const toggleVisibleTitulo = () => {
+    const nuevoEstado = !visibleTitulo;
+    setVisibleTitulo(nuevoEstado);
+
+    set(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
+      visibleTitulo: nuevoEstado,
+      timestamp: Date.now(),
+    });
+  };
+
+  // Visibilidad del texto
+  const toggleVisibleTexto = () => {
+    const nuevoEstado = !visibleTexto;
+    setVisibleTexto(nuevoEstado);
+
+    set(ref(database, `displayVisibleTexto/${userData.groupId}`), {
+      visibleTexto: nuevoEstado,
+      timestamp: Date.now(),
     });
   };
 
@@ -179,7 +200,6 @@ export default function ControlTicker() {
             </span>
           </div>
         </div>
-        <button onClick={abrirProyector}>Iniciar Proyección</button>
 
         <div className="w-full flex justify-center col-span-12 md:col-span-6 gap-2 p-2">
           <button
@@ -203,17 +223,7 @@ export default function ControlTicker() {
           >
             Cancelar
           </button>
-          {/* Boton visibilidad ticker */}
-          <button
-            onClick={toggleVisibleTicker}
-            className="w-full py-1.5 xl:py-3 flex items-center justify-center border-2 rounded font-semibold text-app-success transition-all duration-200"
-          >
-            {visibleTicker ? (
-              <EyeIcon className="w-6 h-6" />
-            ) : (
-              <EyeSlashIcon className="w-6 h-6" />
-            )}
-          </button>
+
           {/* Boton salir */}
           <button
             type="button"
@@ -222,6 +232,13 @@ export default function ControlTicker() {
           >
             Salida
           </button>
+
+          {/* Boton visibilidad ticker, titulo, texto */}
+          <ModalVisibilidad
+            toggleVisibleTicker={toggleVisibleTicker}
+            toggleVisibleTitulo={toggleVisibleTitulo}
+            toggleVisibleTexto={toggleVisibleTexto}
+          />
         </div>
       </div>
 
