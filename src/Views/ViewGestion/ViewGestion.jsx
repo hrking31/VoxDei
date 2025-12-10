@@ -67,8 +67,8 @@ export default function ViewSelector() {
       </div>
 
       {/* Cuadrícula de botones */}
-      <div className="flex-1 flex items-center justify-center w-full p-6">
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3.5 sm:gap-6 w-full max-w-3xl">
+      <div className="flex-1 flex items-center justify-center w-full px-6 py-2">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3.5 sm:gap-6 w-full max-w-3xl">
           <OptionButton
             icon={<PaintBrushIcon className="w-10 h-10 text-app-muted mb-2" />}
             label="Estilos y colores"

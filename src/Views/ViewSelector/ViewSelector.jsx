@@ -42,26 +42,9 @@ export default function ViewSelector() {
     );
   };
 
-  // const abrirVisor = () => {
-  //   const w = window.open(
-  //     "/VOXDEI",
-  //     "VisorProyector",
-  //     "menubar=no,toolbar=no,location=no,status=no,scrollbars=no,resizable=no"
-  //   );
-
-  //   if (!w) return;
-
-  //   w.moveTo(0, 0);
-
-  //   // Forzamos tamaño pantalla completa (como Proyektor)
-  //   w.resizeTo(window.screen.availWidth, window.screen.availHeight);
-
-  //   w.focus();
-  // };
-
   return (
     // <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-app-light/50 to-white">
-    <div className="relative flex flex-col items-center justify-center min-h-screen bg-linear-to-b from-app-dark/50 to-app-light/50">
+    <div className="relative flex flex-col items-center justify-between min-h-screen bg-linear-to-b from-app-dark/50 to-app-light/50">
       {userData && (
         <div className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-4 py-2 mt-4 mb-8 hover:shadow-inner hover:shadow-app-muted transition-shadow duration-300">
           {userData.photo ? (
@@ -108,12 +91,12 @@ export default function ViewSelector() {
       </div>
 
       {/* Contenedor de botones */}
-      <div className="flex-1 flex items-center justify-center w-full p-6">
+      <div className="flex-1 flex items-center justify-center w-full px-6 pb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-3xl">
           {/* Botón Presentación */}
           <button
             onClick={abrirVisor}
-            className="group flex flex-col items-center justify-center p-8 sm:p-10 bg-linear-to-b from-app-main/40 to-app-light rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 border border-app-border"
+            className="group flex flex-col items-center justify-center p-8 sm:p-10 h-50 sm:h-full bg-linear-to-b from-app-main/40 to-app-light rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 border border-app-border"
           >
             <PlayCircleIcon className="w-14 h-14 text-app-main mb-3 transform transition-all duration-300 group-hover:scale-125 group-hover:-translate-y-1" />
             <span className="text-base sm:text-lg font-semibold text-app-main text-center">
@@ -127,7 +110,7 @@ export default function ViewSelector() {
           {/* Botón Administrador */}
           <button
             onClick={() => navigate("/ViewGestion")}
-            className="group flex flex-col items-center justify-center p-8 sm:p-10 bg-linear-to-b from-app-main/40 to-app-light rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 border border-app-border"
+            className="group flex flex-col items-center justify-center p-8 sm:p-10 h-50 sm:h-full bg-linear-to-b from-app-main/40 to-app-light rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 border border-app-border"
           >
             <Squares2X2Icon className="w-14 h-14 text-app-main mb-3 transform transition-all duration-300 group-hover:scale-125 group-hover:-translate-y-1" />
             <span className="text-base sm:text-lg font-semibold text-app-main text-center">
