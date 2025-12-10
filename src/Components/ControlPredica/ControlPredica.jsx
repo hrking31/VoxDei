@@ -278,7 +278,7 @@ export default function Predica() {
                     handleChange("titulo", e.target.value);
                   }}
                   placeholder="Escribe un titulo..."
-                  className={`w-full font-bold rounded p-2 resize-none focus:outline-none scrollbar-custom text-xs sm:text-sm md:text-base break-words ${
+                  className={`w-full font-bold rounded p-2 resize-none focus:outline-none scrollbar-custom text-xs sm:text-sm md:text-base break-normal ${
                     !editar && numSlots
                       ? "bg-transparent border-2 border-app-border text-app-border cursor-not-allowed"
                       : "text-app-muted border-2 border-app-muted focus:outline-none focus:border-transparent focus:ring-2 focus:ring-app-main cursor-pointer"
@@ -298,7 +298,7 @@ export default function Predica() {
                     handleChange("mensaje", e.target.value);
                   }}
                   placeholder="Escribe tu mensaje..."
-                  className={`w-full font-bold rounded p-2 resize-none focus:outline-none scrollbar-custom text-xs sm:text-sm md:text-base break-words ${
+                  className={`w-full font-bold rounded p-2 resize-none focus:outline-none scrollbar-custom text-xs sm:text-sm md:text-base break-normal ${
                     !editar && numSlots
                       ? "bg-transparent border-2 border-app-border text-app-border cursor-not-allowed"
                       : "text-app-muted border-2 border-app-muted focus:outline-none focus:border-transparent focus:ring-2 focus:ring-app-main cursor-pointer"
@@ -334,7 +334,7 @@ export default function Predica() {
                 <button
                   type="button"
                   onClick={() => agregarElemento("mensaje")}
-                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-xs lg:text-base break-words
+                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-xs lg:text-base break-normal
     ${
       !texts.titulo && !texts.mensaje
         ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-not-allowed"
@@ -384,7 +384,7 @@ export default function Predica() {
                         }));
                       }}
                       disabled={deshabilitado}
-                      className={`w-full px-3 py-2 rounded text-xs sm:text-sm md:text-base break-words ${
+                      className={`w-full px-3 py-2 rounded text-xs sm:text-sm md:text-base break-normal ${
                         ocupado
                           ? editar && numSlots === index + 1
                             ? "bg-amber-500"
@@ -405,7 +405,7 @@ export default function Predica() {
                   type="button"
                   onClick={() => setEditar(!editar)}
                   disabled={!numSlots || editar}
-                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold rounded border-2 bg-transparent ${
+                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-normal font-bold rounded border-2 bg-transparent ${
                     numSlots
                       ? editar
                         ? "border-transparent text-amber-500"
@@ -441,7 +441,7 @@ export default function Predica() {
                       mensaje: "",
                     }));
                   }}
-                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold rounded border-2 ${
+                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-normal font-bold rounded border-2 ${
                     !numSlots &&
                     predicaItems.length === 0 &&
                     !texts.titulo &&
@@ -467,7 +467,7 @@ export default function Predica() {
                 <button
                   type="button"
                   onClick={() => abrirModalConTipo("antiguo")}
-                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center bg-transparent font-bold rounded border-2 flex-1 text-xs sm:text-sm md:text-base break-words ${
+                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center bg-transparent font-bold rounded border-2 flex-1 text-xs sm:text-sm md:text-base break-normal ${
                     !editar && numSlots
                       ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-not-allowed"
                       : "text-app-muted hover:text-app-main hover:border-app-main cursor-pointer"
@@ -480,7 +480,7 @@ export default function Predica() {
                 <button
                   type="button"
                   onClick={() => abrirModalConTipo("nuevo")}
-                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center bg-transparent font-bold rounded border-2 flex-1 text-xs sm:text-sm md:text-base break-words ${
+                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center bg-transparent font-bold rounded border-2 flex-1 text-xs sm:text-sm md:text-base break-normal ${
                     !editar && numSlots
                       ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-not-allowed"
                       : "text-app-muted hover:text-app-main hover:border-app-main cursor-pointer"
@@ -494,7 +494,7 @@ export default function Predica() {
               {/* versiculo y agregar */}
               <div className="col-span-3 sm:col-span-2  gap-2 grid grid-cols-2 sm:grid-cols-2 p-0.5">
                 <h2
-                  className={`flex items-center justify-center text-center font-bold text-xs sm:text-sm md:text-base break-words ${
+                  className={`flex items-center justify-center text-center font-bold text-xs sm:text-sm md:text-base break-normal ${
                     !editar && numSlots ? "text-app-border " : "text-app-muted "
                   }`}
                 >
@@ -504,7 +504,7 @@ export default function Predica() {
                 <button
                   type="button"
                   onClick={() => agregarElemento("versiculo")}
-                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-base break-words ${
+                  className={`w-full px-3.5 py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-base break-normal ${
                     !versiculoTemp
                       ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-not-allowed"
                       : "bg-green-500 text-white cursor-pointer"

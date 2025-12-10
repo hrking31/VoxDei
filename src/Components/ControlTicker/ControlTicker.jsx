@@ -119,7 +119,7 @@ export default function ControlTicker() {
         {/*textarea de mensaje*/}
         <div className="col-span-9 flex flex-col p-2 md:p-2">
           <textarea
-            className="w-full border text-app-muted border-app-border rounded resize-none focus:outline-none focus:ring-2 focus:ring-app-main scrollbar-custom text-sm md:text-base break-words h-[6rem] sm:h-[4rem] p-1"
+            className="w-full border text-app-muted border-app-border rounded resize-none focus:outline-none focus:ring-2 focus:ring-app-main scrollbar-custom text-sm md:text-base break-normal h-24 sm:h-16 p-1"
             name="ticker"
             value={ticker}
             onChange={(e) => setTicker(e.target.value)}
@@ -140,7 +140,7 @@ export default function ControlTicker() {
             onClick={() => {
               agregarElemento(ticker), setTicker("");
             }}
-            className={`w-full h-10 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-xs lg:text-base break-words
+            className={`w-full h-10 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-xs lg:text-base break-normal
               ${
                 !ticker
                   ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-default"
@@ -158,7 +158,7 @@ export default function ControlTicker() {
         {/* velocidad de lectura */}
         <div className="flex flex-col lg:flex-row justify-center items-center col-span-12 md:col-span-6">
           <div className="w-full flex items-center space-x-0.5 sm:space-x-2 p-2 gap-1">
-            <label className="flex justify-center items-center text-app-muted text-xs sm:text-sm md:text-base break-words">
+            <label className="flex justify-center items-center text-app-muted text-xs sm:text-sm md:text-base break-normal">
               Velocidad de Lectura
             </label>
             <input
@@ -174,7 +174,7 @@ export default function ControlTicker() {
               }}
               className="w-full accent-app-main"
             />
-            <span className="w-10 flex justify-center text-app-muted text-xs sm:text-sm md:text-base break-words p-2">
+            <span className="w-10 flex justify-center text-app-muted text-xs sm:text-sm md:text-base break-normal p-2">
               {velocidadTicker}s
             </span>
           </div>
@@ -187,7 +187,7 @@ export default function ControlTicker() {
             onClick={() => {
               handleTicker(ticker), setTicker("");
             }}
-            className={`w-full py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-base break-words ${
+            className={`w-full py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-base break-normal ${
               !ticker
                 ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-default"
                 : "bg-green-500 text-white cursor-pointer"
@@ -199,7 +199,7 @@ export default function ControlTicker() {
           {/* Boton cancelar */}
           <button
             onClick={() => setTicker("")}
-            className="w-full py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-words font-bold text-app-muted rounded  inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
+            className="w-full py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base break-normal font-bold text-app-muted rounded  inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
           >
             Cancelar
           </button>
