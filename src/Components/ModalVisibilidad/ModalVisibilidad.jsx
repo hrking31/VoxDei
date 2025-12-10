@@ -1,6 +1,6 @@
 import {
   TagIcon,
-  DocumentTextIcon,
+  BookmarkIcon,
   ChatBubbleLeftRightIcon,
   EyeIcon,
 } from "@heroicons/react/24/solid";
@@ -57,7 +57,7 @@ export default function ModalVisibilidad({
     },
     {
       icon: (
-        <DocumentTextIcon
+        <BookmarkIcon
           className={`w-7 h-7 ${
             visibleTitulo ? "text-app-accent" : "text-app-muted"
           }`}
@@ -94,7 +94,7 @@ export default function ModalVisibilidad({
           ref={menuRef}
           className={`
           absolute mt-10 sm:mt-11 shadow-xl rounded-xl p-2 flex flex-col gap-3 
-          transform-gpu origin-top-right transition-all duration-150 border
+          transform-gpu origin-top-right transition-all duration-150
           ${alignLeft ? "right-0" : "left-0"}
           animate-menu-open
           `}

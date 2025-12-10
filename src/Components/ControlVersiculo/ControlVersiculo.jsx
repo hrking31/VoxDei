@@ -9,7 +9,7 @@ import VersiculoModal from "../ModalVersiculo/ModalVersiculo";
 import { obtenerVersiculo } from "../FuncionesControlPredica/FuncionesControlPredica";
 import BuscadorLibros from "../BuscadorLibros/BuscadorLibros";
 import {
-  DocumentTextIcon,
+  BookmarkIcon,
   ChatBubbleLeftRightIcon,
   TagIcon,
 } from "@heroicons/react/24/solid";
@@ -204,7 +204,7 @@ export default function ControlVersiculos() {
       {/* BLOQUE STICKY */}
       <div className="grid grid-cols-12 w-full sticky bg-app-dark top-0 z-10 pt-3 pb-4">
         {/* Fila de capítulos */}
-        <div className="col-span-12  overflow-x-auto scrollbar-custom [&::-webkit-scrollbar]:hidden xl:[&::-webkit-scrollbar]:block  border">
+        <div className="col-span-12  overflow-x-auto scrollbar-custom [&::-webkit-scrollbar]:hidden xl:[&::-webkit-scrollbar]:block">
           <div className="flex gap-2 whitespace-nowrap">
             {Array.from({ length: libro.capitulos }, (_, i) => {
               const capitulo = i + 1;
@@ -248,7 +248,7 @@ export default function ControlVersiculos() {
 
         {/* Botones */}
         <div
-          className={`flex p-2 border ${
+          className={`flex p-2 ${
             open
               ? "col-span-12 row-start-3 sm:row-start-auto sm:col-span-6"
               : "col-span-2 sm:col-span-1"
@@ -262,7 +262,7 @@ export default function ControlVersiculos() {
         </div>
 
         <div
-          className={`flex justify-center gap-2 p-2 border ${
+          className={`flex justify-center gap-2 p-2 ${
             open
               ? "col-span-12 sm:col-span-6 xl:col-span-6"
               : "col-span-10 sm:col-span-11 xl:col-span-11"
@@ -293,7 +293,7 @@ export default function ControlVersiculos() {
           </button>
 
           {isDesktop ? (
-            <div className="flex items-center gap-4 border">
+            <div className="flex items-center gap-4">
               {/* Boton visibilidad ticker */}
               <button
                 onClick={toggleVisibleTicker}
@@ -313,9 +313,9 @@ export default function ControlVersiculos() {
               duration-200"
               >
                 {visibleTitulo ? (
-                  <DocumentTextIcon className="w-8 h-8 text-app-accent" />
+                  <BookmarkIcon className="w-8 h-8 text-app-accent" />
                 ) : (
-                  <DocumentTextIcon className="w-8 h-8" />
+                  <BookmarkIcon className="w-8 h-8" />
                 )}
               </button>
               {/* Boton visibilidad texto */}
