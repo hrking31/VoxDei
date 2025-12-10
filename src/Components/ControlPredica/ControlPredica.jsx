@@ -283,7 +283,6 @@ export default function Predica() {
 
         {visible && (
           <>
-            {/* <div className="shadow-[inset_0_-2px_0_rgba(250,204,21,0.9)] bg-app-light p-2 z-10  "> */}
             {/* Input de titulo */}
             <div className="grid grid-cols-6 md:grid-cols-12 gap-1 mb-2 ">
               <div className="col-span-4 flex">
@@ -367,10 +366,9 @@ export default function Predica() {
                 </button>
               </div>
             </div>
-
             {/* Selección de testamento, versículo y slots */}
             <div className="grid grid-cols-6 md:grid-cols-6 lg:grid-cols-6 gap-1 pb-2">
-              {/* slots y edicion*/}
+              {/* Botones slots */}
               <div className="col-span-4 sm:col-span-6 gap-2 grid grid-cols-3 sm:grid-cols-6 p-0.5">
                 {slots.map((ocupado, index) => {
                   const haySlotOcupadoSeleccionado =
@@ -422,6 +420,7 @@ export default function Predica() {
                   );
                 })}
 
+                {/* Boton edicion*/}
                 <button
                   type="button"
                   onClick={() => setEditar(!editar)}
@@ -438,7 +437,7 @@ export default function Predica() {
                 </button>
               </div>
 
-              {/* limpiar y salida */}
+              {/* limpiar e imagenes */}
               <div className="col-span-2 gap-2 grid grid-cols-1 sm:grid-cols-2 p-0.5">
                 <button type="button" className="w-full py-1.5 boton-salida">
                   Imagenes

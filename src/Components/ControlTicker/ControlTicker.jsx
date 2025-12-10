@@ -8,6 +8,7 @@ import {
   BookmarkIcon,
   ChatBubbleLeftRightIcon,
   TagIcon,
+  TvIcon,
 } from "@heroicons/react/24/solid";
 import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
@@ -22,6 +23,8 @@ export default function ControlTicker() {
     tickerItems,
     velocidadTicker,
     setVelocidadTicker,
+    visibleAll,
+    setVisibleAll,
     visibleTicker,
     setVisibleTicker,
     visibleTitulo,
@@ -48,6 +51,7 @@ export default function ControlTicker() {
   const toggleVisibleTitulo = () => {
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
+    setVisibleAll(nuevoEstado);
 
     update(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
       visibleTitulo: nuevoEstado,
@@ -59,6 +63,7 @@ export default function ControlTicker() {
   const toggleVisibleTexto = () => {
     const nuevoEstado = !visibleTexto;
     setVisibleTexto(nuevoEstado);
+    // setVisibleAll(nuevoEstado);
 
     update(ref(database, `displayVisibleTexto/${userData.groupId}`), {
       visibleTexto: nuevoEstado,
@@ -69,7 +74,7 @@ export default function ControlTicker() {
   // Visibilidad del ticker
   const toggleVisibleTicker = () => {
     const nuevoEstado = !visibleTicker;
-    setVisibleTicker(nuevoEstado);
+    // setVisibleTicker(nuevoEstado);
 
     set(ref(database, `displayVisibleTicker/${userData.groupId}`), {
       visibleTicker: nuevoEstado,
@@ -138,8 +143,8 @@ export default function ControlTicker() {
 
   return (
     <div>
-      <div className="sticky top-0 shadow-[inset_0_-2px_0_rgba(250,204,21,0.9)] bg-app-light p-2 z-10 ">
-        <h1 className="text-2xl text-left font-bold text-app-main p-2">
+      <div className="sticky top-0 shadow-[inset_0_-2px_0_rgba(250,204,21,0.9)] bg-app-light z-10 ">
+        <h1 className="text-left font-bold text-app-main px-2">
           Panel de Control Ticker
         </h1>
 
@@ -278,12 +283,31 @@ export default function ControlTicker() {
                     <ChatBubbleLeftRightIcon className="w-8 h-8" />
                   )}
                 </button>
+                {/* Boton visibilidad solo ticker */}
+                <button
+                  onClick={() => {
+                    toggleVisibleTitulo();
+                    toggleVisibleTexto();
+                  }}
+                  className="h-full font-semibold text-app-success px-2 flex items-center justify-center transition-all duration-200"
+                >
+                  {visibleAll ? (
+                    <TvIcon className="w-8 h-8 text-app-muted" />
+                  ) : (
+                    <TvIcon className="w-8 h-8" />
+                  )}
+                </button>
               </div>
             ) : (
               <ModalVisibilidad
                 toggleVisibleTicker={toggleVisibleTicker}
                 toggleVisibleTitulo={toggleVisibleTitulo}
                 toggleVisibleTexto={toggleVisibleTexto}
+                toggleVisibleAll={() => {
+                  toggleVisibleTitulo();
+                  toggleVisibleTexto();
+                }}
+                colorClass={"text-app-success"}
               />
             )}
           </div>

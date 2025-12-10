@@ -2,6 +2,7 @@ import {
   TagIcon,
   BookmarkIcon,
   ChatBubbleLeftRightIcon,
+  TvIcon,
   EyeIcon,
 } from "@heroicons/react/24/solid";
 import { useState, useRef, useEffect } from "react";
@@ -11,12 +12,15 @@ export default function ModalVisibilidad({
   toggleVisibleTicker,
   toggleVisibleTitulo,
   toggleVisibleTexto,
+  toggleVisibleAll,
+  colorClass,
 }) {
   const [open, setOpen] = useState(false);
   const [alignLeft, setAlignLeft] = useState(false);
   const buttonRef = useRef(null);
   const menuRef = useRef(null);
-  const { visibleTicker, visibleTitulo, visibleTexto } = useAppContext();
+  const { visibleTicker, visibleTitulo, visibleTexto, visible } =
+    useAppContext();
 
   // Detectar bordes de la pantalla
   useEffect(() => {
@@ -74,6 +78,14 @@ export default function ModalVisibilidad({
         />
       ),
       onClick: toggleVisibleTexto,
+    },
+    {
+      icon: (
+        <TvIcon
+          className={`w-7 h-7 ${visible ? "text-app-muted" : colorClass}`}
+        />
+      ),
+      onClick: toggleVisibleAll,
     },
   ];
 
