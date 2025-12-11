@@ -22,7 +22,7 @@ export default function ViewSelector() {
     // <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-app-dark">
     <div className="relative flex flex-col items-center justify-center min-h-screen bg-linear-to-b from-app-dark/50 to-app-light/50 ">
       {userData && (
-        <div className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-4 py-2 mt-4 mb-3 hover:shadow-inner hover:shadow-app-muted transition-shadow duration-300">
+        <div className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-2 py-2 mt-4 mb-3 hover:shadow-inner hover:shadow-app-muted transition-shadow duration-300">
           {userData.photo ? (
             <img
               src={userData.photo}

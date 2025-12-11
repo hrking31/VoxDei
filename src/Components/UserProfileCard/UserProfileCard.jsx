@@ -40,7 +40,7 @@ export default function UserProfileCard() {
             onClick={(e) => e.stopPropagation()} // Evitar cerrar al hacer clic dentro
           >
             {/* Header con fondo degradado */}
-            <div className="h-32 bg-gradient-to-br from-app-main to-app-dark relative">
+            <div className="h-32 bg-linear-to-br from-app-main to-app-dark relative">
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="absolute top-4 right-4 p-2 rounded-full bg-white/20 backdrop-blur-md hover:bg-white/30 transition"

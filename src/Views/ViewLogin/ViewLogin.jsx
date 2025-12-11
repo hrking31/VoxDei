@@ -57,7 +57,7 @@ export default function ViewLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex flex-col ">
+    <div className="min-h-screen bg-linear-to-b from-gray-900 to-gray-800 flex flex-col ">
       {/* <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-app-light/50 to-white"> */}
       <div className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
         <div className="w-full max-w-md space-y-4">
@@ -144,7 +144,7 @@ export default function ViewLogin() {
             <p className="text-sm text-app-muted">
               ¿Tu iglesia aún no está registrada?{" "}
               <button
-                onClick={() => navigate("/ViewInitialSetup")}
+                onClick={() => navigate("/ViewRegister")}
                 className="text-app-main font-semibold hover:underline"
               >
                 Regístrala aquí
