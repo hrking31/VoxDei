@@ -193,7 +193,7 @@ export default function ControlVersiculos() {
   };
 
   return (
-    <div className="flex flex-col justify-center">
+    <div className="h-dvh bg-linear-to-b from-app-dark/50 to-app-light/50">
       {/* BLOQUE STICKY */}
       <div className="grid grid-cols-12 w-full sticky bg-app-dark top-0 z-10 pt-3 pb-4">
         {/* Fila de capítulos */}
@@ -333,7 +333,6 @@ export default function ControlVersiculos() {
         </div>
       </div>
       {/* FIN BLOQUE STICKY */}
-
       {/* RESULTADOS */}
       <div className="w-full max-w-xl mx-auto p-2">
         <div className="flex flex-colborder">
@@ -412,21 +411,18 @@ export default function ControlVersiculos() {
         </div>
         {error && <p className="text-red-600 mt-4 font-medium">{error}</p>}
       </div>
-
       <LibrosModal
         open={modalActivo}
         onClose={() => setModalActivo(false)}
         tipo={tipoLibros}
         onLibro={LibroSeleccionado}
       />
-
       <CapituloModal
         open={modalActivo}
         onClose={() => setModalActivo(false)}
         selecLibro={libro}
         onCapitulo={CapituloSeleccionado}
       />
-
       <VersiculoModal
         open={modalActivo}
         onClose={() => setModalActivo(false)}

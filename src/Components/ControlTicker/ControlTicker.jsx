@@ -142,7 +142,7 @@ export default function ControlTicker() {
   };
 
   return (
-    <div>
+    <div className="h-dvh bg-linear-to-b from-app-dark/50 to-app-light/50">
       <div className="sticky top-0 shadow-[inset_0_-2px_0_rgba(250,204,21,0.9)] bg-app-light z-10 ">
         <h1 className="text-left font-bold text-app-main px-2">
           Panel de Control Ticker

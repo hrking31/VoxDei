@@ -599,7 +599,8 @@ export default function ViewUsers() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center bg-linear-to-b from-app-dark/50 to-app-light/50 px-6">
+    // <div className="min-h-screen flex flex-col items-center bg-linear-to-b from-app-dark/50 to-app-light/50 px-6">
+    <div className="h-dvh flex flex-col items-center bg-linear-to-b from-app-dark/50 to-app-light/50 px-6">
       <div className="text-center mb-4">
         <h1 className="text-3xl sm:text-4xl font-bold text-app-main">
           Gestión de Usuarios
