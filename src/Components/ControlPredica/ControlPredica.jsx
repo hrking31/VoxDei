@@ -200,8 +200,8 @@ export default function Predica() {
   };
 
   return (
-    <div className="h-dvh bg-linear-to-b from-app-dark/50 to-app-light/50">
-      <div className="sticky top-0 shadow-[inset_0_-2px_0_rgba(250,204,21,0.9)] bg-app-light  z-10 px-2 ">
+    <div className="min-h-dvh bg-linear-to-b from-app-dark/50 to-app-light/50">
+      <div className="sticky top-0 border-b border-app-main bg-app-light z-10 px-2 ">
         <div className="flex items-center justify-between w-full h-12 ">
           <button
             onClick={() => setVisible(!visible)}

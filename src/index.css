@@ -14,7 +14,7 @@
 
 /* Estilos base */
 body {
-  @apply bg-app-dark text-white min-h-screen;
+  @apply bg-app-dark;
 }
 
 @layer utilities {
@@ -82,4 +82,3 @@ body {
 .animate-menu-open {
   animation: menuOpen 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
-

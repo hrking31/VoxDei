@@ -193,9 +193,9 @@ export default function ControlVersiculos() {
   };
 
   return (
-    <div className="h-dvh bg-linear-to-b from-app-dark/50 to-app-light/50">
+    <div className="min-h-dvh bg-linear-to-b from-app-dark/50 to-app-light/50">
       {/* BLOQUE STICKY */}
-      <div className="grid grid-cols-12 w-full sticky bg-app-dark top-0 z-10 pt-3 pb-4">
+      <div className="grid grid-cols-12 w-full sticky border-b border-app-main bg-app-dark top-0 z-10 pt-3 pb-4">
         {/* Fila de capítulos */}
         <div className="col-span-12  overflow-x-auto scrollbar-custom [&::-webkit-scrollbar]:hidden xl:[&::-webkit-scrollbar]:block">
           <div className="flex gap-2 whitespace-nowrap">

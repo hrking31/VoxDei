@@ -599,98 +599,100 @@ export default function ViewUsers() {
   };
 
   return (
-    // <div className="min-h-screen flex flex-col items-center bg-linear-to-b from-app-dark/50 to-app-light/50 px-6">
-    <div className="h-dvh flex flex-col items-center bg-linear-to-b from-app-dark/50 to-app-light/50 px-6">
+    <div className="min-h-dvh flex flex-col bg-linear-to-b from-app-dark/50 to-app-light/50">
+      {/* Titulo */}
       <div className="text-center mb-4">
         <h1 className="text-3xl sm:text-4xl font-bold text-app-main">
           Gestión de Usuarios
         </h1>
-        <p className="text-app-muted mt-2">Crea, edita o elimina usuarios.</p>
-      </div>
+        <p className="text-app-muted">Crea, edita o elimina usuarios.</p>
 
-      {/* Pestañas */}
-      <div className="flex-1 flex justify-center items-center w-full mb-4">
-        <div className="relative bg-app-light shadow-md p-1.5 flex items-center border-2 border-app-border w-full max-w-xs overflow-hidden">
-          {/* Fondo animado */}
-          <motion.div
-            layout
-            transition={{
-              type: "spring",
-              stiffness: 260,
-              damping: 22,
-            }}
-            className={`
+        {/* Pestañas */}
+        <div className="flex justify-center items-center w-full">
+          <div className="relative bg-app-light shadow-md p-1.5 flex items-center border-2 border-app-border w-full max-w-xs overflow-hidden">
+            {/* Fondo animado */}
+            <motion.div
+              layout
+              transition={{
+                type: "spring",
+                stiffness: 260,
+                damping: 22,
+              }}
+              className={`
         absolute top-1 bottom-1 w-1/2 
         ${mode === "create" ? "bg-app-main" : "bg-app-error"}
       `}
-            style={{
-              left: mode === "create" ? "4px" : "calc(50% - 4px)",
-            }}
-          />
+              style={{
+                left: mode === "create" ? "4px" : "calc(50% - 4px)",
+              }}
+            />
 
-          {/* Crear */}
-          <button
-            onClick={() => setMode("create")}
-            className={`
+            {/* Crear */}
+            <button
+              onClick={() => setMode("create")}
+              className={`
         relative z-10 w-1/2 py-2 font-semibold flex items-center justify-center gap-1.5
         text-xs transition-all duration-300
         ${
           mode === "create" ? "text-white" : "text-gray-600 hover:text-app-main"
         }
       `}
-          >
-            <UserPlusIcon className="w-4 h-4" />
-            Crear
-          </button>
+            >
+              <UserPlusIcon className="w-4 h-4" />
+              Crear
+            </button>
 
-          {/* Eliminar */}
-          <button
-            onClick={() => setMode("delete")}
-            className={`
+            {/* Eliminar */}
+            <button
+              onClick={() => setMode("delete")}
+              className={`
         relative z-10 w-1/2 py-2 font-semibold flex items-center justify-center gap-1.5
         text-xs transition-all duration-300
         ${mode === "delete" ? "text-white" : "text-gray-600 hover:text-red-600"}
       `}
-          >
-            <UsersIcon className="w-4 h-4" />
-            Usuarios
-          </button>
+            >
+              <UsersIcon className="w-4 h-4" />
+              Usuarios
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-col items-center w-full flex-1">
-        {/* Contenido dinámico */}
-        {mode === "create" ? (
-          <div className="w-full max-w-sm flex flex-col bg-app-light shadow-md px-8 pb-8 pt-4 border-2 border-app-border">
-            {/* Crear usuario */}
-            <form
-              onSubmit={handleCreate}
-              noValidate
-              className="flex flex-col form-dark gap-4"
-            >
-              {/* Input nombre */}
-              <input
-                type="Nombre"
-                name="name"
-                placeholder="Nombre del usuario"
-                value={newUser.name}
-                onChange={handleChange}
-                className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
-              />
-
-              {/* Dropdowns para genero */}
-              <div ref={refGenero} className="relative">
-                <button
-                  type="button"
-                  onClick={() => toggleDropdown("genero")}
-                  className="w-full p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted text-left bg-app-light"
+      {/* Contenido dinámico */}
+      {mode === "create" ? (
+        <>
+          <div className="flex-1 flex items-center justify-center px-4">
+            <div className="w-full max-w-md space-y-4">
+              <div className="w-full max-w-md bg-app-light border-2 border-app-border shadow-xl p-3 sm:p-5">
+                {/* Crear usuario */}
+                <form
+                  onSubmit={handleCreate}
+                  noValidate
+                  className="flex flex-col form-dark gap-3.5 sm:gap-4"
                 >
-                  {newUser.gender || "Selecciona un género"}
-                </button>
+                  {/* Input nombre */}
+                  <input
+                    type="Nombre"
+                    name="name"
+                    placeholder="Nombre del usuario"
+                    value={newUser.name}
+                    onChange={handleChange}
+                    className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
+                  />
 
-                {openDropdown === "genero" && (
-                  <ul
-                    className="
+                  {/* Dropdowns para genero */}
+                  <div ref={refGenero} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => toggleDropdown("genero")}
+                      className="w-full p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted text-left bg-app-light"
+                    >
+                      {newUser.gender || "Selecciona un género"}
+                    </button>
+
+                    {openDropdown === "genero" && (
+                      <ul
+                        className="
                   absolute
                   left-0
                   right-0
@@ -707,56 +709,59 @@ export default function ViewUsers() {
                   text-sm sm:text-base
                   scrollbar-custo
                 "
-                  >
-                    {genderOptions.map((option) => (
-                      <li
-                        key={option}
-                        onClick={() => {
-                          setNewUser((prev) => ({ ...prev, gender: option }));
-                          setOpenDropdown(null);
-                        }}
-                        className="px-4 py-2 cursor-pointer hover:bg-app-main hover:text-white transition-colors duration-200"
                       >
-                        {option}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
+                        {genderOptions.map((option) => (
+                          <li
+                            key={option}
+                            onClick={() => {
+                              setNewUser((prev) => ({
+                                ...prev,
+                                gender: option,
+                              }));
+                              setOpenDropdown(null);
+                            }}
+                            className="px-4 py-2 cursor-pointer hover:bg-app-main hover:text-white transition-colors duration-200"
+                          >
+                            {option}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
 
-              {/* Input email */}
-              <input
-                type="email"
-                name="email"
-                placeholder="Correo electrónico"
-                value={newUser.email}
-                onChange={handleChange}
-                className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
-              />
+                  {/* Input email */}
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Correo electrónico"
+                    value={newUser.email}
+                    onChange={handleChange}
+                    className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
+                  />
 
-              {/* Input contrseña */}
-              <input
-                type="password"
-                name="password"
-                placeholder="Contraseña"
-                value={newUser.password}
-                onChange={handleChange}
-                className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
-              />
+                  {/* Input contrseña */}
+                  <input
+                    type="password"
+                    name="password"
+                    placeholder="Contraseña"
+                    value={newUser.password}
+                    onChange={handleChange}
+                    className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
+                  />
 
-              {/* Dropdowns para rol */}
-              <div ref={refRol} className="relative">
-                <button
-                  type="button"
-                  onClick={() => toggleDropdown("rol")}
-                  className="w-full p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted text-left bg-app-light"
-                >
-                  {newUser.role || "Selecciona un rol"}
-                </button>
+                  {/* Dropdowns para rol */}
+                  <div ref={refRol} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => toggleDropdown("rol")}
+                      className="w-full p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted text-left bg-app-light"
+                    >
+                      {newUser.role || "Selecciona un rol"}
+                    </button>
 
-                {openDropdown === "rol" && (
-                  <ul
-                    className="
+                    {openDropdown === "rol" && (
+                      <ul
+                        className="
                   absolute
                   left-0
                   right-0
@@ -773,62 +778,66 @@ export default function ViewUsers() {
                   text-sm sm:text-base
                   scrollbar-custom
                 "
-                  >
-                    {roleOptions.map((role) => (
-                      <li
-                        key={role}
-                        onClick={() => {
-                          setNewUser((prev) => ({ ...prev, role }));
-                          setOpenDropdown(null);
-                        }}
-                        className="px-4 py-2 cursor-pointer hover:bg-app-main hover:text-white transition-colors duration-200"
                       >
-                        {role}
-                      </li>
-                    ))}
-                  </ul>
+                        {roleOptions.map((role) => (
+                          <li
+                            key={role}
+                            onClick={() => {
+                              setNewUser((prev) => ({ ...prev, role }));
+                              setOpenDropdown(null);
+                            }}
+                            className="px-4 py-2 cursor-pointer hover:bg-app-main hover:text-white transition-colors duration-200"
+                          >
+                            {role}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  {/* Boton crear usuario */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={`flex items-center justify-center gap-2 bg-app-main text-white py-3 rounded-lg font-semibold hover:bg-app-main/90 transition ${
+                      loading ? "opacity-70 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    <UserPlusIcon className="w-5 h-5" />
+                    {loading ? "Creando..." : "Crear usuario"}
+                  </button>
+                </form>
+
+                {/* Mensajes */}
+                {(error || message) && (
+                  <p
+                    className={`text-center text-sm font-medium mt-4 ${
+                      error ? "text-red-500" : "text-green-600"
+                    }`}
+                  >
+                    {error || message}
+                  </p>
                 )}
               </div>
 
-              {/* Boton crear usuario */}
-              <button
-                type="submit"
-                disabled={loading}
-                className={`flex items-center justify-center gap-2 bg-app-main text-white py-3 rounded-lg font-semibold hover:bg-app-main/90 transition ${
-                  loading ? "opacity-70 cursor-not-allowed" : ""
-                }`}
-              >
-                <UserPlusIcon className="w-5 h-5" />
-                {loading ? "Creando..." : "Crear usuario"}
-              </button>
-            </form>
-
-            {/* Mensajes */}
-            {(error || message) && (
-              <p
-                className={`text-center text-sm font-medium mt-4 ${
-                  error ? "text-red-500" : "text-green-600"
-                }`}
-              >
-                {error || message}
-              </p>
-            )}
-
-            {/* Boton inicio */}
-            <div className="flex justify-center items-center mt-auto">
-              <p className="text-center text-sm text-app-muted mt-6">
-                ¿Regresar al inicio?
-                <button
-                  onClick={() => navigate("/ViewSelector")}
-                  className="text-app-main hover:underline ml-1"
-                >
-                  Inicio
-                </button>
-              </p>
+              {/* Boton inicio */}
+              <div className="w-full max-w-md bg-app-light px-8 border-2 border-app-border shadow-xl p-8 text-center">
+                <p className="text-app-muted">
+                  ¿Regresar al inicio?
+                  <button
+                    onClick={() => navigate("/ViewSelector")}
+                    className="text-app-main font-semibold hover:underline ml-1"
+                  >
+                    Inicio
+                  </button>
+                </p>
+              </div>
             </div>
           </div>
-        ) : (
-          <div className="flex flex-col items-center w-full flex-1">
+        </>
+      ) : (
+        <>
+          <div className="flex flex-col items-center justify-items-start w-full flex-1 py-4 px-2">
             <div className="flex items-center justify-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-2 py-2 mt-4 hover:shadow-inner hover:shadow-app-muted transition-shadow duration-300">
               {userData.photo ? (
                 <img
@@ -861,31 +870,27 @@ export default function ViewUsers() {
                 <XMarkIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
               </button>
             </div>
-
-            {/* Boton inicio */}
-            <div className="flex justify-center items-center mt-auto mb-4">
-              <p className="text-center text-sm text-app-muted">
-                ¿Regresar al inicio?
-                <button
-                  onClick={() => navigate("/ViewSelector")}
-                  className="text-app-main hover:underline ml-1"
-                >
-                  Inicio
-                </button>
-              </p>
-            </div>
           </div>
-        )}
-      </div>
+
+          {/* Boton inicio */}
+          <div className="flex justify-center items-center mt-auto px-4 pb-10">
+            <p className="text-app-muted">
+              ¿Regresar al inicio?
+              <button
+                onClick={() => navigate("/ViewSelector")}
+                className="text-app-main font-semibold hover:underline ml-1"
+              >
+                Inicio
+              </button>
+            </p>
+          </div>
+        </>
+      )}
+
       <Footer />
     </div>
   );
 }
-
-
-
-
-
 
 // Eliminar usuario
 // <form

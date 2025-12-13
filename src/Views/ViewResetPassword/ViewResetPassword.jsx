@@ -36,12 +36,12 @@ export default function ViewResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex flex-col ">
+    <div className="min-h-dvh flex flex-col bg-linear-to-b from-gray-900 to-gray-800">
       <div className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
         <div className="w-full max-w-md space-y-4">
           {/* Encabezado */}
           <div className="text-center mb-6">
-            <h1 className="text-3xl sm:text-4xl font-bold text-app-main tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-app-main tracking-tight">
               Recuperar Contraseña
             </h1>
             <p className="text-app-muted text-base sm:text-lg mt-2">

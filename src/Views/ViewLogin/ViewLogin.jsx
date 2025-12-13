@@ -57,8 +57,7 @@ export default function ViewLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-gray-900 to-gray-800 flex flex-col ">
-      {/* <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-app-light/50 to-white"> */}
+    <div className="min-h-dvh flex flex-col bg-linear-to-b from-gray-900 to-gray-800">
       <div className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
         <div className="w-full max-w-md space-y-4">
           {/* Encabezado */}
@@ -140,7 +139,6 @@ export default function ViewLogin() {
 
           {/* Enlace de registro */}
           <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-8 text-center">
-            {/* <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 text-center"> */}
             <p className="text-sm text-app-muted">
               ¿Tu iglesia aún no está registrada?{" "}
               <button
