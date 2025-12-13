@@ -21,8 +21,6 @@ export default function ControlMenssage() {
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
   const {
     messageItems,
-    visibleAll,
-    setVisibleAll,
     visibleTicker,
     setVisibleTicker,
     visibleTitulo,
@@ -89,25 +87,25 @@ export default function ControlMenssage() {
   };
 
   // Visibilidad solo texto
-  const toggleVisibleAll = () => {
+  const setAllVisible = () => {
     setVisibleTexto(true);
-    setVisibleAll(false);
     setVisibleTitulo(false);
     setVisibleTicker(false);
+    const timestamp = Date.now();
 
     update(ref(database, `displayVisibleTexto/${userData.groupId}`), {
       visibleTexto: true,
-      timestamp: Date.now(),
+      timestamp,
     });
 
     update(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
       visibleTitulo: false,
-      timestamp: Date.now(),
+      timestamp,
     });
 
     set(ref(database, `displayVisibleTicker/${userData.groupId}`), {
       visibleTicker: false,
-      timestamp: Date.now(),
+      timestamp,
     });
   };
 
@@ -284,14 +282,10 @@ export default function ControlMenssage() {
                 </button>
                 {/* Boton visibilidad solo texto */}
                 <button
-                  onClick={toggleVisibleAll}
-                  className="h-full font-semibold text-app-main px-2 flex items-center justify-center transition-all duration-200"
+                  onClick={setAllVisible}
+                  className="h-full font-semibold px-2 flex items-center justify-center transition-all duration-200"
                 >
-                  {visibleAll ? (
-                    <TvIcon className="w-8 h-8 text-app-muted" />
-                  ) : (
-                    <TvIcon className="w-8 h-8" />
-                  )}
+                  <TvIcon className="w-8 h-8 text-app-main" />
                 </button>
               </div>
             ) : (
@@ -299,7 +293,7 @@ export default function ControlMenssage() {
                 toggleVisibleTicker={toggleVisibleTicker}
                 toggleVisibleTitulo={toggleVisibleTitulo}
                 toggleVisibleTexto={toggleVisibleTexto}
-                setVisibleAll={setVisibleAll}
+                setAllVisible={setAllVisible}
                 colorClass={"text-app-main"}
               />
             )}

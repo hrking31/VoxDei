@@ -9,7 +9,6 @@ export function AppProvider({ children }) {
   const [tickerItems, setTickerItems] = useState([]);
   const [messageItems, setMessageItems] = useState([]);
   const [velocidadTicker, setVelocidadTicker] = useState(2);
-  const [visibleAll, setVisibleAll] = useState("");
   const [visibleTitulo, setVisibleTitulo] = useState("");
   const [visibleTexto, setVisibleTexto] = useState("");
   const [visibleTicker, setVisibleTicker] = useState("");
@@ -49,8 +48,6 @@ export function AppProvider({ children }) {
         setVelocidadTicker,
         messageItems,
         setMessageItems,
-        visibleAll,
-        setVisibleAll,
         visibleTitulo,
         setVisibleTitulo,
         visibleTexto,

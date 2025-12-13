@@ -23,8 +23,6 @@ export default function ControlTicker() {
     tickerItems,
     velocidadTicker,
     setVelocidadTicker,
-    visibleAll,
-    setVisibleAll,
     visibleTicker,
     setVisibleTicker,
     visibleTitulo,
@@ -81,25 +79,25 @@ export default function ControlTicker() {
   };
 
   // Visibilidad solo ticker
-  const toggleVisibleAll = () => {
+  const setAllVisible = () => {
     setVisibleTicker(true);
-    setVisibleAll(false);
     setVisibleTitulo(false);
     setVisibleTexto(false);
+    const timestamp = Date.now();
 
     set(ref(database, `displayVisibleTicker/${userData.groupId}`), {
       visibleTicker: true,
-      timestamp: Date.now(),
+      timestamp,
     });
 
     update(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
       visibleTitulo: false,
-      timestamp: Date.now(),
+      timestamp,
     });
 
     update(ref(database, `displayVisibleTexto/${userData.groupId}`), {
       visibleTexto: false,
-      timestamp: Date.now(),
+      timestamp,
     });
   };
 
@@ -306,14 +304,10 @@ export default function ControlTicker() {
                 </button>
                 {/* Boton visibilidad solo ticker */}
                 <button
-                  onClick={toggleVisibleAll}
-                  className="h-full font-semibold text-app-success px-2 flex items-center justify-center transition-all duration-200"
+                  onClick={setAllVisible}
+                  className="h-full font-semibold px-2 flex items-center justify-center transition-all duration-200"
                 >
-                  {visibleAll ? (
-                    <TvIcon className="w-8 h-8 text-app-muted" />
-                  ) : (
-                    <TvIcon className="w-8 h-8" />
-                  )}
+                  <TvIcon className="w-8 h-8 text-app-success" />
                 </button>
               </div>
             ) : (
@@ -321,7 +315,7 @@ export default function ControlTicker() {
                 toggleVisibleTicker={toggleVisibleTicker}
                 toggleVisibleTitulo={toggleVisibleTitulo}
                 toggleVisibleTexto={toggleVisibleTexto}
-                toggleVisibleAll={toggleVisibleAll}
+                setAllVisible={setAllVisible}
                 colorClass={"text-app-success"}
               />
             )}
