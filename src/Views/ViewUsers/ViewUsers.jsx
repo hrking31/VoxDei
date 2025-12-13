@@ -825,7 +825,7 @@ export default function ViewUsers() {
                 <p className="text-app-muted">
                   ¿Regresar al inicio?
                   <button
-                    onClick={() => navigate("/ViewSelector")}
+                    onClick={() => navigate("/Viewgestion")}
                     className="text-app-main font-semibold hover:underline ml-1"
                   >
                     Inicio
@@ -877,7 +877,7 @@ export default function ViewUsers() {
             <p className="text-app-muted">
               ¿Regresar al inicio?
               <button
-                onClick={() => navigate("/ViewSelector")}
+                onClick={() => navigate("/ViewGestion")}
                 className="text-app-main font-semibold hover:underline ml-1"
               >
                 Inicio
