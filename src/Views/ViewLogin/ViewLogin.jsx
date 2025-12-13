@@ -57,7 +57,7 @@ export default function ViewLogin() {
   };
 
   return (
-    <div className="min-h-dvh flex flex-col bg-linear-to-b from-gray-900 to-gray-800">
+    <div className="min-h-svh flex flex-col bg-linear-to-b from-gray-900 to-gray-800">
       <div className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
         <div className="w-full max-w-md space-y-4">
           {/* Encabezado */}

@@ -599,7 +599,7 @@ export default function ViewUsers() {
   };
 
   return (
-    <div className="min-h-dvh flex flex-col bg-linear-to-b from-app-dark/50 to-app-light/50">
+    <div className="min-h-svh flex flex-col bg-linear-to-b from-app-dark/50 to-app-light/50">
       {/* Titulo */}
       <div className="text-center mb-4">
         <h1 className="text-3xl sm:text-4xl font-bold text-app-main">
