@@ -21,7 +21,7 @@ export default function InicializarEstados() {
 
   // Detectar tamaño de pantalla
   useEffect(() => {
-    const handler = () => setIsDesktop(window.innerWidth >= 768);
+    const handler = () => setIsDesktop(window.innerWidth >= 1024);
     window.addEventListener("resize", handler);
     return () => window.removeEventListener("resize", handler);
   }, []);
