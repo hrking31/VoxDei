@@ -193,13 +193,13 @@ export default function DisplayView() {
           <div className="flex-1 flex items-center justify-center px-8">
             {display === "mensajePredica" ? (
               <div
-                className={`${style.text} text-center whitespace-pre-wrap break-words`}
+                className={`${style.text} text-center whitespace-pre-wrap wrap-break-words`}
               >
                 {mensajePredica}
               </div>
             ) : display === "mensaje" ? (
               <div
-                className={`${style.text} text-center whitespace-pre-wrap break-words`}
+                className={`${style.text} text-center whitespace-pre-wrap wrap-break-words`}
               >
                 {mensaje}
               </div>
@@ -211,7 +211,7 @@ export default function DisplayView() {
                   {tituloVersiculo}
                 </h2>
                 <div
-                  className={`${style.text} text-center whitespace-pre-wrap break-words`}
+                  className={`${style.text} text-center whitespace-pre-wrap wrap-break-words`}
                 >
                   {versiculo}
                 </div>
