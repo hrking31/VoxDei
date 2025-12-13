@@ -19,7 +19,7 @@ export default function ModalVisibilidad({
   const [alignLeft, setAlignLeft] = useState(false);
   const buttonRef = useRef(null);
   const menuRef = useRef(null);
-  const { visibleTicker, visibleTitulo, visibleTexto, visible } =
+  const { visibleAll, visibleTicker, visibleTitulo, visibleTexto } =
     useAppContext();
 
   // Detectar bordes de la pantalla
@@ -82,7 +82,7 @@ export default function ModalVisibilidad({
     {
       icon: (
         <TvIcon
-          className={`w-7 h-7 ${visible ? "text-app-muted" : colorClass}`}
+          className={`w-7 h-7 ${visibleAll ? "text-app-muted" : colorClass}`}
         />
       ),
       onClick: toggleVisibleAll,

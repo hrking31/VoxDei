@@ -12,6 +12,7 @@ import {
   BookmarkIcon,
   ChatBubbleLeftRightIcon,
   TagIcon,
+  TvIcon,
 } from "@heroicons/react/24/solid";
 import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
@@ -34,6 +35,8 @@ export default function ControlVersiculos() {
   const [versiculoNumero, setVersiculoNumero] = useState(null);
   const [versiculoTexto, setVersiculoTexto] = useState(null);
   const {
+    visibleAll,
+    setVisibleAll,
     visibleTicker,
     setVisibleTicker,
     visibleTitulo,
@@ -163,6 +166,7 @@ export default function ControlVersiculos() {
   const toggleVisibleTitulo = () => {
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
+    setVisibleAll(nuevoEstado);
 
     update(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
       visibleTitulo: nuevoEstado,
@@ -185,6 +189,7 @@ export default function ControlVersiculos() {
   const toggleVisibleTicker = () => {
     const nuevoEstado = !visibleTicker;
     setVisibleTicker(nuevoEstado);
+    setVisibleAll(nuevoEstado);
 
     set(ref(database, `displayVisibleTicker/${userData.groupId}`), {
       visibleTicker: nuevoEstado,
@@ -322,12 +327,31 @@ export default function ControlVersiculos() {
                   <ChatBubbleLeftRightIcon className="w-8 h-8" />
                 )}
               </button>
+              {/* Boton visibilidad solo texto */}
+              <button
+                onClick={() => {
+                  toggleVisibleTicker();
+                  toggleVisibleTitulo();
+                }}
+                className="h-full font-semibold text-app-main px-2 flex items-center justify-center transition-all duration-200"
+              >
+                {visibleAll ? (
+                  <TvIcon className="w-8 h-8 text-app-muted" />
+                ) : (
+                  <TvIcon className="w-8 h-8" />
+                )}
+              </button>
             </div>
           ) : (
             <ModalVisibilidad
               toggleVisibleTicker={toggleVisibleTicker}
               toggleVisibleTitulo={toggleVisibleTitulo}
               toggleVisibleTexto={toggleVisibleTexto}
+              toggleVisibleAll={() => {
+                toggleVisibleTicker();
+                toggleVisibleTitulo();
+              }}
+              colorClass={"text-app-main"}
             />
           )}
         </div>

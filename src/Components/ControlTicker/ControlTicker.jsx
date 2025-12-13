@@ -63,7 +63,7 @@ export default function ControlTicker() {
   const toggleVisibleTexto = () => {
     const nuevoEstado = !visibleTexto;
     setVisibleTexto(nuevoEstado);
-    // setVisibleAll(nuevoEstado);
+    setVisibleAll(nuevoEstado);
 
     update(ref(database, `displayVisibleTexto/${userData.groupId}`), {
       visibleTexto: nuevoEstado,
@@ -74,7 +74,6 @@ export default function ControlTicker() {
   // Visibilidad del ticker
   const toggleVisibleTicker = () => {
     const nuevoEstado = !visibleTicker;
-    // setVisibleTicker(nuevoEstado);
 
     set(ref(database, `displayVisibleTicker/${userData.groupId}`), {
       visibleTicker: nuevoEstado,
