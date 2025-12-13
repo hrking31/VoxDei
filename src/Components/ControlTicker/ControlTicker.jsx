@@ -51,7 +51,6 @@ export default function ControlTicker() {
   const toggleVisibleTitulo = () => {
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
-    setVisibleAll(nuevoEstado);
 
     update(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
       visibleTitulo: nuevoEstado,
@@ -63,7 +62,6 @@ export default function ControlTicker() {
   const toggleVisibleTexto = () => {
     const nuevoEstado = !visibleTexto;
     setVisibleTexto(nuevoEstado);
-    setVisibleAll(nuevoEstado);
 
     update(ref(database, `displayVisibleTexto/${userData.groupId}`), {
       visibleTexto: nuevoEstado,
@@ -74,9 +72,33 @@ export default function ControlTicker() {
   // Visibilidad del ticker
   const toggleVisibleTicker = () => {
     const nuevoEstado = !visibleTicker;
+    setVisibleTicker(nuevoEstado);
 
     set(ref(database, `displayVisibleTicker/${userData.groupId}`), {
       visibleTicker: nuevoEstado,
+      timestamp: Date.now(),
+    });
+  };
+
+  // Visibilidad solo ticker
+  const toggleVisibleAll = () => {
+    setVisibleTicker(true);
+    setVisibleAll(false);
+    setVisibleTitulo(false);
+    setVisibleTexto(false);
+
+    set(ref(database, `displayVisibleTicker/${userData.groupId}`), {
+      visibleTicker: true,
+      timestamp: Date.now(),
+    });
+
+    update(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
+      visibleTitulo: false,
+      timestamp: Date.now(),
+    });
+
+    update(ref(database, `displayVisibleTexto/${userData.groupId}`), {
+      visibleTexto: false,
       timestamp: Date.now(),
     });
   };
@@ -284,10 +306,7 @@ export default function ControlTicker() {
                 </button>
                 {/* Boton visibilidad solo ticker */}
                 <button
-                  onClick={() => {
-                    toggleVisibleTitulo();
-                    toggleVisibleTexto();
-                  }}
+                  onClick={toggleVisibleAll}
                   className="h-full font-semibold text-app-success px-2 flex items-center justify-center transition-all duration-200"
                 >
                   {visibleAll ? (
@@ -302,10 +321,7 @@ export default function ControlTicker() {
                 toggleVisibleTicker={toggleVisibleTicker}
                 toggleVisibleTitulo={toggleVisibleTitulo}
                 toggleVisibleTexto={toggleVisibleTexto}
-                toggleVisibleAll={() => {
-                  toggleVisibleTitulo();
-                  toggleVisibleTexto();
-                }}
+                toggleVisibleAll={toggleVisibleAll}
                 colorClass={"text-app-success"}
               />
             )}

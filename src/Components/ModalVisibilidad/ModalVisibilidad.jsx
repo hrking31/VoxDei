@@ -4,6 +4,7 @@ import {
   ChatBubbleLeftRightIcon,
   TvIcon,
   EyeIcon,
+  EyeSlashIcon,
 } from "@heroicons/react/24/solid";
 import { useState, useRef, useEffect } from "react";
 import { useAppContext } from "../Context/AppContext";
@@ -12,14 +13,15 @@ export default function ModalVisibilidad({
   toggleVisibleTicker,
   toggleVisibleTitulo,
   toggleVisibleTexto,
-  toggleVisibleAll,
+  setAllVisible,
+  setOffVisible,
   colorClass,
 }) {
   const [open, setOpen] = useState(false);
   const [alignLeft, setAlignLeft] = useState(false);
   const buttonRef = useRef(null);
   const menuRef = useRef(null);
-  const { visibleAll, visibleTicker, visibleTitulo, visibleTexto } =
+  const { visibleTicker, visibleTitulo, visibleTexto } =
     useAppContext();
 
   // Detectar bordes de la pantalla
@@ -82,10 +84,18 @@ export default function ModalVisibilidad({
     {
       icon: (
         <TvIcon
-          className={`w-7 h-7 ${visibleAll ? "text-app-muted" : colorClass}`}
+          className={`w-7 h-7 ${colorClass}`}
         />
       ),
-      onClick: toggleVisibleAll,
+      onClick: setAllVisible,
+    },
+    {
+      icon: (
+        <EyeSlashIcon
+          className="w-7 h-7 text-app-muted"
+        />
+      ),
+      onClick: setOffVisible,
     },
   ];
 

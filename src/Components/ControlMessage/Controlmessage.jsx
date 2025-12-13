@@ -90,18 +90,23 @@ export default function ControlMenssage() {
 
   // Visibilidad solo texto
   const toggleVisibleAll = () => {
-    const nuevoEstado = !visibleAll;
-    setVisibleAll(nuevoEstado);
-    setVisibleTitulo(nuevoEstado);
-    setVisibleTicker(nuevoEstado);
+    setVisibleTexto(true);
+    setVisibleAll(false);
+    setVisibleTitulo(false);
+    setVisibleTicker(false);
+
+    update(ref(database, `displayVisibleTexto/${userData.groupId}`), {
+      visibleTexto: true,
+      timestamp: Date.now(),
+    });
 
     update(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
-      visibleTitulo: nuevoEstado,
+      visibleTitulo: false,
       timestamp: Date.now(),
     });
 
     set(ref(database, `displayVisibleTicker/${userData.groupId}`), {
-      visibleTicker: nuevoEstado,
+      visibleTicker: false,
       timestamp: Date.now(),
     });
   };
@@ -294,7 +299,7 @@ export default function ControlMenssage() {
                 toggleVisibleTicker={toggleVisibleTicker}
                 toggleVisibleTitulo={toggleVisibleTitulo}
                 toggleVisibleTexto={toggleVisibleTexto}
-                toggleVisibleAll={toggleVisibleAll}
+                setVisibleAll={setVisibleAll}
                 colorClass={"text-app-main"}
               />
             )}

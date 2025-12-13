@@ -166,7 +166,6 @@ export default function ControlVersiculos() {
   const toggleVisibleTitulo = () => {
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
-    setVisibleAll(nuevoEstado);
 
     update(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
       visibleTitulo: nuevoEstado,
@@ -189,10 +188,32 @@ export default function ControlVersiculos() {
   const toggleVisibleTicker = () => {
     const nuevoEstado = !visibleTicker;
     setVisibleTicker(nuevoEstado);
-    setVisibleAll(nuevoEstado);
 
     set(ref(database, `displayVisibleTicker/${userData.groupId}`), {
       visibleTicker: nuevoEstado,
+      timestamp: Date.now(),
+    });
+  };
+
+  // Visibilidad solo texto
+  const setAllVisible = () => {
+    setVisibleTexto(true);
+    setVisibleAll(false);
+    setVisibleTitulo(false);
+    setVisibleTicker(false);
+
+    update(ref(database, `displayVisibleTexto/${userData.groupId}`), {
+      visibleTexto: true,
+      timestamp: Date.now(),
+    });
+
+    update(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
+      visibleTitulo: false,
+      timestamp: Date.now(),
+    });
+
+    set(ref(database, `displayVisibleTicker/${userData.groupId}`), {
+      visibleTicker: false,
       timestamp: Date.now(),
     });
   };
@@ -329,10 +350,7 @@ export default function ControlVersiculos() {
               </button>
               {/* Boton visibilidad solo texto */}
               <button
-                onClick={() => {
-                  toggleVisibleTicker();
-                  toggleVisibleTitulo();
-                }}
+                onClick={setAllVisible}
                 className="h-full font-semibold text-app-main px-2 flex items-center justify-center transition-all duration-200"
               >
                 {visibleAll ? (
@@ -347,10 +365,7 @@ export default function ControlVersiculos() {
               toggleVisibleTicker={toggleVisibleTicker}
               toggleVisibleTitulo={toggleVisibleTitulo}
               toggleVisibleTexto={toggleVisibleTexto}
-              toggleVisibleAll={() => {
-                toggleVisibleTicker();
-                toggleVisibleTitulo();
-              }}
+              setAllVisible={setAllVisible}
               colorClass={"text-app-main"}
             />
           )}
