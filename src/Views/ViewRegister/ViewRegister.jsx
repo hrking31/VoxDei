@@ -127,7 +127,7 @@ export default function ViewRegister() {
   };
 
   return (
-    <div className="min-h-svh flex flex-col bg-linear-to-b from-gray-900 to-gray-800">
+    <div className="min-h-svh flex flex-col bg-linear-to-b from-gray-900 to-gray-800 overflow-hidden">
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="w-full max-w-md space-y-4">
           {/* Encabezado */}
@@ -144,7 +144,7 @@ export default function ViewRegister() {
           <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-3 sm:p-5">
             <form
               onSubmit={handleCreate}
-              className="flex flex-col form-dark2 gap-3.5 sm:gap-4"
+              className="flex flex-col form-dark2 gap-3 sm:gap-4"
             >
               {/* Foto de perfil */}
               <div className="flex flex-col items-center gap-2 sm:gap-4">
@@ -182,7 +182,7 @@ export default function ViewRegister() {
                 placeholder="Nombre de la iglesia"
                 value={form.churchName}
                 onChange={handleChange}
-                className="p-2.5 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
+                className="p-2 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
               />
 
               {/* Nombre usuario */}
@@ -192,7 +192,7 @@ export default function ViewRegister() {
                 placeholder="Nombre completo"
                 value={form.name}
                 onChange={handleChange}
-                className="p-2.5 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
+                className="p-2 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
               />
 
               {/* Género */}
@@ -200,7 +200,7 @@ export default function ViewRegister() {
                 <button
                   type="button"
                   onClick={() => toggleDropdown("gender")}
-                  className="w-full p-2.5 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-left text-gray-400 focus:ring-2 focus:ring-app-main"
+                  className="w-full p-2 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-left text-gray-400 focus:ring-2 focus:ring-app-main"
                 >
                   {form.gender || "Selecciona un género"}
                 </button>
@@ -230,7 +230,7 @@ export default function ViewRegister() {
                 placeholder="Correo electrónico"
                 value={form.email}
                 onChange={handleChange}
-                className="p-2.5 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
+                className="p-2 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
               />
 
               {/* Password */}
@@ -240,7 +240,7 @@ export default function ViewRegister() {
                 placeholder="Contraseña"
                 value={form.password}
                 onChange={handleChange}
-                className="p-2.5 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
+                className="p-2 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
               />
 
               {/* Botón de envío */}
@@ -261,7 +261,7 @@ export default function ViewRegister() {
             )}
           </div>
           {/* Enlace de inicio */}
-          <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-8 text-center">
+          <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-6 sm:p-8 text-center">
             <p className="text-sm text-app-muted">
               ¿Tienes una cuenta?{" "}
               <button

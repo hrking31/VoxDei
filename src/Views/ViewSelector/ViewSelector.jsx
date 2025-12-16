@@ -44,44 +44,46 @@ export default function ViewSelector() {
 
   return (
     // <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-app-light/50 to-white">
-    <div className="min-h-dvh flex flex-col items-center justify-between bg-linear-to-b from-app-dark/50 to-app-light/50">
-      {userData && (
-        <div className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-2 py-2 mt-4 mb-8 hover:shadow-inner hover:shadow-app-muted transition-shadow duration-300">
-          {userData.photo ? (
-            <img
-              src={userData.photo}
-              alt="user"
-              className="w-10 h-10 rounded-full object-cover"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-              <UserIcon className="w-5 h-5 text-gray-500" />
+    <div className="min-h-svh flex flex-col items-center justify-between bg-linear-to-b from-app-dark/50 to-app-light/50">
+      <div className="flex flex-col items-center justify-items-start w-full flex-1 px-2">
+        {userData && (
+          <div className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-2 py-2 mt-4 mb-4 sm:mb-8 hover:shadow-inner hover:shadow-app-muted transition-shadow duration-300">
+            {userData.photo ? (
+              <img
+                src={userData.photo}
+                alt="user"
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                <UserIcon className="w-5 h-5 text-gray-500" />
+              </div>
+            )}
+            <div className="flex flex-col flex-1 leading-tight">
+              <span className="text-sm font-medium text-app-main">
+                {userData.name || "Usuario"}
+              </span>
+              <span className="text-[11px] text-app-muted">
+                {userData.email || userData.role || ""}
+              </span>
             </div>
-          )}
-          <div className="flex flex-col flex-1 leading-tight">
-            <span className="text-sm font-medium text-app-main">
-              {userData.name || "Usuario"}
-            </span>
-            <span className="text-[11px] text-app-muted">
-              {userData.email || userData.role || ""}
-            </span>
-          </div>
 
-          <span className="text-[11px] bg-app-main/10 text-app-main px-3 py-1 rounded-full capitalize font-medium">
-            {userData.role || "Sin rol"}
-          </span>
-          <button
-            onClick={handlerLogout}
-            className="p-2 rounded-full hover:bg-app-main transition"
-            aria-label="Cerrar"
-          >
-            <XMarkIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
-          </button>
-        </div>
-      )}
+            <span className="text-[11px] bg-app-main/10 text-app-main px-3 py-1 rounded-full capitalize font-medium">
+              {userData.role || "Sin rol"}
+            </span>
+            <button
+              onClick={handlerLogout}
+              className="p-2 rounded-full hover:bg-app-main transition"
+              aria-label="Cerrar"
+            >
+              <XMarkIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Encabezado */}
-      <div className="text-center mb-6">
+      <div className="text-center mb-2 sm:mb-6">
         <h1 className="text-3xl sm:text-4xl font-bold text-app-main tracking-tight">
           Bienvenidos a VOXDEI
         </h1>
@@ -91,8 +93,8 @@ export default function ViewSelector() {
       </div>
 
       {/* Contenedor de botones */}
-      <div className="flex-1 flex items-center justify-center w-full px-6 pb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-3xl">
+      <div className="flex-1 flex items-center justify-center w-full px-6 pb-2 sm:pb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full max-w-3xl">
           {/* Botón Presentación */}
           <button
             onClick={abrirVisor}

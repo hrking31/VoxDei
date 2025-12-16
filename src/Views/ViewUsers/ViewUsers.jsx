@@ -677,7 +677,7 @@ export default function ViewUsers() {
                     placeholder="Nombre del usuario"
                     value={newUser.name}
                     onChange={handleChange}
-                    className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
+                    className="p-2 sm:p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
                   />
 
                   {/* Dropdowns para genero */}
@@ -685,7 +685,7 @@ export default function ViewUsers() {
                     <button
                       type="button"
                       onClick={() => toggleDropdown("genero")}
-                      className="w-full p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted text-left bg-app-light"
+                      className="w-full p-2 sm:p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted text-left bg-app-light"
                     >
                       {newUser.gender || "Selecciona un género"}
                     </button>
@@ -736,7 +736,7 @@ export default function ViewUsers() {
                     placeholder="Correo electrónico"
                     value={newUser.email}
                     onChange={handleChange}
-                    className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
+                    className="p-2 sm:p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
                   />
 
                   {/* Input contrseña */}
@@ -746,7 +746,7 @@ export default function ViewUsers() {
                     placeholder="Contraseña"
                     value={newUser.password}
                     onChange={handleChange}
-                    className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
+                    className="p-2 sm:p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
                   />
 
                   {/* Dropdowns para rol */}
@@ -754,7 +754,7 @@ export default function ViewUsers() {
                     <button
                       type="button"
                       onClick={() => toggleDropdown("rol")}
-                      className="w-full p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted text-left bg-app-light"
+                      className="w-full p-2 sm:p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted text-left bg-app-light"
                     >
                       {newUser.role || "Selecciona un rol"}
                     </button>
@@ -821,7 +821,7 @@ export default function ViewUsers() {
               </div>
 
               {/* Boton inicio */}
-              <div className="w-full max-w-md bg-app-light px-8 border-2 border-app-border shadow-xl p-8 text-center">
+              <div className="w-full max-w-md bg-app-light px-8 border-2 border-app-border shadow-xl p-6 sm:p-8 text-center">
                 <p className="text-app-muted">
                   ¿Regresar al inicio?
                   <button
@@ -838,7 +838,7 @@ export default function ViewUsers() {
       ) : (
         <>
           <div className="flex flex-col items-center justify-items-start w-full flex-1 py-4 px-2">
-            <div className="flex items-center justify-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-2 py-2 mt-4 hover:shadow-inner hover:shadow-app-muted transition-shadow duration-300">
+            <div className="flex items-center justify-center gap-3 w-full max-w-3xl border border-app-border rounded-full py-2 mt-4 hover:shadow-inner hover:shadow-app-muted transition-shadow duration-300">
               {userData.photo ? (
                 <img
                   src={userData.photo}
