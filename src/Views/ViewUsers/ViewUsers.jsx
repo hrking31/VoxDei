@@ -432,17 +432,26 @@ import { useNavigate } from "react-router-dom";
 import {
   UserPlusIcon,
   UsersIcon,
-  XMarkIcon,
   UserIcon,
+  PencilIcon,
 } from "@heroicons/react/24/solid";
 import { db, storage } from "../../Components/Firebase/Firebase";
-import { doc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  deleteDoc,
+  collection,
+  query,
+  where,
+} from "firebase/firestore";
 import { ref, deleteObject } from "firebase/storage";
 import { deleteUser } from "firebase/auth";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 import { useAppContext } from "../../Components/Context/AppContext";
 import Footer from "../../Components/Footer/Footer.jsx";
-// import UserProfileCard from "../../Components/UserProfileCard/UserProfileCard.jsx";
+import UserProfileCard from "../../Components/UserProfileCard/UserProfileCard.jsx";
 
 export default function ViewUsers() {
   const { signup, login, userData, loading, setLoading } = useAuth();
@@ -454,6 +463,8 @@ export default function ViewUsers() {
   const roleOptions = ["Pastor", "Pastora", "Asistente", "administrador"];
   const [openDropdown, setOpenDropdown] = useState(null);
   const [mode, setMode] = useState("create");
+  const [groupUsers, setGroupUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [newUser, setNewUser] = useState({
     name: "",
     gender: "",
@@ -467,6 +478,9 @@ export default function ViewUsers() {
   });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  console.log("user",selectedUser);
 
   // Manejo inputs de creación y eliminación
   const handleChange = ({ target: { name, value } }) => {
@@ -544,59 +558,131 @@ export default function ViewUsers() {
   };
 
   // Eliminar usuario Auth y Firestore
-  const handleDelete = async (e) => {
-    e.preventDefault();
-    setError("");
+  // const handleDelete = async (e) => {
+  //   e.preventDefault();
+  //   setError("");
 
-    if (!deleteData.email || !deleteData.password) {
-      setError("Debes ingresar el correo y contraseña del usuario a eliminar.");
-      return;
-    }
+  //   if (!deleteData.email || !deleteData.password) {
+  //     setError("Debes ingresar el correo y contraseña del usuario a eliminar.");
+  //     return;
+  //   }
 
-    // Espera respuesta del usuario
-    const accepted = await confirmAction(
-      `¿Seguro que deseas eliminar la cuenta de ${deleteData.email}?`
-    );
-    if (!accepted) return;
+  //   // Espera respuesta del usuario
+  //   const accepted = await confirmAction(
+  //     `¿Seguro que deseas eliminar la cuenta de ${deleteData.email}?`
+  //   );
+  //   if (!accepted) return;
 
-    setLoading(true);
+  //   setLoading(true);
 
-    try {
-      const userCredential = await login(deleteData.email, deleteData.password);
-      const userToDelete = userCredential.user;
+  //   try {
+  //     const userCredential = await login(deleteData.email, deleteData.password);
+  //     const userToDelete = userCredential.user;
 
-      // Obtiene datos del usuario desde Firestore
-      const userRef = doc(db, "users", userToDelete.uid);
-      const userSnap = await getDoc(userRef);
+  //     // Obtiene datos del usuario desde Firestore
+  //     const userRef = doc(db, "users", userToDelete.uid);
+  //     const userSnap = await getDoc(userRef);
 
-      // Eliminar imagen del STORAGE
-      if (userSnap.exists() && userSnap.data().photo) {
-        const imageUrl = userSnap.data().photo;
-        try {
-          const imageRef = ref(storage, imageUrl);
-          await deleteObject(imageRef);
-        } catch (error) {}
+  //     // Eliminar imagen del STORAGE
+  //     if (userSnap.exists() && userSnap.data().photo) {
+  //       const imageUrl = userSnap.data().photo;
+  //       try {
+  //         const imageRef = ref(storage, imageUrl);
+  //         await deleteObject(imageRef);
+  //       } catch (error) {}
+  //     }
+
+  //     await deleteDoc(userRef); // Eliminar documento de Firestore
+  //     await deleteUser(userToDelete); // Eliminar usuario de Authentication
+
+  //     showNotif("success", "✅ Usuario eliminados con éxito");
+  //     setDeleteData({ email: "", password: "" });
+  //   } catch (err) {
+  //     const errorMessages = {
+  //       "auth/user-not-found": "No se encontró una cuenta con ese correo.",
+  //       "auth/wrong-password": "Contraseña incorrecta.",
+  //       "auth/invalid-email": "Correo inválido.",
+  //       "auth/too-many-requests":
+  //         "Demasiados intentos fallidos. Intenta de nuevo más tarde.",
+  //     };
+
+  //     setError(errorMessages[err.code] || "Error al eliminar el usuario.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+const handleDelete = async () => {
+  if (!selectedUser?.uid) {
+    setError("Usuario no válido.");
+    return;
+  }
+
+  const accepted = await confirmAction(
+    `¿Seguro que deseas eliminar la cuenta de ${selectedUser.email}?`
+  );
+  if (!accepted) return;
+
+  setLoading(true);
+  setError("");
+
+  try {
+    //  Referencia al usuario correcto
+    const userRef = doc(db, "users", selectedUser.uid);
+    const userSnap = await getDoc(userRef);
+
+    //  Eliminar imagen si existe
+    if (userSnap.exists() && userSnap.data()?.photo) {
+      try {
+        const imageRef = ref(storage, userSnap.data().photo);
+        await deleteObject(imageRef);
+      } catch (err) {
+        console.warn("No se pudo borrar la imagen", err);
       }
-
-      await deleteDoc(userRef); // Eliminar documento de Firestore
-      await deleteUser(userToDelete); // Eliminar usuario de Authentication
-
-      showNotif("success", "✅ Usuario eliminados con éxito");
-      setDeleteData({ email: "", password: "" });
-    } catch (err) {
-      const errorMessages = {
-        "auth/user-not-found": "No se encontró una cuenta con ese correo.",
-        "auth/wrong-password": "Contraseña incorrecta.",
-        "auth/invalid-email": "Correo inválido.",
-        "auth/too-many-requests":
-          "Demasiados intentos fallidos. Intenta de nuevo más tarde.",
-      };
-
-      setError(errorMessages[err.code] || "Error al eliminar el usuario.");
-    } finally {
-      setLoading(false);
     }
-  };
+
+    // Eliminar documento Firestore
+    await deleteDoc(userRef);
+
+    showNotif("success", "✅ Usuario eliminado correctamente");
+
+    //  Limpiar selección
+    setSelectedUser(null);
+  } catch (err) {
+    console.error(err);
+    setError("Error al eliminar el usuario.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+  // Carga los usuarios
+  useEffect(() => {
+    const loadGroupUsers = async () => {
+      if (mode !== "users") return;
+      if (!userData?.groupId) return;
+
+      try {
+        const q = query(
+          collection(db, "users"),
+          where("groupId", "==", userData.groupId)
+        );
+
+        const querySnapshot = await getDocs(q);
+
+        const users = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setGroupUsers(users);
+      } catch (error) {
+        console.error("Error cargando usuarios del grupo:", error);
+      }
+    };
+
+    loadGroupUsers();
+  }, [mode, userData]);
 
   return (
     <div className="min-h-svh flex flex-col bg-linear-to-b from-app-dark/50 to-app-light/50">
@@ -642,13 +728,13 @@ export default function ViewUsers() {
               Crear
             </button>
 
-            {/* Eliminar */}
+            {/* Usuarios */}
             <button
-              onClick={() => setMode("delete")}
+              onClick={() => setMode("users")}
               className={`
         relative z-10 w-1/2 py-2 font-semibold flex items-center justify-center gap-1.5
         text-xs transition-all duration-300
-        ${mode === "delete" ? "text-white" : "text-gray-600 hover:text-red-600"}
+        ${mode === "users" ? "text-white" : "text-gray-600 hover:text-red-600"}
       `}
             >
               <UsersIcon className="w-4 h-4" />
@@ -838,37 +924,55 @@ export default function ViewUsers() {
       ) : (
         <>
           <div className="flex flex-col items-center justify-items-start w-full flex-1 py-4 px-2">
-            <div className="flex items-center justify-center gap-3 w-full max-w-3xl border border-app-border rounded-full py-2 mt-4 hover:shadow-inner hover:shadow-app-muted transition-shadow duration-300">
-              {userData.photo ? (
-                <img
-                  src={userData.photo}
-                  alt="user"
-                  className="w-10 h-10 rounded-full object-cover"
-                />
+            <div className="flex flex-col items-center w-full flex-1 py-4 px-2 gap-3">
+              {groupUsers.length === 0 ? (
+                <p className="text-app-muted text-sm">
+                  No hay usuarios en este grupo
+                </p>
               ) : (
-                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                  <UserIcon className="w-5 h-5 text-gray-500" />
-                </div>
-              )}
-              <div className="flex flex-col flex-1 leading-tight">
-                <span className="text-sm font-medium text-app-main">
-                  {userData.name || "Usuario"}
-                </span>
-                <span className="text-[11px] text-app-muted">
-                  {userData.email || userData.role || ""}
-                </span>
-              </div>
+                groupUsers.map((user) => (
+                  <div
+                    key={user.id}
+                    className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-3 py-2 hover:shadow-inner transition"
+                  >
+                    {user.photo ? (
+                      <img
+                        src={user.photo}
+                        alt={user.name}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                        <UserIcon className="w-5 h-5 text-gray-500" />
+                      </div>
+                    )}
 
-              <span className="text-[11px] bg-app-main/10 text-app-main px-3 py-1 rounded-full capitalize font-medium">
-                {userData.role || "Sin rol"}
-              </span>
-              <button
-                // onClick={handlerLogout}
-                className="p-2 rounded-full hover:bg-app-main transition"
-                aria-label="Cerrar"
-              >
-                <XMarkIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
-              </button>
+                    <div className="flex flex-col flex-1 leading-tight">
+                      <span className="text-sm font-medium text-app-main">
+                        {user.name}
+                      </span>
+                      <span className="text-[11px] text-app-muted">
+                        {user.email}
+                      </span>
+                    </div>
+
+                    <span className="text-[11px] bg-app-main/10 text-app-main px-3 py-1 rounded-full capitalize font-medium">
+                      {user.role}
+                    </span>
+
+                    <button
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setIsModalOpen(true);
+                      }}
+                      className="p-2 rounded-full hover:bg-app-main transition"
+                      aria-label="Cerrar"
+                    >
+                      <PencilIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -888,40 +992,13 @@ export default function ViewUsers() {
       )}
 
       <Footer />
+
+      <UserProfileCard
+        isModalOpen={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+        user={selectedUser}
+        handleDelete={handleDelete}
+      />
     </div>
   );
 }
-
-// Eliminar usuario
-// <form
-//   onSubmit={handleDelete}
-//   noValidate
-//   className="flex flex-col form-dark  gap-4"
-// >
-//   <input
-//     type="email"
-//     name="email"
-//     placeholder="Correo del usuario a eliminar"
-//     value={deleteData.email}
-//     onChange={handleChange}
-//     className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
-//   />
-//   <input
-//     type="password"
-//     name="password"
-//     placeholder="Contraseña del usuario"
-//     value={deleteData.password}
-//     onChange={handleChange}
-//     className="p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
-//   />
-//   <button
-//     type="submit"
-//     disabled={loading}
-//     className={`flex items-center justify-center gap-2 bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition ${
-//       loading ? "opacity-70 cursor-not-allowed" : ""
-//     }`}
-//   >
-//     <TrashIcon className="w-5 h-5" />
-//     {loading ? "Eliminando..." : "Eliminar usuario"}
-//   </button>
-// </form>

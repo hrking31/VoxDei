@@ -1,34 +1,19 @@
-import { useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../Components/Context/AuthContext.jsx";
 
-export default function UserProfileCard() {
-  const navigate = useNavigate();
-  const { userData, logout } = useAuth();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
+export default function UserProfileCard({
+  isModalOpen,
+  setIsModalOpen,
+  user,
+  handleDelete,
+}) {
   const handlerLogout = async () => {
     await logout();
   };
 
-  if (!userData) return null;
+  if (!user) return null;
 
   return (
     <>
-      {/* Avatar que abre el modal */}
-      <button
-        onClick={() => setIsModalOpen(true)}
-        className="group relative focus:outline-none"
-      >
-        <img
-          src={userData.photo || "https://ui-avatars.com/api/?name=User"}
-          alt="user"
-          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover ring-4 ring-transparent group-hover:ring-app-border transition-all duration-200"
-        />
-        <div className="absolute inset-0 rounded-full bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none" />
-      </button>
-
       {/* Modal */}
       {isModalOpen && (
         <div
@@ -52,9 +37,7 @@ export default function UserProfileCard() {
             {/* Avatar grande centrado arriba del contenido */}
             <div className="relative -mt-16 px-8 text-center">
               <img
-                src={
-                  userData.photo || "https://ui-avatars.com/api/?name=User"
-                }
+                src={user.photo || "https://ui-avatars.com/api/?name=User"}
                 alt="user"
                 className="w-32 h-32 rounded-full object-cover border-4 border-gray-900 shadow-xl mx-auto"
               />
@@ -63,10 +46,10 @@ export default function UserProfileCard() {
             {/* Contenido del modal */}
             <div className="px-8 py-6 text-center">
               <h2 className="text-2xl font-bold  dark:text-white">
-                {userData.name || "Usuario"}
+                {user.name || "Usuario"}
               </h2>
               <p className="text-sm text-app-muted mt-1">
-                {userData.email || "Sin correo"}
+                {user.email || "Sin correo"}
               </p>
 
               <div className="mt-6 flex justify-center">
@@ -74,9 +57,19 @@ export default function UserProfileCard() {
                   className="px-4 py-2 rounded-full text-sm font-medium capitalize
                   bg-app-main/10 text-app-main"
                 >
-                  {userData.role || "Sin rol"}
+                  {user.role || "Sin rol"}
                 </span>
               </div>
+
+              <button
+                onClick={async () => {
+                  setIsModalOpen(false);
+                  await handleDelete();
+                }}
+                className="mt-8 w-full py-3 bg-app-main text-white font-medium rounded-xl hover:bg-app-light transition shadow-lg"
+              >
+                Eliminar
+              </button>
 
               <button
                 onClick={() => {
