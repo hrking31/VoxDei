@@ -21,6 +21,10 @@ export const PREDICAS = "predicas";
 export const TICKERS = "tickers";
 export const MESSAGES = "messages";
 
+// Enlaces de YouTube guardados por la iglesia. Solo se guarda el enlace y su
+// título: el video nunca pasa por Firebase.
+export const VIDEOS = "videos";
+
 // Ajustes de la iglesia. Por ahora solo el documento `estilos`, con la
 // apariencia de la pantalla de proyección.
 export const CONFIGURACION = "configuracion";

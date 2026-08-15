@@ -11,6 +11,7 @@ import {
   ViewPredica,
   ViewVersiculo,
   ViewCanciones,
+  ViewVideo,
   ViewResetPassword,
   ViewUsers,
   VistaNoAutorizada,
@@ -129,6 +130,15 @@ export default function App() {
           element={
             <ProtectedRoutes rolesPermitidos={ROLES_OPERADOR}>
               <ViewCanciones />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/ViewVideo"
+          element={
+            <ProtectedRoutes rolesPermitidos={ROLES_OPERADOR}>
+              <ViewVideo />
             </ProtectedRoutes>
           }
         />

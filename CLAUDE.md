@@ -218,3 +218,78 @@ y funcionando, pero no había sido revisado con detenimiento por el autor.
 3. El título de la proyección sigue usando el tamaño base del texto (`style.text`), no `style.title`, que quedó definido sin usar.
 4. `ColorPicker.jsx` quedó huérfano tras el panel nuevo de estilos.
 5. `src/Components/Hooks/useScreenType.js` aparece modificado, pero **ese cambio ya estaba antes** de esta jornada.
+
+### Prueba en producción del 14 de agosto de 2026 (incompleta)
+
+Se recorrió la app desplegada con el navegador. **Verificado y correcto:**
+
+- Registro de iglesia: el rol `Pastor` se asigna bien y la sesión queda activa.
+- `ViewGestion` carga las 9 secciones, con *Canciones* nueva y *Gestión Video*
+  atenuado como «Próximamente» (ya no navega a la ruta inexistente).
+- `/VOXDEI` carga y aplica el fondo de los estilos por defecto.
+- `ViewVersiculo` carga con sus cuatro interruptores de visibilidad.
+- El modal de libros abre y lista correctamente — señal indirecta de que el
+  arreglo del orden de hooks en `ModalLibros` funciona.
+- El modal de capítulos abre y lista los capítulos del libro elegido.
+
+**Quedó sin verificar** (no por fallo de la app, sino por límites de la
+automatización): el paso de capítulo a versículo, la proyección real de un
+versículo, ticker, mensajes, imágenes, canciones y el guardado de estilos.
+
+**Por qué se detuvo:** las capturas de pantalla se agotan por tiempo mientras
+hay un modal abierto. Los modales combinan `backdrop-blur-sm` con
+`bg-app-dark/90` y ese compositing hace muy costosa la captura; la página sigue
+respondiendo con normalidad a `find` y `get_page_text`.
+
+**Pendiente de arreglar, y no es solo cosmético:** `ModalCapitulo` y
+`ModalVersiculo` **no llevan `role="dialog"` ni `aria-modal="true"`** — solo
+`ModalLibros` los tiene. Además de dificultar la automatización, eso significa
+que un lector de pantalla no anuncia esos modales como diálogos.
+
+---
+
+## PARA MAÑANA (15 de agosto de 2026)
+
+### 1. Desplegar el módulo de video — bloqueante
+
+El módulo de YouTube está escrito y compila, pero **no está desplegado y no
+funcionará hasta que se desplieguen las reglas**: los nodos `displayVideo` y
+`displayVisibleVideo` son nuevos y hoy la Realtime Database los rechaza.
+
+```bash
+firebase deploy --only database
+npm run build && firebase deploy --only hosting
+```
+
+No se anunció en el README a propósito: ese archivo es el manual del cliente y
+no debe describir algo que todavía no está activo. **Añadir la entrada en
+Novedades justo después de desplegar.**
+
+### 2. Probar el video
+
+La única incógnita real es si el internet del templo aguanta: el video viaja
+de YouTube al computador de proyección, sin pasar por Firebase. Comprobar
+además que el sonido salga — depende de que alguien pulse el botón de pantalla
+completa, que es lo que desbloquea el audio.
+
+### 3. Terminar la prueba en producción
+
+Quedó a medias (ver sección anterior): falta el paso de capítulo a versículo,
+proyección real, ticker, mensajes, imágenes, canciones y guardado de estilos.
+
+### 4. Decisiones pendientes del usuario
+
+- `ColorPicker.jsx` quedó huérfano tras el panel nuevo de estilos: ¿se borra?
+- Borrado de iglesia: requiere antes desacoplar el `groupId` del uid del pastor.
+- `src/Components/Hooks/useScreenType.js` sigue sin confirmar en git; ese
+  cambio es del autor, anterior a esta jornada.
+- Colecciones viejas (`predicas`, `tickers`, `messages` en la raíz) siguen en
+  Firestore, ya bloqueadas por las reglas. Se pueden borrar desde la consola.
+
+### 5. Menores
+
+- Instalar `eslint-plugin-react` dejaría el lint en cero: los 3 errores de
+  `motion` sin usar son un falso positivo, la variable sí se usa en el JSX.
+- Añadir `role="dialog"` a los modales de capítulo y versículo.
+- Las 9 alertas de `uuid` en `functions` no se pueden cerrar hasta que Google
+  actualice sus librerías; revisar cada tanto.

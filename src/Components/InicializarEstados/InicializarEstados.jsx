@@ -26,6 +26,7 @@ export default function InicializarEstados() {
     setVisibleTexto,
     setVisibleTicker,
     setVisibleImagen,
+    setVisibleVideo,
     setVelocidadTicker,
     setEstilos,
     showNotif,
@@ -117,6 +118,17 @@ export default function InicializarEstados() {
       }
     );
 
+    // Display Visible Video
+    const visibleVideo = onValue(
+      ref(database, `displayVisibleVideo/${userData.groupId}`),
+      (snapshot) => {
+        const data = snapshot.val();
+        if (data?.visibleVideo !== undefined) {
+          setVisibleVideo(data.visibleVideo);
+        }
+      }
+    );
+
     // Apariencia de la proyección, en vivo: al guardar desde el panel de
     // estilos, la pantalla del templo se actualiza sola.
     const estilosIglesia = onSnapshot(
@@ -160,6 +172,7 @@ export default function InicializarEstados() {
       visibleTexto();
       visibleTicker();
       visibleImagen();
+      visibleVideo();
       estilosIglesia();
       speedTicker();
     };

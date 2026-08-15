@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { onValue, ref } from "firebase/database";
 import { database, auth } from "../Firebase/Firebase";
 import { useAppContext } from "../Context/AppContext";
@@ -6,6 +6,7 @@ import TickerAnimacion from "../TickerAnimacion/TickerAnimacion";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 import useScreenType from "../../Components/Hooks/useScreenType.js";
 import { fondoDe, sombraDe, escalar } from "../Estilos/EstilosProyeccion";
+import { cargarApiYouTube, TOLERANCIA_SEGUNDOS } from "../Video/YouTube";
 import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
 
 export default function DisplayView() {
@@ -24,11 +25,20 @@ export default function DisplayView() {
   const [imagenes, setImagenes] = useState([]);
   const [intervaloImagen, setIntervaloImagen] = useState(5000);
   const [indiceImagen, setIndiceImagen] = useState(0);
+  // Video de YouTube: la orden que llega del panel y el reproductor
+  const [video, setVideo] = useState(null);
+  const [apiVideoLista, setApiVideoLista] = useState(false);
+  // El navegador no deja sonar un video hasta que alguien toca la pantalla.
+  // El botón de pantalla completa cuenta como ese toque.
+  const [audioPermitido, setAudioPermitido] = useState(false);
+  const contenedorVideo = useRef(null);
+  const reproductor = useRef(null);
   const {
     visibleTitulo,
     visibleTexto,
     visibleTicker,
     visibleImagen,
+    visibleVideo,
     velocidadTicker,
     estilos,
   } = useAppContext();
@@ -77,6 +87,11 @@ export default function DisplayView() {
     else if (el.msRequestFullscreen) el.msRequestFullscreen(); // Edge viejo
 
     setVisible(false); // Ocultar el botón
+
+    // Este toque es lo que habilita el sonido de los videos: sin él, el
+    // navegador los deja mudos.
+    setAudioPermitido(true);
+    reproductor.current?.unMute?.();
   };
 
   // Detectar cambio de fullscreen
@@ -195,6 +210,91 @@ export default function DisplayView() {
     return () => unsubscribe();
   }, []);
 
+  // Display Video
+  useEffect(() => {
+    const videoRef = ref(database, `displayVideo/${userData.groupId}`);
+    const unsubscribe = onValue(videoRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data?.videoId) setVideo(data);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // El reproductor de YouTube se carga solo cuando hace falta
+  useEffect(() => {
+    if (!video?.videoId || !visibleVideo || apiVideoLista) return;
+
+    cargarApiYouTube()
+      .then(() => setApiVideoLista(true))
+      .catch((error) => console.error("Reproductor de YouTube:", error));
+  }, [video?.videoId, visibleVideo, apiVideoLista]);
+
+  // Lleva el reproductor al punto que indica el panel.
+  //
+  // Se suma el tiempo que tardó en llegar la orden: si el mensaje se demoró
+  // dos segundos, el video arranca dos segundos más adelante y no queda
+  // rezagado respecto de lo que el operador está viendo.
+  const aplicarOrden = useCallback(
+    (yt, orden) => {
+      if (!yt?.getPlayerState || !orden?.videoId) return;
+
+      const retraso =
+        orden.estado === "reproduciendo"
+          ? (Date.now() - (orden.marcaTiempo || Date.now())) / 1000
+          : 0;
+      const objetivo = Math.max(0, (orden.posicion || 0) + retraso);
+
+      const actual = yt.getVideoData?.()?.video_id;
+
+      if (actual !== orden.videoId) {
+        yt.loadVideoById({
+          videoId: orden.videoId,
+          startSeconds: objetivo,
+        });
+      } else if (Math.abs((yt.getCurrentTime?.() || 0) - objetivo) >
+        TOLERANCIA_SEGUNDOS) {
+        yt.seekTo(objetivo, true);
+      }
+
+      if (orden.estado === "reproduciendo") yt.playVideo?.();
+      else yt.pauseVideo?.();
+    },
+    []
+  );
+
+  // Crear el reproductor la primera vez y obedecer las órdenes siguientes
+  useEffect(() => {
+    if (!apiVideoLista || !visibleVideo || !video?.videoId) return;
+
+    if (reproductor.current) {
+      aplicarOrden(reproductor.current, video);
+      return;
+    }
+
+    if (!contenedorVideo.current) return;
+
+    reproductor.current = new window.YT.Player(contenedorVideo.current, {
+      videoId: video.videoId,
+      playerVars: {
+        controls: 0, // los controles están en el panel, no en la pantalla
+        rel: 0, // sin videos sugeridos al terminar
+        modestbranding: 1,
+        playsinline: 1,
+        disablekb: 1,
+      },
+      events: {
+        onReady: (evento) => {
+          // Arranca mudo por obligación del navegador; se activa el sonido en
+          // cuanto alguien haya tocado la pantalla.
+          if (audioPermitido) evento.target.unMute();
+          else evento.target.mute();
+
+          aplicarOrden(evento.target, video);
+        },
+      },
+    });
+  }, [apiVideoLista, visibleVideo, video, audioPermitido, aplicarOrden]);
+
   // Pasar las imágenes del carrusel
   useEffect(() => {
     if (!visibleImagen || imagenes.length <= 1) return;
@@ -207,6 +307,7 @@ export default function DisplayView() {
   }, [visibleImagen, imagenes, intervaloImagen]);
 
   const imagenActual = imagenes[indiceImagen];
+  const hayVideo = Boolean(visibleVideo && video?.videoId);
 
   // Apariencia configurada desde el panel de estilos
   const sombra = sombraDe(estilos);
@@ -271,8 +372,21 @@ export default function DisplayView() {
           </div>
         )}
 
+        {/* VIDEO: manda sobre lo demás mientras esté encendido */}
+        <div
+          className={`flex-1 items-center justify-center overflow-hidden ${
+            hayVideo ? "flex" : "hidden"
+          }`}
+        >
+          {/* El contenedor no se desmonta al apagar el video: si desapareciera
+              del DOM habría que reconstruir el reproductor cada vez. */}
+          <div className="w-full h-full max-w-full max-h-full">
+            <div ref={contenedorVideo} className="w-full h-full" />
+          </div>
+        </div>
+
         {/* IMAGEN: ocupa el centro y reemplaza al texto mientras esté encendida */}
-        {visibleImagen && imagenActual && (
+        {!hayVideo && visibleImagen && imagenActual && (
           <div className="flex-1 flex items-center justify-center overflow-hidden px-4">
             <img
               key={imagenActual}
@@ -285,7 +399,7 @@ export default function DisplayView() {
         )}
 
         {/* MENSAJE / PREDICA / VERSÍCULO */}
-        {visibleTexto && !(visibleImagen && imagenActual) && (
+        {visibleTexto && !hayVideo && !(visibleImagen && imagenActual) && (
           <div
             className="flex-1 flex items-center justify-center px-8"
             style={{ transition: transicion }}

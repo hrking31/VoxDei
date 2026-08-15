@@ -14,6 +14,7 @@ export function AppProvider({ children }) {
   const [visibleTexto, setVisibleTexto] = useState("");
   const [visibleTicker, setVisibleTicker] = useState("");
   const [visibleImagen, setVisibleImagen] = useState(false);
+  const [visibleVideo, setVisibleVideo] = useState(false);
   // Apariencia de la pantalla de proyección
   const [estilos, setEstilos] = useState(ESTILOS_POR_DEFECTO);
   const [authUser, setAuthUser] = useState(null);
@@ -60,6 +61,8 @@ export function AppProvider({ children }) {
         setVisibleTicker,
         visibleImagen,
         setVisibleImagen,
+        visibleVideo,
+        setVisibleVideo,
         estilos,
         setEstilos,
         authUser,

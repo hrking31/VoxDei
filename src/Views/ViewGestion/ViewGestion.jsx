@@ -103,12 +103,10 @@ export default function ViewSelector() {
             onClick={() => navigate("/ViewImagenes")}
           />
 
-          {/* Todavía no existe la vista de video: se deja a la vista pero sin
-              navegar, porque su ruta llevaba a una pantalla en blanco. */}
           <OptionButton
             icon={<VideoCameraIcon className="w-10 h-10 text-app-muted mb-2" />}
             label="Gestión Video"
-            disponible={false}
+            onClick={() => navigate("/ViewVideo")}
           />
 
           <OptionButton

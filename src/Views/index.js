@@ -9,6 +9,7 @@ import ViewMessage from "./ViewMessage/ViewMenssage";
 import ViewPredica from "./ViewPredica/ViewPredica";
 import ViewVersiculo from "./ViewVersiculo/ViewVersiculo";
 import ViewCanciones from "./ViewCanciones/ViewCanciones.jsx";
+import ViewVideo from "./ViewVideo/ViewVideo.jsx";
 import ViewResetPassword from "./ViewResetPassword/ViewResetPassword.jsx";
 import ViewUsers from "./ViewUsers/ViewUsers.jsx";
 import ViewRegister from "./ViewRegister/ViewRegister.jsx";
@@ -26,6 +27,7 @@ export {
   ViewPredica,
   ViewVersiculo,
   ViewCanciones,
+  ViewVideo,
   ViewResetPassword,
   ViewUsers,
   ViewRegister,
