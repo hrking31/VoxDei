@@ -5,8 +5,9 @@ export default function VistaNoAutorizada() {
   const location = useLocation(); // Contiene la ruta de donde vino
 
   const handleVolver = () => {
-    // Si viene de ViewDisplay, redirige a ViewSelector, si no a ViewGestion
-    if (location.state?.from?.pathname === "/ViewDisplay") {
+    // Si viene de la pantalla de proyección, redirige a ViewSelector; si no,
+    // al panel de gestión. La ruta del proyector es /VOXDEI.
+    if (location.state?.from?.pathname === "/VOXDEI") {
       navigate("/ViewSelector");
     } else {
       navigate("/ViewGestion");

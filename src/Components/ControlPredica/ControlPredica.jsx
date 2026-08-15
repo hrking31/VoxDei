@@ -75,7 +75,7 @@ export default function Predica() {
   const VersiculoSeleccionado = (versiculo) => {
     setLibro((prev) => ({ ...prev, versiculo }));
     consultaVersiculo(libro.sigla, libro.capitulo, versiculo);
-    setModalActivo("false");
+    setModalActivo(false);
   };
 
   const consultaVersiculo = async (sigla, capitulo, versiculo) => {
@@ -384,6 +384,7 @@ export default function Predica() {
                       key={index}
                       onClick={() => {
                         handleSlotClick({
+                          groupId: userData.groupId,
                           index,
                           slots,
                           editar,
@@ -445,7 +446,7 @@ export default function Predica() {
 
                 <button
                   type="button"
-                  onClick={(e) => {
+                  onClick={() => {
                     setPredicaItems([]);
                     setNumSlots("");
                     setItemSeleccionado(null);
@@ -596,9 +597,8 @@ export default function Predica() {
             {((!editar && !numSlots) || (editar && !!numSlots)) && (
               <button
                 type="button"
-                onClick={(e) => {
+                onClick={() => {
                   setPredicaItems((prev) => prev.filter((_, i) => i !== index));
-                  // e.stopPropagation();
                   setItemSeleccionado(null);
                 }}
                 className="absolute top-2 right-2 p-1 text-app-border group-hover:text-red-600"

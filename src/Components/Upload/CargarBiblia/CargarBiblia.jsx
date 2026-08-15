@@ -1,16 +1,53 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../../Firebase/Firebase";
-// import bibleData from "../../assets/RVR1960.json";
 
+// Herramienta de carga masiva de la Biblia. Es de un solo uso: normalmente
+// está desmontada (ver ViewDisplay).
+//
+// El archivo con la Biblia se elige desde el disco en vez de importarse: antes
+// se usaba una variable `bibleData` cuyo import estaba comentado, así que el
+// componente reventaba apenas se pulsaba el botón.
+//
+// OJO: las reglas de seguridad dejan la colección `biblia` como solo lectura,
+// porque es contenido común a todas las iglesias. Para volver a cargarla hay
+// que hacerlo con credenciales de administrador (un script con firebase-admin)
+// o permitir la escritura temporalmente en firestore.rules.
 const SubirBiblia = () => {
   const [subiendo, setSubiendo] = useState(false);
   const [mensaje, setMensaje] = useState("");
+  const [bibleData, setBibleData] = useState(null);
+
+  const cargarArchivo = async (evento) => {
+    const archivo = evento.target.files?.[0];
+    if (!archivo) return;
+
+    try {
+      const contenido = JSON.parse(await archivo.text());
+
+      if (!Array.isArray(contenido?.books)) {
+        setMensaje("❌ El archivo no tiene la lista de libros esperada.");
+        setBibleData(null);
+        return;
+      }
+
+      setBibleData(contenido);
+      setMensaje(`📗 Archivo listo: ${contenido.books.length} libros.`);
+    } catch (error) {
+      console.error("Error al leer el archivo:", error);
+      setMensaje("❌ No se pudo leer el archivo. ¿Es un JSON válido?");
+      setBibleData(null);
+    }
+  };
 
   const subirBiblia = async () => {
+    if (!bibleData) {
+      setMensaje("🚫 Primero elige el archivo con la Biblia.");
+      return;
+    }
+
     setSubiendo(true);
     setMensaje("🚀 Iniciando subida de la Biblia...");
-    console.log("🚀 Iniciando subida de la Biblia...");
 
     const fallidos = [];
 
@@ -58,46 +95,48 @@ const SubirBiblia = () => {
             chapter_html: chapterHTML,
           });
 
-          console.log(`✅ Subido: ${nombreLibro} capítulo ${capitulo}`);
           setMensaje(`📖 Subiendo: ${nombreLibro} capítulo ${capitulo}`);
         }
       }
 
       setMensaje("🎉 Toda la Biblia fue subida correctamente a Firestore!");
-      console.log("🎉 Toda la Biblia fue subida correctamente a Firestore!");
+
       if (fallidos.length > 0) {
         console.warn("⚠️ Los siguientes capítulos no se subieron:", fallidos);
       }
     } catch (error) {
       console.error("❌ Error al subir la Biblia:", error);
-      setMensaje("❌ Error al subir la Biblia, revisa la consola.");
+      setMensaje(
+        "❌ Error al subir la Biblia. Si dice que faltan permisos, es " +
+          "porque la colección está protegida como solo lectura."
+      );
     }
 
     setSubiendo(false);
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "2rem" }}>
+    <div className="flex flex-col items-center gap-3 mt-8 text-app-muted">
+      <input
+        type="file"
+        accept="application/json,.json"
+        onChange={cargarArchivo}
+        className="border border-app-border rounded p-1 text-sm"
+      />
+
       <button
         onClick={subirBiblia}
-        disabled={subiendo}
-        style={{
-          padding: "1rem 2rem",
-          fontSize: "1.2rem",
-          backgroundColor: subiendo ? "#ccc" : "#4caf50",
-          color: "white",
-          border: "none",
-          borderRadius: "8px",
-          cursor: subiendo ? "not-allowed" : "pointer",
-        }}
+        disabled={subiendo || !bibleData}
+        className={`px-6 py-3 rounded-lg text-white font-semibold ${
+          subiendo || !bibleData
+            ? "bg-app-border cursor-not-allowed"
+            : "bg-green-500"
+        }`}
       >
         {subiendo ? "⏳ Subiendo..." : "📖 Subir toda la Biblia"}
       </button>
-      {mensaje && (
-        <p style={{ marginTop: "1rem", fontSize: "1rem", color: "#333" }}>
-          {mensaje}
-        </p>
-      )}
+
+      {mensaje && <p className="text-sm">{mensaje}</p>}
     </div>
   );
 };

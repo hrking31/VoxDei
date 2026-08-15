@@ -22,7 +22,7 @@ export default function ViewResetPassword() {
       );
       setTimeout(() => navigate("/ViewLogin"), 3000); // vuelve al login
     } catch (err) {
-      console.log("🔥 Error Firebase:", err.code, err.message);
+      console.error("Error al enviar la recuperación:", err.code);
       const errorMessages = {
         "auth/missing-email": "Debes ingresar un correo electrónico.",
         "auth/invalid-email": "El formato del correo es inválido.",

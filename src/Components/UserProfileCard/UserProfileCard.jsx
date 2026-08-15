@@ -1,4 +1,5 @@
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { useAuth } from "../Context/AuthContext.jsx";
 
 export default function UserProfileCard({
   isModalOpen,
@@ -6,6 +7,10 @@ export default function UserProfileCard({
   user,
   handleDelete,
 }) {
+  // Faltaba traer `logout`: el botón de cerrar sesión llamaba a una función
+  // que no existía y rompía la pantalla.
+  const { logout } = useAuth();
+
   const handlerLogout = async () => {
     await logout();
   };

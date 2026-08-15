@@ -12,7 +12,9 @@ export default function WhatsAppButton({ message }) {
         .join("\n")
     : message;
 
-  const url = `https://wa.me/?text=${encodeURI(textoAEnviar)}`;
+  // encodeURIComponent y no encodeURI: este último deja pasar &, # y +, que
+  // cortan o corrompen el mensaje al llegar a WhatsApp.
+  const url = `https://wa.me/?text=${encodeURIComponent(textoAEnviar ?? "")}`;
 
   return (
     <a

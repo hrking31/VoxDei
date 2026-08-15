@@ -24,7 +24,7 @@ export default function VersiculoModal({
           </h2>
 
           <button
-            onClick={() => onVersiculo("uno")}
+            onClick={onClose}
             className=" text-app-accent hover:text-app-error"
           >
             <XMarkIcon className="h-8 w-8 " />

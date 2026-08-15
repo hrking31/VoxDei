@@ -59,36 +59,20 @@ export default function ControlVersiculos() {
   };
 
   const CapituloSeleccionado = (capitulo) => {
-    // Si es "uno", consulta el capítulo 1 directamente y cierra el modal
-    if (capitulo === "uno") {
-      setLibro((prevLibro) => ({
-        ...prevLibro,
-        capitulo: 1,
-      }));
-      consultaVersiculo(libro.sigla, 1, 1);
-      setModalActivo("false");
-    } else {
-      setLibro((prevLibro) => ({
-        ...prevLibro,
-        capitulo: capitulo,
-      }));
-      setModalActivo("versiculo");
-    }
+    setLibro((prevLibro) => ({
+      ...prevLibro,
+      capitulo: capitulo,
+    }));
+    setModalActivo("versiculo");
   };
 
   const VersiculoSeleccionado = (versiculo) => {
-    // Si es "uno", consulta el versículo 1 directamente
-    if (versiculo === "uno") {
-      consultaVersiculo(libro.sigla, libro.capitulo, 1);
-      setModalActivo("false");
-    } else {
-      setLibro((prevLibro) => ({
-        ...prevLibro,
-        versiculo: versiculo,
-      }));
-      consultaVersiculo(libro.sigla, libro.capitulo, versiculo);
-      setModalActivo("false");
-    }
+    setLibro((prevLibro) => ({
+      ...prevLibro,
+      versiculo: versiculo,
+    }));
+    consultaVersiculo(libro.sigla, libro.capitulo, versiculo);
+    setModalActivo(false);
   };
 
   const consultaVersiculo = async (sigla, capitulo, versiculo) => {
@@ -158,7 +142,68 @@ export default function ControlVersiculos() {
     }
   }, [libro.capitulo]);
 
-  let currentTitulo = "";
+  // Convierte el HTML del capítulo en versículos que se pueden tocar.
+  //
+  // El título pendiente vive DENTRO de esta función a propósito: antes era una
+  // variable del componente que se modificaba mientras React dibujaba, algo
+  // que con StrictMode (que está activo) produce fallos intermitentes.
+  const renderCapitulo = (html) => {
+    let tituloPendiente = "";
+
+    return parse(html, {
+      replace: (domNode) => {
+        if (domNode.name === "h2") {
+          tituloPendiente = domNode.children[0]?.data || "";
+          return (
+            <h2 className="font-bold sm:text-3xl text-app-muted mb-2 md:mb-4 text-left">
+              {tituloPendiente}
+            </h2>
+          );
+        }
+
+        if (domNode.name === "p") {
+          const numero = domNode.children[0]?.children?.[0]?.data || null;
+          const texto = domNode.children
+            .slice(1)
+            .map((c) => c.data || c.children?.[0]?.data || "")
+            .join(" ")
+            .trim();
+
+          const titulo = tituloPendiente;
+          tituloPendiente = "";
+
+          return (
+            <div
+              key={`${numero}-${texto}`}
+              ref={(el) => {
+                if (numero) versiculosRef.current[numero] = el;
+              }}
+              onClick={() => {
+                setVersiculoNumero(numero);
+                setVersiculoTexto(texto);
+                handleProjectarVersiculo(texto, numero, titulo);
+              }}
+              className={`versiculo-scroll cursor-pointer rounded-lg px-2 py-2 transition-colors flex ${
+                versiculoNumero === numero && versiculoTexto === texto
+                  ? "bg-yellow-100 shadow-md"
+                  : "hover:bg-app-border active:bg-app-light"
+              }`}
+            >
+              <div className="flex">
+                <span className="text-right pr-3 font-bold text-app-main shrink-0 flex items-center justify-end">
+                  {numero}
+                </span>
+
+                <span className="flex-1 leading-relaxed text-app-muted overflow-hidden">
+                  {texto}
+                </span>
+              </div>
+            </div>
+          );
+        }
+      },
+    });
+  };
 
   // Visibilidad del titulo
   const toggleVisibleTitulo = () => {
@@ -378,60 +423,7 @@ export default function ControlVersiculos() {
                   </strong>
 
                   <div className="text-base sm:text-lg leading-relaxed text-justify space-y-2">
-                    {parse(resultado.texto, {
-                      replace: (domNode) => {
-                        if (domNode.name === "h2") {
-                          currentTitulo = domNode.children[0]?.data || "";
-                          return (
-                            <h2 className="font-bold sm:text-3xl text-app-muted mb-2 md:mb-4 text-left">
-                              {currentTitulo}
-                            </h2>
-                          );
-                        }
-                        if (domNode.name === "p") {
-                          const numero =
-                            domNode.children[0]?.children?.[0]?.data || null;
-                          const texto = domNode.children
-                            .slice(1)
-                            .map((c) => c.data || c.children?.[0]?.data || "")
-                            .join(" ")
-                            .trim();
-
-                          const titulo = currentTitulo;
-                          currentTitulo = "";
-
-                          return (
-                            <div
-                              key={`${numero}-${texto}`}
-                              ref={(el) => {
-                                if (numero) versiculosRef.current[numero] = el;
-                              }}
-                              onClick={() => {
-                                setVersiculoNumero(numero);
-                                setVersiculoTexto(texto);
-                                handleProjectarVersiculo(texto, numero, titulo);
-                              }}
-                              className={`versiculo-scroll cursor-pointer rounded-lg px-2 py-2 transition-colors flex ${
-                                versiculoNumero === numero &&
-                                versiculoTexto === texto
-                                  ? "bg-yellow-100 shadow-md"
-                                  : "hover:bg-app-border active:bg-app-light"
-                              }`}
-                            >
-                              <div className="flex">
-                                <span className="text-right pr-3 font-bold text-app-main shrink-0 flex items-center justify-end">
-                                  {numero}
-                                </span>
-
-                                <span className="flex-1 leading-relaxed text-app-muted overflow-hidden">
-                                  {texto}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        }
-                      },
-                    })}
+                    {renderCapitulo(resultado.texto)}
                   </div>
                 </>
               ) : (

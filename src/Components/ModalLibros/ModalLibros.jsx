@@ -3,12 +3,15 @@ import { XMarkIcon } from "@heroicons/react/24/solid";
 import { librosAntiguo, librosNuevo } from "../LibrosBiblia/LibrosBiblia";
 
 export default function LibrosModal({ open, onClose, tipo, onLibro }) {
-  if (open !== "libro") return null;
-
+  // El hook va antes de cualquier salida temprana: React exige que se ejecuten
+  // siempre en el mismo orden, y al abrir/cerrar el modal el componente pasaba
+  // de tener cero hooks a tener uno.
   const TipoLibros = useMemo(
     () => (tipo === "antiguo" ? librosAntiguo : librosNuevo),
     [tipo]
   );
+
+  if (open !== "libro") return null;
 
   return (
     <div

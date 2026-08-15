@@ -38,7 +38,7 @@ export default function ModalVisibilidad({
       if (
         menuRef.current &&
         !menuRef.current.contains(e.target) &&
-        !buttonRef.current.contains(e.target)
+        !buttonRef.current?.contains(e.target)
       ) {
         setOpen(false);
       }
