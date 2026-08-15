@@ -6,6 +6,7 @@ import {
   VideoCameraIcon,
   MicrophoneIcon,
   BookOpenIcon,
+  MusicalNoteIcon,
   PaintBrushIcon,
   UserGroupIcon,
   XMarkIcon,
@@ -102,10 +103,12 @@ export default function ViewSelector() {
             onClick={() => navigate("/ViewImagenes")}
           />
 
+          {/* Todavía no existe la vista de video: se deja a la vista pero sin
+              navegar, porque su ruta llevaba a una pantalla en blanco. */}
           <OptionButton
             icon={<VideoCameraIcon className="w-10 h-10 text-app-muted mb-2" />}
             label="Gestión Video"
-            onClick={() => navigate("/ViewPanel")}
+            disponible={false}
           />
 
           <OptionButton
@@ -119,6 +122,14 @@ export default function ViewSelector() {
             label="Biblia"
             onClick={() => navigate("/ViewVersiculo")}
           />
+
+          <OptionButton
+            icon={
+              <MusicalNoteIcon className="w-10 h-10 text-app-muted mb-2" />
+            }
+            label="Canciones"
+            onClick={() => navigate("/ViewCanciones")}
+          />
         </div>
       </div>
 
@@ -128,19 +139,32 @@ export default function ViewSelector() {
 }
 
 /* Componente reutilizable */
-function OptionButton({ icon, label, onClick }) {
+function OptionButton({ icon, label, onClick, disponible = true }) {
   return (
     <button
-      onClick={onClick}
-      className="group flex flex-col items-center justify-center p-3 sm:p-6 bg-linear-to-b from-app-muted/40 to-app-dark rounded-2xl shadow-md hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-app-border sm:aspect-square"
+      onClick={disponible ? onClick : undefined}
+      disabled={!disponible}
+      className={`group flex flex-col items-center justify-center p-3 sm:p-6 bg-linear-to-b from-app-muted/40 to-app-dark rounded-2xl shadow-md border border-app-border sm:aspect-square transition-all duration-300 ${
+        disponible
+          ? "hover:shadow-xl transform hover:scale-105"
+          : "opacity-40 cursor-not-allowed"
+      }`}
     >
-      <span className="text-app-main transform transition-all duration-300 group-hover:scale-125 group-hover:-translate-y-1">
+      <span
+        className={`text-app-main transform transition-all duration-300 ${
+          disponible ? "group-hover:scale-125 group-hover:-translate-y-1" : ""
+        }`}
+      >
         {icon}
       </span>
 
       <span className="text-sm sm:text-base font-medium text-app-main text-center mt-2">
         {label}
       </span>
+
+      {!disponible && (
+        <span className="text-[10px] text-app-muted mt-1">Próximamente</span>
+      )}
     </button>
   );
 }
