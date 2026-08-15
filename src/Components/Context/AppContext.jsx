@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { ESTILOS_POR_DEFECTO } from "../Estilos/EstilosProyeccion";
 
 const AppContext = createContext();
 
@@ -12,6 +13,9 @@ export function AppProvider({ children }) {
   const [visibleTitulo, setVisibleTitulo] = useState("");
   const [visibleTexto, setVisibleTexto] = useState("");
   const [visibleTicker, setVisibleTicker] = useState("");
+  const [visibleImagen, setVisibleImagen] = useState(false);
+  // Apariencia de la pantalla de proyección
+  const [estilos, setEstilos] = useState(ESTILOS_POR_DEFECTO);
   const [authUser, setAuthUser] = useState(null);
   const [notif, setNotif] = useState({
     open: false,
@@ -54,6 +58,10 @@ export function AppProvider({ children }) {
         setVisibleTexto,
         visibleTicker,
         setVisibleTicker,
+        visibleImagen,
+        setVisibleImagen,
+        estilos,
+        setEstilos,
         authUser,
         setAuthUser,
         notif,

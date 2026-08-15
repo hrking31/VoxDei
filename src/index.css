@@ -68,6 +68,16 @@ body {
   hover:text-app-error hover:inset-shadow-app-error active:bg-app-error transition active:text-app-muted;
 }
 
+/* Fundido de entrada del contenido proyectado */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes menuOpen {
   0% {
     opacity: 0;

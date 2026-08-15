@@ -10,18 +10,26 @@ import {
 import {
   collection,
   addDoc,
+  doc,
+  deleteDoc,
   serverTimestamp,
   onSnapshot,
   query,
   where,
   orderBy,
 } from "firebase/firestore";
+import { PhotoIcon } from "@heroicons/react/24/solid";
 import { database, storage, db } from "../../Components/Firebase/Firebase.js";
 import { useAuth } from "../../Components/Context/AuthContext";
+import { useAppContext } from "../../Components/Context/AppContext";
 
 export default function ControlImagenes() {
   const navigate = useNavigate();
   const { userData } = useAuth();
+  const { visibleImagen, setVisibleImagen, showNotif, confirmAction } =
+    useAppContext();
+  // Imágenes guardadas que el usuario marcó para proyectar juntas
+  const [seleccionGuardadas, setSeleccionGuardadas] = useState([]);
 
   // Estados para selección y previews locales
   const [selectedFiles, setSelectedFiles] = useState([]); // File objects pendientes de subir
@@ -143,20 +151,45 @@ export default function ControlImagenes() {
       setSelectedFiles([]);
       localPreviews.forEach((url) => URL.revokeObjectURL(url));
       setLocalPreviews([]);
-      alert("✅ Imágenes guardadas correctamente.");
+      showNotif("success", "✅ Imágenes guardadas correctamente");
     } catch (err) {
       console.error(err);
-      alert("❌ Error al guardar imágenes.");
+      showNotif("error", "❌ Error al guardar las imágenes");
     } finally {
       setLoading(false);
     }
   };
 
-  // Proyecta las imágenes seleccionadas (si están sin subir, las sube primero)
+  // Enciende o apaga la imagen en la pantalla de proyección
+  const toggleVisibleImagen = (estado) => {
+    const nuevoEstado = estado ?? !visibleImagen;
+    setVisibleImagen(nuevoEstado);
+
+    dbSet(dbRef(database, `displayVisibleImagen/${userData.groupId}`), {
+      visibleImagen: nuevoEstado,
+      timestamp: Date.now(),
+    });
+  };
+
+  // Envía a la pantalla una lista de URLs y enciende la imagen
+  const proyectarUrls = async (urls) => {
+    await dbSet(dbRef(database, `displayImage/${userData.groupId}`), {
+      type: urls.length > 1 ? "carousel" : "single",
+      images: urls,
+      image: urls[0],
+      interval: Number(intervalo || 5) * 1000,
+      timestamp: Date.now(),
+    });
+
+    toggleVisibleImagen(true);
+  };
+
+  // Proyecta las imágenes recién seleccionadas (las sube primero)
   const handleProyectarSeleccionadas = async () => {
     if (selectedFiles.length === 0) {
-      alert(
-        "Selecciona imágenes para proyectar o usa las miniaturas guardadas."
+      showNotif(
+        "warning",
+        "🚫 Selecciona imágenes o usa las que ya tienes guardadas"
       );
       return;
     }
@@ -164,23 +197,16 @@ export default function ControlImagenes() {
     try {
       // subir primero para obtener URLs
       const urls = await uploadAndSave(selectedFiles);
-
-      // enviar a Realtime DB para el viewer (carousel)
-      await dbSet(dbRef(database, `displayImage/${userData.groupId}`), {
-        type: "carousel",
-        images: urls,
-        interval: Number(intervalo || 5) * 1000,
-        timestamp: Date.now(),
-      });
+      await proyectarUrls(urls);
 
       // limpiar selección local
       setSelectedFiles([]);
       localPreviews.forEach((url) => URL.revokeObjectURL(url));
       setLocalPreviews([]);
-      alert("✅ Carrusel proyectado correctamente.");
+      showNotif("success", "✅ Imágenes proyectadas");
     } catch (err) {
       console.error("Error al proyectar:", err);
-      alert("❌ Error al proyectar imágenes.");
+      showNotif("error", "❌ Error al proyectar las imágenes");
     } finally {
       setLoading(false);
     }
@@ -189,33 +215,67 @@ export default function ControlImagenes() {
   // Proyectar una imagen guardada (miniatura)
   const handleProyectarGuardada = async (img) => {
     try {
-      await dbSet(dbRef(database, `displayImage/${userData.groupId}`), {
-        type: "single",
-        image: img.url,
-        interval: Number(intervalo || 5) * 1000,
-        timestamp: Date.now(),
-      });
+      await proyectarUrls([img.url]);
     } catch (err) {
       console.error("Error al proyectar imagen guardada:", err);
-      alert("❌ Error al proyectar la imagen.");
+      showNotif("error", "❌ Error al proyectar la imagen");
     }
   };
 
-  // Opcional: eliminar imagen guardada (si quieres exponer esa opción)
-  const handleEliminarGuardada = async (img) => {
-    if (!img?.storagePath) return;
-    const confirm = window.confirm("¿Eliminar esta imagen permanentemente?");
-    if (!confirm) return;
+  // Marca o desmarca una imagen guardada para proyectarlas en grupo
+  const toggleSeleccionGuardada = (id) => {
+    setSeleccionGuardadas((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  // Proyecta como carrusel todas las imágenes guardadas que estén marcadas
+  const handleProyectarMarcadas = async () => {
+    const urls = savedImages
+      .filter((img) => seleccionGuardadas.includes(img.id))
+      .map((img) => img.url);
+
+    if (urls.length === 0) return;
+
     try {
-      const sRef = storageRef(storage, img.storagePath);
-      await deleteObject(sRef); // borra del storage
-      // Nota: no borramos el doc de Firestore aquí; podrías hacerlo con deleteDoc si lo deseas.
-      alert(
-        "Imagen eliminada del storage (actualiza Firestore si quieres eliminar el documento)."
+      await proyectarUrls(urls);
+      showNotif(
+        "success",
+        urls.length > 1
+          ? `✅ Carrusel de ${urls.length} imágenes proyectado`
+          : "✅ Imagen proyectada"
       );
     } catch (err) {
+      console.error("Error al proyectar la selección:", err);
+      showNotif("error", "❌ Error al proyectar las imágenes");
+    }
+  };
+
+  // Eliminar imagen guardada: borra el archivo y su ficha
+  const handleEliminarGuardada = async (img) => {
+    const accepted = await confirmAction(
+      `¿Eliminar definitivamente "${img.name}"?`
+    );
+    if (!accepted) return;
+
+    try {
+      // El archivo puede no existir ya; eso no debe impedir borrar la ficha,
+      // porque si no la miniatura queda rota para siempre.
+      if (img.storagePath) {
+        try {
+          await deleteObject(storageRef(storage, img.storagePath));
+        } catch (err) {
+          console.warn("No se pudo borrar el archivo:", err.message);
+        }
+      }
+
+      await deleteDoc(doc(db, "imagenes", img.id));
+
+      setSeleccionGuardadas((prev) => prev.filter((x) => x !== img.id));
+      showNotif("success", "🗑️ Imagen eliminada");
+    } catch (err) {
       console.error("Error eliminando:", err);
-      alert("No se pudo eliminar la imagen.");
+      showNotif("error", "❌ No se pudo eliminar la imagen");
     }
   };
 
@@ -310,6 +370,23 @@ export default function ControlImagenes() {
           >
             Salida
           </button>
+
+          {/* Encender / apagar la imagen en la pantalla */}
+          <button
+            onClick={() => toggleVisibleImagen()}
+            title={
+              visibleImagen
+                ? "Quitar la imagen de la pantalla"
+                : "Mostrar la imagen en la pantalla"
+            }
+            className="px-3 flex items-center justify-center transition-all duration-200"
+          >
+            <PhotoIcon
+              className={`w-8 h-8 ${
+                visibleImagen ? "text-app-success" : "text-app-muted"
+              }`}
+            />
+          </button>
         </div>
       </div>
 
@@ -339,7 +416,31 @@ export default function ControlImagenes() {
 
       {/* MINIATURAS DE IMÁGENES GUARDADAS (cada imagen por separado) */}
       <div className="p-2">
-        <h3 className="font-bold text-app-main mb-2">Imágenes guardadas</h3>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <h3 className="font-bold text-app-main">Imágenes guardadas</h3>
+
+          {/* Proyectar en grupo las que estén marcadas */}
+          {seleccionGuardadas.length > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-app-muted">
+                {seleccionGuardadas.length} marcada
+                {seleccionGuardadas.length > 1 ? "s" : ""}
+              </span>
+              <button
+                onClick={handleProyectarMarcadas}
+                className="text-xs px-3 py-1.5 rounded bg-green-500 text-white"
+              >
+                Proyectar juntas
+              </button>
+              <button
+                onClick={() => setSeleccionGuardadas([])}
+                className="text-xs px-3 py-1.5 rounded border border-app-border text-app-muted"
+              >
+                Quitar marcas
+              </button>
+            </div>
+          )}
+        </div>
 
         {savedImages.length === 0 ? (
           <p className="text-app-muted">No hay imágenes guardadas aún.</p>
@@ -348,7 +449,11 @@ export default function ControlImagenes() {
             {savedImages.map((img) => (
               <div
                 key={img.id}
-                className="relative border border-app-border rounded-lg p-1 cursor-pointer hover:shadow-md"
+                className={`relative border rounded-lg p-1 cursor-pointer hover:shadow-md ${
+                  seleccionGuardadas.includes(img.id)
+                    ? "border-app-success border-2"
+                    : "border-app-border"
+                }`}
               >
                 <img
                   src={img.url}
@@ -356,6 +461,19 @@ export default function ControlImagenes() {
                   className="w-full h-40 object-cover rounded"
                   onClick={() => handleProyectarGuardada(img)}
                 />
+
+                {/* Marcar para proyectar en grupo */}
+                <button
+                  onClick={() => toggleSeleccionGuardada(img.id)}
+                  title="Marcar para proyectar junto con otras"
+                  className={`absolute top-2 left-2 w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold ${
+                    seleccionGuardadas.includes(img.id)
+                      ? "bg-app-success border-app-success text-white"
+                      : "bg-black/40 border-white/70 text-transparent"
+                  }`}
+                >
+                  ✓
+                </button>
 
                 <div className="flex justify-between items-center mt-1">
                   <p className="text-xs text-app-muted truncate">{img.name}</p>

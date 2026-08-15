@@ -5,6 +5,7 @@ import { useAppContext } from "../Context/AppContext";
 import TickerAnimacion from "../TickerAnimacion/TickerAnimacion";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 import useScreenType from "../../Components/Hooks/useScreenType.js";
+import { fondoDe, sombraDe, escalar } from "../Estilos/EstilosProyeccion";
 import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
 
 export default function DisplayView() {
@@ -18,41 +19,50 @@ export default function DisplayView() {
   const [versiculo, setVersiculo] = useState("");
   const [tituloVersiculo, setTituloVersiculo] = useState("");
   const [cita, setCita] = useState("");
-  const { visibleTitulo, visibleTexto, visibleTicker, velocidadTicker } =
-    useAppContext();
+  // Imágenes: una lista (con una sola entrada si es imagen suelta) y la
+  // posición que se está mostrando.
+  const [imagenes, setImagenes] = useState([]);
+  const [intervaloImagen, setIntervaloImagen] = useState(5000);
+  const [indiceImagen, setIndiceImagen] = useState(0);
+  const {
+    visibleTitulo,
+    visibleTexto,
+    visibleTicker,
+    visibleImagen,
+    velocidadTicker,
+    estilos,
+  } = useAppContext();
   const { userData } = useAuth();
 
-  // Estilos según tipo de pantalla
+  // Tamaños base según el tipo de pantalla, como valores CSS: los ajustes del
+  // panel de estilos los multiplican por su porcentaje (ver `escalar`).
   const sizes = {
     proyector: {
-      text: "text-[clamp(2.5rem,4vw,4rem)]",
-      title: "text-[clamp(3rem,5vw,5rem)]",
-      verseTitle: "text-[clamp(1.8rem,3vw,2.3rem)]",
-      verseCite: "text-[clamp(1.4rem,2.5vw,1.8rem)]",
-      tickerText: "text-[clamp(1.8rem,3vw,2.3rem)]",
-      tickerHeight: "h-[clamp(3.5rem,6vw,4rem)]",
+      text: "clamp(2.5rem,4vw,4rem)",
+      title: "clamp(3rem,5vw,5rem)",
+      verseTitle: "clamp(1.8rem,3vw,2.3rem)",
+      verseCite: "clamp(1.4rem,2.5vw,1.8rem)",
+      tickerText: "clamp(1.8rem,3vw,2.3rem)",
+      tickerHeight: "clamp(3.5rem,6vw,4rem)",
       speed: 1.4,
-      padding: "p-8",
     },
     desktop: {
-      text: "text-[clamp(1.5rem,3vw,2.5rem)]",
-      title: "text-[clamp(2rem,4vw,3rem)]",
-      verseTitle: "text-[clamp(1.2rem,2.5vw,1.6rem)]",
-      verseCite: "text-[clamp(1rem,2vw,1.3rem)]",
-      tickerText: "text-[clamp(1.2rem,2.5vw,1.6rem)]",
-      tickerHeight: "h-[clamp(2.5rem,4vw,3rem)]",
+      text: "clamp(1.5rem,3vw,2.5rem)",
+      title: "clamp(2rem,4vw,3rem)",
+      verseTitle: "clamp(1.2rem,2.5vw,1.6rem)",
+      verseCite: "clamp(1rem,2vw,1.3rem)",
+      tickerText: "clamp(1.2rem,2.5vw,1.6rem)",
+      tickerHeight: "clamp(2.5rem,4vw,3rem)",
       speed: 1.2,
-      padding: "p-5",
     },
     movil: {
-      text: "text-[clamp(1rem,2.5vw,1.25rem)]",
-      title: "text-[clamp(1.2rem,3vw,1.5rem)]",
-      verseTitle: "text-base",
-      verseCite: "text-sm",
-      tickerText: "text-base",
-      tickerHeight: "h-10",
+      text: "clamp(1rem,2.5vw,1.25rem)",
+      title: "clamp(1.2rem,3vw,1.5rem)",
+      verseTitle: "1rem",
+      verseCite: "0.875rem",
+      tickerText: "1rem",
+      tickerHeight: "2.5rem",
       speed: 0.6,
-      padding: "p-3",
     },
   };
 
@@ -163,9 +173,66 @@ export default function DisplayView() {
     return () => unsubscribe();
   }, []);
 
+  // Display Imagen
+  useEffect(() => {
+    const imagenRef = ref(database, `displayImage/${userData.groupId}`);
+    const unsubscribe = onValue(imagenRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      // "single" trae una imagen; "carousel" trae varias.
+      const lista =
+        data.type === "carousel" && Array.isArray(data.images)
+          ? data.images
+          : data.image
+            ? [data.image]
+            : [];
+
+      setImagenes(lista);
+      setIndiceImagen(0);
+      if (data.interval) setIntervaloImagen(data.interval);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Pasar las imágenes del carrusel
+  useEffect(() => {
+    if (!visibleImagen || imagenes.length <= 1) return;
+
+    const temporizador = setInterval(() => {
+      setIndiceImagen((actual) => (actual + 1) % imagenes.length);
+    }, intervaloImagen);
+
+    return () => clearInterval(temporizador);
+  }, [visibleImagen, imagenes, intervaloImagen]);
+
+  const imagenActual = imagenes[indiceImagen];
+
+  // Apariencia configurada desde el panel de estilos
+  const sombra = sombraDe(estilos);
+  const transicion = estilos.transicion.fundido
+    ? `opacity ${estilos.transicion.duracion}ms ease-in-out`
+    : "none";
+
+  // Fundido de entrada al cambiar de contenido. Se dispara porque cada bloque
+  // lleva una `key` con su texto: al cambiar, React lo vuelve a montar.
+  const animacion = estilos.transicion.fundido
+    ? `aparecer ${estilos.transicion.duracion}ms ease-in-out`
+    : "none";
+
+  const estiloTexto = {
+    color: estilos.texto.color,
+    fontSize: escalar(style.text, estilos.texto.tamano),
+    fontWeight: estilos.texto.negrita ? 700 : 400,
+    lineHeight: `${estilos.texto.interlineado}%`,
+    textAlign: estilos.texto.alineacion,
+    textShadow: sombra,
+  };
+
   return (
     <div
-      className={`relative h-screen w-screen bg-black font-bold text-white overflow-hidden ${style.padding}`}
+      className="relative h-screen w-screen overflow-hidden"
+      style={fondoDe(estilos)}
     >
       {/* BOTÓN DE PANTALLA COMPLETA */}
       {visible && (
@@ -179,50 +246,110 @@ export default function DisplayView() {
         </button>
       )}
 
-      {/* CONTENEDOR PRINCIPAL */}
-      <div className="absolute inset-0 flex flex-col text-center">
+      {/* CONTENEDOR PRINCIPAL
+          El relleno es el margen de seguridad: muchos proyectores recortan los
+          bordes de la imagen. */}
+      <div
+        className="absolute inset-0 flex flex-col"
+        style={{ padding: `${estilos.legibilidad.margen}%` }}
+      >
         {/* TÍTULO ( si está visible) */}
         {visibleTitulo && (
           <div className="pb-1 px-6">
-            <h1 className={`${style.text}`}>{tituloPredica}</h1>
+            <h1
+              style={{
+                color: estilos.titulo.color,
+                fontSize: escalar(style.text, estilos.titulo.tamano),
+                fontWeight: estilos.titulo.negrita ? 700 : 400,
+                textTransform: estilos.titulo.mayusculas ? "uppercase" : "none",
+                textAlign: estilos.titulo.alineacion,
+                textShadow: sombra,
+              }}
+            >
+              {tituloPredica}
+            </h1>
+          </div>
+        )}
+
+        {/* IMAGEN: ocupa el centro y reemplaza al texto mientras esté encendida */}
+        {visibleImagen && imagenActual && (
+          <div className="flex-1 flex items-center justify-center overflow-hidden px-4">
+            <img
+              key={imagenActual}
+              src={imagenActual}
+              alt=""
+              className="max-h-full max-w-full object-contain"
+              style={{ animation: `aparecer ${estilos.transicion.duracion}ms` }}
+            />
           </div>
         )}
 
         {/* MENSAJE / PREDICA / VERSÍCULO */}
-        {visibleTexto && (
-          <div className="flex-1 flex items-center justify-center px-8">
-            {display === "mensajePredica" ? (
+        {visibleTexto && !(visibleImagen && imagenActual) && (
+          <div
+            className="flex-1 flex items-center justify-center px-8"
+            style={{ transition: transicion }}
+          >
+            {display === "mensajePredica" || display === "mensaje" ? (
               <div
-                className={`${style.text} text-center whitespace-pre-wrap wrap-break-words`}
+                key={display === "mensaje" ? mensaje : mensajePredica}
+                className="w-full whitespace-pre-wrap wrap-break-words"
+                style={{ ...estiloTexto, animation: animacion }}
               >
-                {mensajePredica}
-              </div>
-            ) : display === "mensaje" ? (
-              <div
-                className={`${style.text} text-center whitespace-pre-wrap wrap-break-words`}
-              >
-                {mensaje}
+                {display === "mensaje" ? mensaje : mensajePredica}
               </div>
             ) : display === "versiculo" ? (
-              <div className="flex flex-col items-center justify-center w-full relative">
+              <div
+                key={versiculo}
+                className="flex flex-col items-center justify-center w-full relative"
+                style={{ animation: animacion }}
+              >
                 <h2
-                  className={`font-bold ${style.verseTitle} text-app-muted mb-6`}
+                  className="font-bold mb-6"
+                  style={{
+                    color: estilos.versiculo.colorTitulo,
+                    fontSize: style.verseTitle,
+                    textShadow: sombra,
+                  }}
                 >
                   {tituloVersiculo}
                 </h2>
+
                 <div
-                  className={`${style.text} text-center whitespace-pre-wrap wrap-break-words`}
+                  className="w-full whitespace-pre-wrap wrap-break-words"
+                  style={estiloTexto}
                 >
                   {versiculo}
                 </div>
-                <div className={`mt-4 self-end ${style.verseCite}`}>{cita}</div>
+
+                {estilos.versiculo.mostrarCita && (
+                  <div
+                    className="mt-4 self-end"
+                    style={{
+                      color: estilos.versiculo.colorCita,
+                      fontSize: escalar(
+                        style.verseCite,
+                        estilos.versiculo.tamanoCita
+                      ),
+                      textShadow: sombra,
+                    }}
+                  >
+                    {cita}
+                  </div>
+                )}
               </div>
             ) : null}
           </div>
         )}
 
         {/* ESPACIO PARA EL TICKER */}
-        {visibleTicker && <div className={`${style.tickerHeight}`} />}
+        {visibleTicker && (
+          <div
+            style={{
+              height: escalar(style.tickerHeight, estilos.ticker.altura),
+            }}
+          />
+        )}
       </div>
 
       {/* TICKER */}
@@ -231,6 +358,7 @@ export default function DisplayView() {
           message={ticker}
           velocidad={velocidadTicker}
           style={style}
+          estilos={estilos}
         />
       )}
     </div>
