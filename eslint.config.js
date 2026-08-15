@@ -5,9 +5,19 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'functions/node_modules']),
+  // Cloud Functions: Node en CommonJS, no navegador
   {
-    files: ['**/*.{js,jsx}'],
+    files: ['functions/**/*.js'],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'commonjs',
+      globals: globals.node,
+    },
+  },
+  {
+    files: ['src/**/*.{js,jsx}', '*.js'],
     extends: [
       js.configs.recommended,
       reactHooks.configs['recommended-latest'],
