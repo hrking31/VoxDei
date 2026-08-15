@@ -1,0 +1,54 @@
+rules_version = '2';
+
+// Reglas de los archivos de VOXDEI (Firebase Storage).
+//
+// Misma idea que en Firestore: cada iglesia solo toca lo suyo.
+//   users/{uid}/...        fotos de perfil
+//   imagenes/{groupId}/... imágenes que se proyectan
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function autenticado() {
+      return request.auth != null;
+    }
+
+    // La iglesia del usuario se consulta en su ficha de Firestore.
+    function miGroupId() {
+      return firestore.get(
+        /databases/(default)/documents/users/$(request.auth.uid)
+      ).data.groupId;
+    }
+
+    // Solo imágenes y de hasta 10 MB: evita que se suba cualquier archivo.
+    function esImagenValida() {
+      return request.resource.contentType.matches('image/.*') &&
+             request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // ---- Fotos de perfil ----
+    // No se consulta Firestore a propósito: al registrarse, la foto se sube
+    // ANTES de que exista la ficha del usuario.
+    match /users/{uid}/{archivo=**} {
+      allow read: if autenticado();
+      allow write: if autenticado() &&
+                      request.auth.uid == uid &&
+                      esImagenValida();
+      allow delete: if autenticado() && request.auth.uid == uid;
+    }
+
+    // ---- Imágenes para proyectar ----
+    match /imagenes/{groupId}/{archivo=**} {
+      allow read: if autenticado() && miGroupId() == groupId;
+      allow write: if autenticado() &&
+                      miGroupId() == groupId &&
+                      esImagenValida();
+      allow delete: if autenticado() && miGroupId() == groupId;
+    }
+
+    // Todo lo demás queda cerrado.
+    match /{rutas=**} {
+      allow read, write: if false;
+    }
+  }
+}

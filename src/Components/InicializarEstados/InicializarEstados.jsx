@@ -1,6 +1,16 @@
 import { useEffect } from "react";
-import { getDoc, doc, onSnapshot, collection } from "firebase/firestore";
-import { database, db } from "../../Components/Firebase/Firebase";
+import { getDoc, onSnapshot } from "firebase/firestore";
+import { database } from "../../Components/Firebase/Firebase";
+import {
+  colIglesia,
+  docIglesia,
+  PREDICAS,
+  TICKERS,
+  MESSAGES,
+  CONFIGURACION,
+  ESTILOS,
+} from "../../Components/Firebase/RutasIglesia";
+import { combinarEstilos } from "../../Components/Estilos/EstilosProyeccion";
 import { ref, onValue } from "firebase/database";
 import { useAppContext } from "../../Components/Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
@@ -15,7 +25,9 @@ export default function InicializarEstados() {
     setVisibleTitulo,
     setVisibleTexto,
     setVisibleTicker,
+    setVisibleImagen,
     setVelocidadTicker,
+    setEstilos,
     showNotif,
   } = useAppContext();
 
@@ -29,12 +41,16 @@ export default function InicializarEstados() {
   useEffect(() => {
     if (loading || !user || !userData?.groupId) return;
 
+    const { groupId } = userData;
+
     // Actualiza slots al iniciar
     const loadSlots = async () => {
       try {
         const estados = [];
         for (let i = 1; i <= 5; i++) {
-          const snap = await getDoc(doc(db, "predicas", `predica${i}`));
+          const snap = await getDoc(
+            docIglesia(groupId, PREDICAS, `predica${i}`)
+          );
           estados.push(snap.exists());
         }
         setSlots(estados);
@@ -45,22 +61,28 @@ export default function InicializarEstados() {
     };
 
     // Actualiza tickers en tiempo real
-    const loadTickers = onSnapshot(collection(db, "tickers"), (snapshot) => {
-      const data = snapshot.docs
-        .map((doc) => ({ id: doc.id, ...doc.data() }))
-        .filter((item) => item.num >= 1 && item.num <= 6)
-        .sort((a, b) => a.num - b.num);
-      setTickerItems(data);
-    });
+    const loadTickers = onSnapshot(
+      colIglesia(groupId, TICKERS),
+      (snapshot) => {
+        const data = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() }))
+          .filter((item) => item.num >= 1 && item.num <= 6)
+          .sort((a, b) => a.num - b.num);
+        setTickerItems(data);
+      }
+    );
 
     // Actualiza message en tiempo real
-    const loadMessage = onSnapshot(collection(db, "messages"), (snapshot) => {
-      const data = snapshot.docs
-        .map((doc) => ({ id: doc.id, ...doc.data() }))
-        .filter((item) => item.num >= 1 && item.num <= 6)
-        .sort((a, b) => a.num - b.num);
-      setMessageItems(data);
-    });
+    const loadMessage = onSnapshot(
+      colIglesia(groupId, MESSAGES),
+      (snapshot) => {
+        const data = snapshot.docs
+          .map((doc) => ({ id: doc.id, ...doc.data() }))
+          .filter((item) => item.num >= 1 && item.num <= 6)
+          .sort((a, b) => a.num - b.num);
+        setMessageItems(data);
+      }
+    );
 
     // Display Visible Titulo
     const visibleTitulo = onValue(
@@ -95,6 +117,29 @@ export default function InicializarEstados() {
       }
     );
 
+    // Apariencia de la proyección, en vivo: al guardar desde el panel de
+    // estilos, la pantalla del templo se actualiza sola.
+    const estilosIglesia = onSnapshot(
+      docIglesia(groupId, CONFIGURACION, ESTILOS),
+      (snapshot) => {
+        setEstilos(combinarEstilos(snapshot.data()));
+      },
+      (error) => {
+        console.error("Error al cargar los estilos:", error);
+      }
+    );
+
+    // Display Visible Imagen
+    const visibleImagen = onValue(
+      ref(database, `displayVisibleImagen/${userData.groupId}`),
+      (snapshot) => {
+        const data = snapshot.val();
+        if (data?.visibleImagen !== undefined) {
+          setVisibleImagen(data.visibleImagen);
+        }
+      }
+    );
+
     // Speed Ticker
     const speedTicker = onValue(
       ref(database, `speedTicker/${userData.groupId}`),
@@ -114,6 +159,8 @@ export default function InicializarEstados() {
       visibleTitulo();
       visibleTexto();
       visibleTicker();
+      visibleImagen();
+      estilosIglesia();
       speedTicker();
     };
   }, [loading, user, userData?.groupId, setSlots]);

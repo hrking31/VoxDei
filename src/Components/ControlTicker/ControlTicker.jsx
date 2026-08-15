@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { database, db } from "../Firebase/Firebase";
+import { database } from "../Firebase/Firebase";
 import { ref, set, update } from "firebase/database";
-import { doc, setDoc } from "firebase/firestore";
+import { setDoc } from "firebase/firestore";
+import { docIglesia, TICKERS } from "../Firebase/RutasIglesia";
 import EmojiButton from "../EmojiButton/EmojiButton";
 import {
   BookmarkIcon,
@@ -126,7 +127,10 @@ export default function ControlTicker() {
         const tickerFinal = { ...nuevoTicker, num };
 
         // Guardar en Firestore
-        await setDoc(doc(db, "tickers", `ticker${num}`), tickerFinal);
+        await setDoc(
+          docIglesia(userData.groupId, TICKERS, `ticker${num}`),
+          tickerFinal
+        );
 
         showNotif("success", `✅ Ticker ${num} agregado correctamente`);
       } else {
@@ -143,7 +147,7 @@ export default function ControlTicker() {
 
         // Sobrescribir en Firestore
         await setDoc(
-          doc(db, "tickers", `ticker${masAntiguo.num}`),
+          docIglesia(userData.groupId, TICKERS, `ticker${masAntiguo.num}`),
           tickerFinal
         );
 

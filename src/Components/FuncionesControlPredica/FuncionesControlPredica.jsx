@@ -1,8 +1,10 @@
 import { db } from "../Firebase/Firebase";
 import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
+import { docIglesia, PREDICAS } from "../Firebase/RutasIglesia";
 
-// Guardar prédica
+// Guardar prédica en la iglesia indicada
 export const guardarPredica = async (
+  groupId,
   index,
   items,
   setSlots,
@@ -10,7 +12,7 @@ export const guardarPredica = async (
   showNotif
 ) => {
   try {
-    await setDoc(doc(db, "predicas", `predica${index + 1}`), {
+    await setDoc(docIglesia(groupId, PREDICAS, `predica${index + 1}`), {
       items,
       updatedAt: new Date().toISOString(),
     });
@@ -34,6 +36,7 @@ export const guardarPredica = async (
 
 // Manejar click en slot
 export const handleSlotClick = async ({
+  groupId,
   index,
   slots,
   editar,
@@ -50,7 +53,9 @@ export const handleSlotClick = async ({
     if (!editar) {
       // Modo lectura → cargar prédica si existe
       if (slotOcupado) {
-        const snap = await getDoc(doc(db, "predicas", `predica${index + 1}`));
+        const snap = await getDoc(
+          docIglesia(groupId, PREDICAS, `predica${index + 1}`)
+        );
         if (snap.exists()) {
           setPredicaItems(snap.data().items);
           setNumSlots(index + 1);
@@ -60,7 +65,14 @@ export const handleSlotClick = async ({
       }
       // Slot vacío → guardar si hay items
       else if (predicaItems && predicaItems.length > 0) {
-        await guardarPredica(index, predicaItems, setSlots, editar, showNotif);
+        await guardarPredica(
+          groupId,
+          index,
+          predicaItems,
+          setSlots,
+          editar,
+          showNotif
+        );
       } else {
         showNotif("warning", `🚫 No hay nada que guardar en Slot ${index + 1}`);
       }
@@ -71,7 +83,7 @@ export const handleSlotClick = async ({
       if (slotOcupado) {
         if (!predicaItems || predicaItems.length === 0) {
           // Eliminar
-          await deleteDoc(doc(db, "predicas", `predica${index + 1}`));
+          await deleteDoc(docIglesia(groupId, PREDICAS, `predica${index + 1}`));
           setSlots((prev) => {
             const nuevo = [...prev];
             nuevo[index] = false;
@@ -81,6 +93,7 @@ export const handleSlotClick = async ({
         } else {
           // Actualizar
           await guardarPredica(
+            groupId,
             index,
             predicaItems,
             setSlots,

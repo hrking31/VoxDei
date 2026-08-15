@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ref, set, update } from "firebase/database";
-import { database, db } from "../Firebase/Firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { database } from "../Firebase/Firebase";
+import { setDoc } from "firebase/firestore";
+import { docIglesia, MESSAGES } from "../Firebase/RutasIglesia";
 import {
   BookmarkIcon,
   ChatBubbleLeftRightIcon,
@@ -126,7 +127,10 @@ export default function ControlMenssage() {
         const messageFinal = { ...nuevoMessage, num };
 
         // Guardar en Firestore
-        await setDoc(doc(db, "messages", `message${num}`), messageFinal);
+        await setDoc(
+          docIglesia(userData.groupId, MESSAGES, `message${num}`),
+          messageFinal
+        );
         showNotif("success", `✅ Mensaje ${num} agregado correctamente`);
       } else {
         // Si ya hay 6, sobrescribir el más antiguo
@@ -142,7 +146,7 @@ export default function ControlMenssage() {
 
         // Sobrescribir en Firestore
         await setDoc(
-          doc(db, "messages", `message${masAntiguo.num}`),
+          docIglesia(userData.groupId, MESSAGES, `message${masAntiguo.num}`),
           messageFinal
         );
 

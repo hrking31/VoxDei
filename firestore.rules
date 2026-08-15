@@ -1,0 +1,110 @@
+rules_version = '2';
+
+// Reglas de seguridad de VOXDEI.
+//
+// Idea central: cada iglesia es un grupo cerrado identificado por su groupId
+// (el uid del pastor que la registró). Un usuario solo puede leer y escribir
+// datos de SU iglesia. La Biblia es contenido común de solo lectura.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- Ayudas ----
+
+    function autenticado() {
+      return request.auth != null;
+    }
+
+    // Documento del usuario que hace la petición.
+    function miPerfil() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function miGroupId() {
+      return miPerfil().groupId;
+    }
+
+    // Manda en la iglesia: pastor, pastora o administrador delegado.
+    // Se incluye "admin" por los usuarios creados con la nomenclatura antigua.
+    function soyAdmin() {
+      return miPerfil().role in ['Pastor', 'Pastora', 'administrador', 'admin'];
+    }
+
+    function esMiIglesia(groupId) {
+      return autenticado() && miGroupId() == groupId;
+    }
+
+    // ---- Contenido de cada iglesia ----
+    // predicas, tickers y messages viven aquí dentro.
+
+    match /iglesias/{groupId}/{documento=**} {
+      allow read, write: if esMiIglesia(groupId);
+    }
+
+    // ---- Usuarios ----
+
+    match /users/{uid} {
+      // Cada quien ve su perfil; el resto, solo gente de su misma iglesia.
+      allow read: if autenticado() &&
+                     (request.auth.uid == uid ||
+                      resource.data.groupId == miGroupId());
+
+      // Un usuario crea su propio documento al registrarse.
+      allow create: if autenticado() && request.auth.uid == uid;
+
+      // Actualiza su propio perfil, o un administrador de su misma iglesia.
+      allow update: if autenticado() &&
+                       (request.auth.uid == uid ||
+                        (soyAdmin() && resource.data.groupId == miGroupId()));
+
+      // Borrar queda reservado a los administradores de la propia iglesia.
+      allow delete: if autenticado() &&
+                       soyAdmin() &&
+                       resource.data.groupId == miGroupId();
+    }
+
+    // ---- Imágenes ----
+    // Colección en la raíz con campo groupId (se filtra por consulta).
+
+    match /imagenes/{imagenId} {
+      allow read, delete: if autenticado() && resource.data.groupId == miGroupId();
+      allow create: if autenticado() && request.resource.data.groupId == miGroupId();
+      allow update: if autenticado() &&
+                       resource.data.groupId == miGroupId() &&
+                       request.resource.data.groupId == miGroupId();
+    }
+
+    // ---- Canciones ----
+    // Catálogo COMPARTIDO por todas las iglesias: cualquiera con sesión lo lee
+    // y puede aportar canciones nuevas, pero solo la iglesia que subió una
+    // canción puede modificarla o borrarla.
+
+    match /canciones/{cancionId} {
+      allow read: if autenticado();
+
+      allow create: if autenticado() &&
+                       request.resource.data.creadoPor == miGroupId();
+
+      allow update: if autenticado() &&
+                       resource.data.creadoPor == miGroupId() &&
+                       request.resource.data.creadoPor == resource.data.creadoPor;
+
+      allow delete: if autenticado() && resource.data.creadoPor == miGroupId();
+    }
+
+    // ---- Biblia ----
+    // Contenido común: cualquiera con sesión la lee, nadie la modifica desde
+    // la app (se carga con los scripts de Upload usando credenciales de admin).
+
+    match /biblia/{documento} {
+      allow read: if autenticado();
+      allow write: if false;
+    }
+
+    // Todo lo demás queda cerrado. Esto incluye las colecciones antiguas
+    // predicas/, tickers/ y messages/ de la raíz, que ya no se usan.
+    match /{documento=**} {
+      allow read, write: if false;
+    }
+  }
+}

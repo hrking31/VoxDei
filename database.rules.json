@@ -1,0 +1,24 @@
+{
+  // Reglas de la Realtime Database de VOXDEI.
+  //
+  // Todo el estado de proyección cuelga de <nodo>/{groupId}. Un usuario solo
+  // puede leer y escribir en el nodo de su propia iglesia.
+  //
+  // El groupId se reconoce por dos vías:
+  //   - auth.uid === groupId       → el pastor dueño (su uid ES el groupId)
+  //   - auth.token.groupId         → custom claim, que asigna la Cloud Function
+  //                                  crearUsuarioAdmin al crear al usuario
+  //
+  // IMPORTANTE: los usuarios creados desde el cliente (el flujo actual de
+  // ViewUsers) NO tienen el custom claim, así que estas reglas los bloquearán.
+  // Antes de desplegarlas, ViewUsers debe pasar a crear usuarios con la Cloud
+  // Function, o hay que asignar el claim a los usuarios ya existentes.
+  "rules": {
+    "$nodo": {
+      "$groupId": {
+        ".read": "auth != null && (auth.uid === $groupId || auth.token.groupId === $groupId)",
+        ".write": "auth != null && (auth.uid === $groupId || auth.token.groupId === $groupId) && $nodo.matches(/^(displayTitulo|displayMessage|displayVersiculo|displayTicker|displayImage|displayVisibleTitulo|displayVisibleTexto|displayVisibleTicker|displayVisibleImagen|speedTicker)$/)"
+      }
+    }
+  }
+}
