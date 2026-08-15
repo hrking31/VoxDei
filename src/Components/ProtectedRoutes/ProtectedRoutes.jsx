@@ -1,5 +1,6 @@
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 import { Navigate, useLocation } from "react-router-dom";
+import { tieneRol } from "../Roles/Roles.js";
 import Loading from "../Loading/Loading.jsx";
 
 export function ProtectedRoutes({ children, rolesPermitidos = [] }) {
@@ -12,14 +13,15 @@ export function ProtectedRoutes({ children, rolesPermitidos = [] }) {
   // Si no está logueado → enviar al login
   if (!user) return <Navigate to="/ViewLogin" />;
 
-// Si hay roles permitidos definidos, verificar si el usuario tiene uno de esos roles
-  if (rolesPermitidos.length > 0 && userData) {
-    if (!rolesPermitidos.includes(userData.role)) {
-      // Guarda la ruta original
-      return (
-        <Navigate to="/VistaNoAutorizada" state={{ from: location }} replace />
-      );
-    }
+  // Si la ruta exige roles, el usuario debe tener uno de ellos.
+  // Sin userData (documento de Firestore ausente o no cargado) se deniega:
+  // el acceso nunca se concede por falta de datos.
+  if (rolesPermitidos.length > 0 && !tieneRol(userData, rolesPermitidos)) {
+    // Guarda la ruta original
+    return (
+      <Navigate to="/VistaNoAutorizada" state={{ from: location }} replace />
+    );
   }
+
   return <>{children}</>;
 }

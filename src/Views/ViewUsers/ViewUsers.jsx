@@ -435,32 +435,23 @@ import {
   UserIcon,
   PencilIcon,
 } from "@heroicons/react/24/solid";
-import { db, storage } from "../../Components/Firebase/Firebase";
-import {
-  doc,
-  setDoc,
-  getDoc,
-  getDocs,
-  deleteDoc,
-  collection,
-  query,
-  where,
-} from "firebase/firestore";
-import { ref, deleteObject } from "firebase/storage";
-import { deleteUser } from "firebase/auth";
+import { db, functions } from "../../Components/Firebase/Firebase";
+import { getDocs, collection, query, where } from "firebase/firestore";
+import { httpsCallable } from "firebase/functions";
 import { useAuth } from "../../Components/Context/AuthContext.jsx";
 import { useAppContext } from "../../Components/Context/AppContext";
+import { ROLES_ASIGNABLES } from "../../Components/Roles/Roles.js";
 import Footer from "../../Components/Footer/Footer.jsx";
 import UserProfileCard from "../../Components/UserProfileCard/UserProfileCard.jsx";
 
 export default function ViewUsers() {
-  const { signup, login, userData, loading, setLoading } = useAuth();
+  const { userData, loading, setLoading } = useAuth();
   const { showNotif, confirmAction } = useAppContext();
   const navigate = useNavigate();
   const refGenero = useRef(null);
   const genderOptions = ["Masculino", "Femenino"];
   const refRol = useRef(null);
-  const roleOptions = ["Pastor", "Pastora", "Asistente", "administrador"];
+  const roleOptions = ROLES_ASIGNABLES;
   const [openDropdown, setOpenDropdown] = useState(null);
   const [mode, setMode] = useState("create");
   const [groupUsers, setGroupUsers] = useState([]);
@@ -472,20 +463,15 @@ export default function ViewUsers() {
     password: "",
     role: "",
   });
-  const [deleteData, setDeleteData] = useState({
-    email: "",
-    password: "",
-  });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // Cambia para forzar que la lista del equipo se vuelva a leer
+  const [recargar, setRecargar] = useState(0);
 
-  console.log("user",selectedUser);
-
-  // Manejo inputs de creación y eliminación
+  // Manejo inputs de creación
   const handleChange = ({ target: { name, value } }) => {
-    if (mode === "create") setNewUser((prev) => ({ ...prev, [name]: value }));
-    else setDeleteData((prev) => ({ ...prev, [name]: value }));
+    setNewUser((prev) => ({ ...prev, [name]: value }));
     setError("");
     setMessage("");
   };
@@ -511,7 +497,24 @@ export default function ViewUsers() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Crear usuario y guardar datos en Firestore
+  // Traduce a español lo que devuelven las funciones del servidor
+  const traducirError = (err) => {
+    const mensajes = {
+      "auth/email-already-in-use": "El correo ya está registrado.",
+      "auth/invalid-email": "Correo inválido.",
+      "auth/weak-password": "La contraseña debe tener al menos 6 caracteres.",
+      unauthenticated: "Tu sesión expiró. Vuelve a iniciar sesión.",
+      "permission-denied": "No tienes permiso para hacer esto.",
+      "not-found": "El usuario ya no existe.",
+    };
+
+    return mensajes[err.code] || err.message || "Ocurrió un error inesperado.";
+  };
+
+  // Crear usuario a través del servidor.
+  //
+  // Va por el servidor a propósito: crear la cuenta desde el navegador iniciaba
+  // sesión con el usuario recién creado y sacaba al pastor de su propia sesión.
   const handleCreate = async (e) => {
     e.preventDefault();
     setError(""); // Limpiar mensajes previos
@@ -530,28 +533,21 @@ export default function ViewUsers() {
     setLoading(true);
 
     try {
-      const userCredential = await signup(newUser.email, newUser.password);
-      const uid = userCredential.user.uid;
-
-      // Guardar información adicional
-      await setDoc(doc(db, "users", uid), {
-        name: newUser.name,
-        gender: newUser.gender,
-        email: newUser.email,
+      const crearUsuario = httpsCallable(functions, "crearUsuarioAdmin");
+      await crearUsuario({
+        name: newUser.name.trim(),
+        email: newUser.email.trim(),
+        password: newUser.password,
         role: newUser.role,
-        churchName: userData.churchName,
-        groupId: userData.groupId,
-        createdAt: new Date(),
+        gender: newUser.gender,
       });
 
       showNotif("success", "✅ Usuario creado correctamente.");
+      setNewUser({ name: "", gender: "", email: "", password: "", role: "" });
+      setRecargar((n) => n + 1);
     } catch (err) {
-      const errorMessages = {
-        "auth/email-already-in-use": "El correo ya está registrado.",
-        "auth/invalid-email": "Correo inválido.",
-        "auth/weak-password": "La contraseña debe tener al menos 6 caracteres.",
-      };
-      setError(errorMessages[err.code] || "Error al crear el usuario.");
+      console.error(err);
+      setError(traducirError(err));
     } finally {
       setLoading(false);
     }
@@ -612,49 +608,59 @@ export default function ViewUsers() {
   //   }
   // };
 
-const handleDelete = async () => {
-  if (!selectedUser?.uid) {
-    setError("Usuario no válido.");
-    return;
-  }
+  // Da los permisos internos a los usuarios creados antes de que existiera
+  // este flujo. Se ejecuta una vez; luego cada quien debe volver a entrar.
+  const handleSincronizar = async () => {
+    setLoading(true);
+    setError("");
 
-  const accepted = await confirmAction(
-    `¿Seguro que deseas eliminar la cuenta de ${selectedUser.email}?`
-  );
-  if (!accepted) return;
+    try {
+      const sincronizar = httpsCallable(functions, "sincronizarPermisos");
+      const { data } = await sincronizar();
+      showNotif("success", `✅ ${data.message}`);
+    } catch (err) {
+      console.error(err);
+      setError(traducirError(err));
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  setLoading(true);
-  setError("");
+  // Eliminar usuario a través del servidor: borra la cuenta de acceso, su
+  // ficha y su foto. Hacerlo desde el navegador dejaba viva la cuenta.
+  const handleDelete = async () => {
+    // La lista carga cada usuario con `id` (el identificador del documento,
+    // que es el mismo de la cuenta). Las fichas antiguas no tienen el campo
+    // `uid`, y por eso el borrado fallaba siempre.
+    const uid = selectedUser?.id || selectedUser?.uid;
 
-  try {
-    //  Referencia al usuario correcto
-    const userRef = doc(db, "users", selectedUser.uid);
-    const userSnap = await getDoc(userRef);
-
-    //  Eliminar imagen si existe
-    if (userSnap.exists() && userSnap.data()?.photo) {
-      try {
-        const imageRef = ref(storage, userSnap.data().photo);
-        await deleteObject(imageRef);
-      } catch (err) {
-        console.warn("No se pudo borrar la imagen", err);
-      }
+    if (!uid) {
+      setError("Usuario no válido.");
+      return;
     }
 
-    // Eliminar documento Firestore
-    await deleteDoc(userRef);
+    const accepted = await confirmAction(
+      `¿Seguro que deseas eliminar la cuenta de ${selectedUser.email}?`
+    );
+    if (!accepted) return;
 
-    showNotif("success", "✅ Usuario eliminado correctamente");
+    setLoading(true);
+    setError("");
 
-    //  Limpiar selección
-    setSelectedUser(null);
-  } catch (err) {
-    console.error(err);
-    setError("Error al eliminar el usuario.");
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      const eliminarUsuario = httpsCallable(functions, "eliminarUsuarioAdmin");
+      await eliminarUsuario({ uid });
+
+      showNotif("success", "✅ Usuario eliminado correctamente");
+      setSelectedUser(null);
+      setRecargar((n) => n + 1);
+    } catch (err) {
+      console.error(err);
+      setError(traducirError(err));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Carga los usuarios
   useEffect(() => {
@@ -682,7 +688,7 @@ const handleDelete = async () => {
     };
 
     loadGroupUsers();
-  }, [mode, userData]);
+  }, [mode, userData, recargar]);
 
   return (
     <div className="min-h-svh flex flex-col bg-linear-to-b from-app-dark/50 to-app-light/50">
@@ -974,6 +980,26 @@ const handleDelete = async () => {
                 ))
               )}
             </div>
+          </div>
+
+          {/* Sincronizar permisos del equipo */}
+          <div className="flex flex-col items-center gap-2 px-4">
+            <button
+              onClick={handleSincronizar}
+              disabled={loading}
+              className={`text-xs font-semibold text-app-muted px-4 py-2 rounded-lg border border-app-border transition ${
+                loading
+                  ? "opacity-60 cursor-not-allowed"
+                  : "hover:text-app-main hover:border-app-main cursor-pointer"
+              }`}
+            >
+              {loading ? "Sincronizando..." : "Sincronizar permisos del equipo"}
+            </button>
+            <p className="text-[11px] text-app-muted text-center max-w-sm">
+              Úsalo una sola vez si algún miembro de tu equipo no puede
+              proyectar. Después de sincronizar, cada uno debe cerrar sesión y
+              volver a entrar.
+            </p>
           </div>
 
           {/* Boton inicio */}
