@@ -29,7 +29,7 @@ export const guardarPredica = async (
       showNotif("success", `💾 Predica ${index + 1} guardada`);
     }
   } catch (error) {
-    showNotif("error", "❌ Error al guardar la prédica");
+    showNotif("error", "Error al guardar la prédica");
     console.error(error);
   }
 };
@@ -107,7 +107,7 @@ export const handleSlotClick = async ({
     setEditar(false);
     setNumSlots("");
   } catch (error) {
-    showNotif("error", "❌ Error al procesar la prédica");
+    showNotif("error", "Error al procesar la prédica");
     console.error(error);
   }
 };
@@ -124,7 +124,7 @@ export const obtenerVersiculo = async (
     if (!sigla || !capitulo || !numeroVersiculo) {
       showNotif(
         "error",
-        "⚠️ Parámetros inválidos. Debes enviar libro, capítulo y versículo."
+        "Parámetros inválidos. Debes enviar libro, capítulo y versículo."
       );
       return;
     }
@@ -157,7 +157,7 @@ export const obtenerVersiculo = async (
     }
     showNotif(
       "success",
-      tipo === "capitulo" ? "✅ Capitulo encontrado" : "✅ Versículo encontrado"
+      tipo === "capitulo" ? "Capítulo encontrado" : "Versículo encontrado"
     );
 
     return {

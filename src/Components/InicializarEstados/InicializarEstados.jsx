@@ -13,7 +13,7 @@ import {
 import { combinarEstilos } from "../../Components/Estilos/EstilosProyeccion";
 import { ref, onValue } from "firebase/database";
 import { useAppContext } from "../../Components/Context/AppContext";
-import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import { useAuth } from "../../Components/Context/AuthContext";
 
 export default function InicializarEstados() {
   const { user, userData, loading } = useAuth();
@@ -57,7 +57,7 @@ export default function InicializarEstados() {
         setSlots(estados);
       } catch (error) {
         console.error("Error al cargar los slots:", error);
-        showNotif("error", "❌ No se pudieron cargar los slots");
+        showNotif("error", "No se pudieron cargar los slots");
       }
     };
 

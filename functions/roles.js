@@ -3,47 +3,44 @@
 // Espejo de src/Components/Roles/Roles.js. Se duplica a propósito: las
 // funciones son un paquete CommonJS independiente y no comparten build con el
 // frontend. Si cambias los roles allí, cámbialos también aquí.
+//
+// Solo hay dos niveles: Pastor / Pastora (todo) y Operador (proyectar).
 
 const ROL_PASTOR = "Pastor";
 const ROL_PASTORA = "Pastora";
-const ROL_ADMINISTRADOR = "administrador";
-const ROL_ASISTENTE = "Asistente";
+const ROL_OPERADOR = "Operador";
 
-const ROLES = [ROL_PASTOR, ROL_PASTORA, ROL_ADMINISTRADOR, ROL_ASISTENTE];
+const ROLES = [ROL_PASTOR, ROL_PASTORA, ROL_OPERADOR];
 
-// Mandan en la iglesia: gestionan usuarios y prédicas.
-const ROLES_ADMIN = [ROL_PASTOR, ROL_PASTORA, ROL_ADMINISTRADOR];
+// Mandan en la iglesia: gestionan cuentas y contenido.
+const ROLES_PASTORES = [ROL_PASTOR, ROL_PASTORA];
 
-// Nombres antiguos que pueden seguir guardados en la base de datos.
-const ALIAS = {
-  admin: ROL_ADMINISTRADOR,
-};
+// Rol con el que nace todo usuario adicional creado desde ViewUsers.
+const ROL_POR_DEFECTO = ROL_OPERADOR;
 
-// Devuelve el rol en su forma canónica; tolera el alias "admin" que se usaba antes.
+// Devuelve el rol en su forma canónica; tolera mayúsculas y espacios sobrantes.
 function normalizarRol(rol) {
   if (typeof rol !== "string") return "";
 
   const limpio = rol.trim();
   const minusculas = limpio.toLowerCase();
 
-  if (ALIAS[minusculas]) return ALIAS[minusculas];
-
   return ROLES.find((valido) => valido.toLowerCase() === minusculas) || limpio;
 }
 
-// ¿Este rol manda en la iglesia? (pastor, pastora o administrador delegado)
-function esAdmin(rol) {
+// ¿Es pastor o pastora? Es lo que habilita gestionar cuentas.
+function esPastor(rol) {
   const normalizado = normalizarRol(rol);
-  return ROLES_ADMIN.some((permitido) => permitido === normalizado);
+  return ROLES_PASTORES.some((permitido) => permitido === normalizado);
 }
 
 module.exports = {
   ROL_PASTOR,
   ROL_PASTORA,
-  ROL_ADMINISTRADOR,
-  ROL_ASISTENTE,
+  ROL_OPERADOR,
+  ROL_POR_DEFECTO,
   ROLES,
-  ROLES_ADMIN,
+  ROLES_PASTORES,
   normalizarRol,
-  esAdmin,
+  esPastor,
 };

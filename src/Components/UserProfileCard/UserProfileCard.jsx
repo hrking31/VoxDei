@@ -1,20 +1,18 @@
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { useAuth } from "../Context/AuthContext.jsx";
 
+// Ficha de un miembro del equipo.
+//
+// Es solo de consulta: lo único que se puede hacer desde aquí es eliminar la
+// cuenta, y únicamente si quien mira es el dueño de la iglesia. Antes había
+// también un botón "Cerrar sesión" que cerraba la sesión de QUIEN MIRABA, no la
+// del usuario de la ficha; se quitó porque inducía a error.
 export default function UserProfileCard({
   isModalOpen,
   setIsModalOpen,
   user,
   handleDelete,
+  puedeEliminar = false,
 }) {
-  // Faltaba traer `logout`: el botón de cerrar sesión llamaba a una función
-  // que no existía y rompía la pantalla.
-  const { logout } = useAuth();
-
-  const handlerLogout = async () => {
-    await logout();
-  };
-
   if (!user) return null;
 
   return (
@@ -66,25 +64,17 @@ export default function UserProfileCard({
                 </span>
               </div>
 
-              <button
-                onClick={async () => {
-                  setIsModalOpen(false);
-                  await handleDelete();
-                }}
-                className="mt-8 w-full py-3 bg-app-main text-white font-medium rounded-xl hover:bg-app-light transition shadow-lg"
-              >
-                Eliminar
-              </button>
-
-              <button
-                onClick={() => {
-                  setIsModalOpen(false);
-                  handlerLogout();
-                }}
-                className="mt-8 w-full py-3 bg-app-main text-white font-medium rounded-xl hover:bg-app-light transition shadow-lg"
-              >
-                Cerrar sesión
-              </button>
+              {puedeEliminar && (
+                <button
+                  onClick={async () => {
+                    setIsModalOpen(false);
+                    await handleDelete();
+                  }}
+                  className="mt-8 w-full py-3 bg-app-error text-white font-medium rounded-xl hover:bg-red-700 transition shadow-lg"
+                >
+                  Eliminar cuenta
+                </button>
+              )}
             </div>
           </div>
         </div>

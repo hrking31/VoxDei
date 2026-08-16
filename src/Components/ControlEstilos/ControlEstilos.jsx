@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useId } from "react";
 import { useNavigate } from "react-router-dom";
 import { HexColorPicker } from "react-colorful";
 import { setDoc, serverTimestamp } from "firebase/firestore";
@@ -8,9 +8,10 @@ import {
   ChevronDownIcon,
   ComputerDesktopIcon,
   DevicePhoneMobileIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/solid";
 import { useAppContext } from "../Context/AppContext";
-import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import { useAuth } from "../../Components/Context/AuthContext";
 import {
   docIglesia,
   CONFIGURACION,
@@ -96,7 +97,7 @@ export default function ControlEstilos() {
       showNotif("success", mensaje);
     } catch (error) {
       console.error("Error al guardar los estilos:", error);
-      showNotif("error", "❌ No se pudieron guardar los estilos");
+      showNotif("error", "No se pudieron guardar los estilos");
     } finally {
       setGuardando(false);
     }
@@ -654,50 +655,120 @@ function Seccion({ titulo, descripcion, abierta, onToggle, children }) {
   );
 }
 
+// ¿Es un color hexadecimal completo? Se exige el # y 3 o 6 dígitos.
+const esHexValido = (texto) => /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(texto);
+
 function Color({ etiqueta, valor, onChange }) {
   const [abierto, setAbierto] = useState(false);
-  const contenedor = useRef(null);
+  // Texto que se está escribiendo a mano. Se guarda aparte del color real para
+  // poder teclear "#1a" sin que la paleta se vuelva loca a media escritura.
+  const [texto, setTexto] = useState(valor);
+  const idTitulo = useId();
 
-  // Cerrar al tocar fuera
+  // Al abrir, el campo parte del color actual.
+  useEffect(() => {
+    if (abierto) setTexto(valor);
+  }, [abierto, valor]);
+
+  // Cerrar con la tecla Escape, como cualquier ventana.
   useEffect(() => {
     if (!abierto) return;
 
-    const alTocarFuera = (evento) => {
-      if (contenedor.current && !contenedor.current.contains(evento.target)) {
-        setAbierto(false);
-      }
+    const alPulsarTecla = (evento) => {
+      if (evento.key === "Escape") setAbierto(false);
     };
 
-    document.addEventListener("mousedown", alTocarFuera);
-    return () => document.removeEventListener("mousedown", alTocarFuera);
+    document.addEventListener("keydown", alPulsarTecla);
+    return () => document.removeEventListener("keydown", alPulsarTecla);
   }, [abierto]);
 
+  const escribirTexto = (entrada) => {
+    const limpio = entrada.startsWith("#") ? entrada : `#${entrada}`;
+    setTexto(limpio);
+    // Solo se aplica cuando el código está completo; si no, se deja escribir.
+    if (esHexValido(limpio)) onChange(limpio);
+  };
+
   return (
-    <div ref={contenedor} className="relative">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-sm text-app-muted">{etiqueta}</span>
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-sm text-app-muted">{etiqueta}</span>
 
-        <button
-          onClick={() => setAbierto(!abierto)}
-          className="flex items-center gap-2 border border-app-border rounded px-2 py-1"
-        >
-          <span
-            className="w-6 h-6 rounded border border-app-border"
-            style={{ backgroundColor: valor }}
-          />
-          <span className="text-xs text-app-muted uppercase">{valor}</span>
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={() => setAbierto(true)}
+        aria-label={`Cambiar el color de ${etiqueta}`}
+        className="flex items-center gap-2 border border-app-border rounded px-2 py-1 hover:border-app-main transition"
+      >
+        <span
+          className="w-6 h-6 rounded border border-app-border"
+          style={{ backgroundColor: valor }}
+        />
+        <span className="text-xs text-app-muted uppercase">{valor}</span>
+      </button>
 
+      {/* Ventana centrada y fija.
+          Antes era un panel `absolute` dentro del acordeón, que tiene
+          overflow-hidden: los colores del final de cada sección quedaban
+          recortados y algunos no se veían en absoluto. Al ser fija ya no
+          depende de ningún contenedor. */}
       {abierto && (
-        <div className="absolute right-0 z-30 mt-2 p-3 bg-app-light border-2 border-app-border rounded-lg shadow-xl">
-          <HexColorPicker color={valor} onChange={onChange} />
-          <input
-            type="text"
-            value={valor}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full mt-2 p-1 text-center text-xs uppercase rounded border border-app-border text-app-muted"
-          />
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={idTitulo}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-app-dark/80"
+          onClick={() => setAbierto(false)}
+        >
+          <div
+            className="w-full max-w-xs bg-app-light border-2 border-app-border rounded-xl shadow-2xl p-4"
+            onClick={(evento) => evento.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-3 gap-2">
+              <h3
+                id={idTitulo}
+                className="text-base font-semibold text-app-main truncate"
+              >
+                {etiqueta}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setAbierto(false)}
+                aria-label="Cerrar"
+                className="text-app-accent hover:text-app-error transition-colors"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* La paleta ocupa el ancho del modal en vez de su tamaño fijo */}
+            <HexColorPicker
+              color={valor}
+              onChange={onChange}
+              style={{ width: "100%", height: "180px" }}
+            />
+
+            <div className="flex items-center gap-2 mt-3">
+              <span
+                className="w-9 h-9 rounded border border-app-border shrink-0"
+                style={{ backgroundColor: valor }}
+              />
+              <input
+                type="text"
+                value={texto}
+                onChange={(evento) => escribirTexto(evento.target.value)}
+                spellCheck="false"
+                className="flex-1 p-2 text-center text-sm uppercase rounded border border-app-border text-app-muted bg-app-light"
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setAbierto(false)}
+              className="w-full mt-3 py-2 rounded-lg bg-app-main text-white font-semibold hover:bg-app-main/90 transition"
+            >
+              Listo
+            </button>
+          </div>
         </div>
       )}
     </div>

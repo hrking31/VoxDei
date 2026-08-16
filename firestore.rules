@@ -24,14 +24,23 @@ service cloud.firestore {
       return miPerfil().groupId;
     }
 
-    // Manda en la iglesia: pastor, pastora o administrador delegado.
-    // Se incluye "admin" por los usuarios creados con la nomenclatura antigua.
-    function soyAdmin() {
-      return miPerfil().role in ['Pastor', 'Pastora', 'administrador', 'admin'];
+    // Manda en la iglesia. Solo hay dos niveles: Pastor/Pastora y Operador.
+    function soyPastor() {
+      return miPerfil().role in ['Pastor', 'Pastora'];
+    }
+
+    // El dueño es quien registró la iglesia: su uid ES el groupId.
+    function soyElDueno() {
+      return autenticado() && request.auth.uid == miGroupId();
     }
 
     function esMiIglesia(groupId) {
       return autenticado() && miGroupId() == groupId;
+    }
+
+    // Campos que cambian en esta escritura.
+    function camposTocados() {
+      return request.resource.data.diff(resource.data).affectedKeys();
     }
 
     // ---- Contenido de cada iglesia ----
@@ -43,24 +52,41 @@ service cloud.firestore {
 
     // ---- Usuarios ----
 
+    // El rol y la iglesia NO se editan desde el cliente. Los asigna el servidor
+    // (crearUsuarioAdmin) con permisos de administrador, que se saltan estas
+    // reglas. Aquí solo se permite lo mínimo: que cada quien cambie su foto.
     match /users/{uid} {
       // Cada quien ve su perfil; el resto, solo gente de su misma iglesia.
       allow read: if autenticado() &&
                      (request.auth.uid == uid ||
                       resource.data.groupId == miGroupId());
 
-      // Un usuario crea su propio documento al registrarse.
-      allow create: if autenticado() && request.auth.uid == uid;
+      // Solo al registrar una iglesia nueva: el documento es propio, nace como
+      // Pastor o Pastora y su groupId es su propio uid, o sea, es el dueño.
+      // Así nadie puede crearse una ficha dentro de la iglesia de otro.
+      allow create: if autenticado() &&
+                       request.auth.uid == uid &&
+                       request.resource.data.groupId == uid &&
+                       request.resource.data.role in ['Pastor', 'Pastora'];
 
-      // Actualiza su propio perfil, o un administrador de su misma iglesia.
+      // Cada quien cambia SOLO su foto. Nada de rol, iglesia, correo ni nombre:
+      // si el rol fuera editable, cualquiera se ascendería a Pastor desde la
+      // consola del navegador y entraría a la gestión de cuentas.
       allow update: if autenticado() &&
-                       (request.auth.uid == uid ||
-                        (soyAdmin() && resource.data.groupId == miGroupId()));
+                       request.auth.uid == uid &&
+                       camposTocados().hasOnly(['photo']);
 
-      // Borrar queda reservado a los administradores de la propia iglesia.
-      allow delete: if autenticado() &&
-                       soyAdmin() &&
-                       resource.data.groupId == miGroupId();
+      // Borrar cuentas pasa por el servidor; esta regla es la segunda barrera,
+      // por si alguien lo intenta desde fuera de la app.
+      //
+      // Un pastor borra operadores de su iglesia. A la pareja pastoral solo la
+      // borra el dueño, y al dueño (uid == su propio groupId) nadie.
+      allow delete: if soyPastor() &&
+                       resource.data.groupId == miGroupId() &&
+                       request.auth.uid != uid &&
+                       uid != resource.data.groupId &&
+                       (soyElDueno() ||
+                        !(resource.data.role in ['Pastor', 'Pastora']));
     }
 
     // ---- Imágenes ----

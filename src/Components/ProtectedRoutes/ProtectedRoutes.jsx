@@ -1,4 +1,4 @@
-import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import { useAuth } from "../../Components/Context/AuthContext";
 import { Navigate, useLocation } from "react-router-dom";
 import { tieneRol } from "../Roles/Roles.js";
 import Loading from "../Loading/Loading.jsx";

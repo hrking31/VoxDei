@@ -1,31 +1,27 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LockClosedIcon } from "@heroicons/react/24/solid";
-import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import { useAuth } from "../../Components/Context/AuthContext";
+import { useAppContext } from "../../Components/Context/AppContext";
 import Footer from "../../Components/Footer/Footer.jsx";
 
 export default function ViewLogin() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showNotif } = useAppContext();
   const [user, setUser] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleChange = ({ target: { name, value } }) => {
     setUser((prev) => ({ ...prev, [name]: value }));
-    setError("");
-    setMessage("");
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setError("");
-    setMessage("");
 
     // Validación básica antes de enviar
     if (!user.email || !user.password) {
-      setError("Por favor ingresa tu correo y contraseña.");
+      showNotif("error", "Por favor ingresa tu correo y contraseña.");
       return;
     }
 
@@ -47,9 +43,9 @@ export default function ViewLogin() {
           "Credenciales inválidas. Verifica tu correo y contraseña.",
       };
 
-      setError(
-        errorMessages[err.code] ||
-          "Error al iniciar sesión. Intenta nuevamente."
+      showNotif(
+        "error",
+        errorMessages[err.code] || "Error al iniciar sesión. Intenta nuevamente."
       );
     } finally {
       setLoading(false);
@@ -101,18 +97,6 @@ export default function ViewLogin() {
                   className="p-2.5 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
                 />
               </div>
-
-              {/* Mensajes */}
-              {error && (
-                <p className="text-app-error text-center text-sm font-medium mt-2">
-                  {error}
-                </p>
-              )}
-              {message && (
-                <p className="text-app-success text-center text-sm font-medium mt-2">
-                  {message}
-                </p>
-              )}
 
               {/* Botón de envío */}
               <button

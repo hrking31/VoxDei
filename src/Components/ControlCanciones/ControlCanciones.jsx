@@ -32,7 +32,7 @@ import {
   REPERTORIO_ACTUAL,
 } from "../Firebase/RutasIglesia";
 import { useAppContext } from "../Context/AppContext";
-import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import { useAuth } from "../../Components/Context/AuthContext";
 import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
 
 // Parte la letra pegada en láminas: cada bloque separado por un renglón en
@@ -94,7 +94,7 @@ export default function ControlCanciones() {
       },
       (error) => {
         console.error("Error al cargar las canciones:", error);
-        showNotif("error", "❌ No se pudieron cargar las canciones");
+        showNotif("error", "No se pudieron cargar las canciones");
       }
     );
 
@@ -139,7 +139,7 @@ export default function ControlCanciones() {
       );
     } catch (error) {
       console.error("Error al guardar el repertorio:", error);
-      showNotif("error", "❌ No se pudo actualizar la lista de hoy");
+      showNotif("error", "No se pudo actualizar la lista de hoy");
     }
   };
 
@@ -284,14 +284,14 @@ export default function ControlCanciones() {
   // Guardar canción nueva o los cambios de una propia
   const guardarCancion = async () => {
     if (!titulo.trim()) {
-      showNotif("warning", "🚫 Ponle un título a la canción");
+      showNotif("warning", "Ponle un título a la canción");
       return;
     }
 
     const diapositivas = partirLetra(letra);
 
     if (diapositivas.length === 0) {
-      showNotif("warning", "🚫 Escribe o pega la letra de la canción");
+      showNotif("warning", "Escribe o pega la letra de la canción");
       return;
     }
 
@@ -323,7 +323,7 @@ export default function ControlCanciones() {
       limpiarFormulario();
     } catch (error) {
       console.error("Error al guardar la canción:", error);
-      showNotif("error", "❌ No se pudo guardar la canción");
+      showNotif("error", "No se pudo guardar la canción");
     }
   };
 
@@ -352,10 +352,10 @@ export default function ControlCanciones() {
         setIndiceActual(null);
       }
 
-      showNotif("success", "🗑️ Canción eliminada");
+      showNotif("success", "Canción eliminada");
     } catch (error) {
       console.error("Error al eliminar la canción:", error);
-      showNotif("error", "❌ No se pudo eliminar la canción");
+      showNotif("error", "No se pudo eliminar la canción");
     }
   };
 

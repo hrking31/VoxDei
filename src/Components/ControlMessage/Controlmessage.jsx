@@ -12,7 +12,7 @@ import {
 } from "@heroicons/react/24/solid";
 import EmojiButton from "../EmojiButton/EmojiButton";
 import { useAppContext } from "../Context/AppContext";
-import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import { useAuth } from "../../Components/Context/AuthContext";
 import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
 
 export default function ControlMenssage() {
@@ -159,7 +159,7 @@ export default function ControlMenssage() {
       setMessage("");
     } catch (error) {
       console.error("Error al agregar el mensaje:", error);
-      showNotif("error", "❌ Error al guardar el mensaje");
+      showNotif("error", "Error al guardar el mensaje");
     }
   };
 

@@ -1,24 +1,34 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const admin = require("firebase-admin");
-const { ROLES, esAdmin, normalizarRol } = require("./roles");
+const { initializeApp } = require("firebase-admin/app");
+const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const { getAuth } = require("firebase-admin/auth");
+const { getStorage } = require("firebase-admin/storage");
+const {
+  ROLES,
+  ROL_POR_DEFECTO,
+  esPastor,
+  normalizarRol,
+} = require("./roles");
 
-admin.initializeApp();
+// Cada servicio se importa por su cuenta: firebase-admin 14 eliminó la forma
+// antigua (`admin.firestore()`, `admin.auth()`, `admin.storage()`), que quedaba
+// en `undefined` y hacía fallar toda llamada con
+// "TypeError: admin.firestore is not a function".
+initializeApp();
 
-// Comprueba que quien llama manda en su iglesia y devuelve sus datos.
+const db = getFirestore();
+
+// Comprueba que quien llama es pastor o pastora de su iglesia.
 //
 // El rol se lee del documento de Firestore, no del custom claim del token: el
 // pastor que se registra desde la app se crea en el cliente y su token no lleva
 // claim de rol, así que confiar solo en el claim lo dejaría fuera.
-async function exigirAdmin(request) {
+async function exigirPastor(request) {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Debes iniciar sesión.");
   }
 
-  const snap = await admin
-    .firestore()
-    .collection("users")
-    .doc(request.auth.uid)
-    .get();
+  const snap = await db.collection("users").doc(request.auth.uid).get();
 
   if (!snap.exists) {
     throw new HttpsError("permission-denied", "Usuario no registrado.");
@@ -26,10 +36,11 @@ async function exigirAdmin(request) {
 
   const solicitante = snap.data();
 
-  if (!esAdmin(solicitante.role)) {
+  // El administrador quedó fuera de la gestión de cuentas a propósito.
+  if (!esPastor(solicitante.role)) {
     throw new HttpsError(
       "permission-denied",
-      "Solo el pastor o un administrador pueden gestionar usuarios.",
+      "Solo el pastor o la pastora pueden gestionar las cuentas.",
     );
   }
 
@@ -44,27 +55,82 @@ async function exigirAdmin(request) {
   return { uid: request.auth.uid, ...solicitante };
 }
 
-// Función para CREAR un usuario dentro de la iglesia de quien llama
-exports.crearUsuarioAdmin = onCall(async (request) => {
-  const solicitante = await exigirAdmin(request);
+// Devuelve la ficha del usuario sobre el que se quiere actuar, comprobando que
+// existe y que pertenece a la misma iglesia de quien llama.
+async function exigirObjetivoDeMiIglesia(uid, solicitante) {
+  const ref = db.collection("users").doc(uid);
+  const snap = await ref.get();
 
-  const { email, password, name, gender } = request.data || {};
-  const role = normalizarRol(request.data?.role);
+  if (!snap.exists) {
+    throw new HttpsError("not-found", "El usuario no existe.");
+  }
 
-  if (!email || !password || !name || !role) {
+  const objetivo = snap.data();
+
+  if (objetivo.groupId !== solicitante.groupId) {
     throw new HttpsError(
-      "invalid-argument",
-      "Faltan datos: nombre, correo, contraseña y rol son obligatorios.",
+      "permission-denied",
+      "Ese usuario no pertenece a tu iglesia.",
     );
   }
 
+  return { ref, objetivo };
+}
+
+// Función para CREAR un usuario dentro de la iglesia de quien llama
+exports.crearUsuarioAdmin = onCall(async (request) => {
+  const solicitante = await exigirPastor(request);
+
+  const { email, password, name, gender } = request.data || {};
+
+  // Si no se indica rol, se crea como Asistente, que es el caso habitual.
+  const role = request.data?.role
+    ? normalizarRol(request.data.role)
+    : ROL_POR_DEFECTO;
+
+  if (!email || !password || !name) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Faltan datos: nombre, correo y contraseña son obligatorios.",
+    );
+  }
+
+  // Solo se aceptan los tres roles de la aplicación; cualquier otra cosa que
+  // llegue del cliente se rechaza.
   if (!ROLES.includes(role)) {
     throw new HttpsError("invalid-argument", `Rol no válido: ${role}`);
   }
 
+  // Una iglesia tiene como mucho un pastor y una pastora, y solo quien la
+  // registró puede dar de alta a su pareja pastoral. Todo lo demás es
+  // Asistente. Se comprueba aquí y no solo en la pantalla: el formulario oculta
+  // la opción, pero una llamada directa podría pedirla igual.
+  if (esPastor(role)) {
+    if (solicitante.uid !== solicitante.groupId) {
+      throw new HttpsError(
+        "permission-denied",
+        "Solo quien registró la iglesia puede dar de alta al pastor o pastora.",
+      );
+    }
+
+    const yaExiste = await db
+      .collection("users")
+      .where("groupId", "==", solicitante.groupId)
+      .where("role", "==", role)
+      .limit(1)
+      .get();
+
+    if (!yaExiste.empty) {
+      throw new HttpsError(
+        "failed-precondition",
+        `Esta iglesia ya tiene ${role}.`,
+      );
+    }
+  }
+
   try {
     // Crear el usuario en Firebase Authentication
-    const userRecord = await admin.auth().createUser({
+    const userRecord = await getAuth().createUser({
       email: email,
       password: password,
       displayName: name,
@@ -73,7 +139,7 @@ exports.crearUsuarioAdmin = onCall(async (request) => {
     // Guardar sus datos y permisos en Firestore.
     // La iglesia se hereda de quien crea, nunca se acepta del cliente: así
     // nadie puede colar un usuario en la iglesia de otro pastor.
-    await admin.firestore().collection("users").doc(userRecord.uid).set({
+    await db.collection("users").doc(userRecord.uid).set({
       uid: userRecord.uid,
       name,
       email,
@@ -81,11 +147,11 @@ exports.crearUsuarioAdmin = onCall(async (request) => {
       gender,
       groupId: solicitante.groupId,
       churchName: solicitante.churchName || null,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: FieldValue.serverTimestamp(),
     });
 
     // (Custom Claims) para que las reglas de seguridad reconozcan rol e iglesia
-    await admin.auth().setCustomUserClaims(userRecord.uid, {
+    await getAuth().setCustomUserClaims(userRecord.uid, {
       role,
       groupId: solicitante.groupId,
     });
@@ -97,64 +163,12 @@ exports.crearUsuarioAdmin = onCall(async (request) => {
   }
 });
 
-// Reparte los permisos internos (custom claims) a los usuarios de la iglesia
-// que aún no los tengan.
+// Función para ELIMINAR un usuario de la iglesia de quien llama.
 //
-// Hace falta para los usuarios creados antes, desde el navegador: sin estos
-// permisos en su token, las reglas de la Realtime Database los bloquean.
-// Basta ejecutarla una vez; después cada usuario debe cerrar sesión y volver a
-// entrar para que su token recoja los permisos nuevos.
-exports.sincronizarPermisos = onCall(async (request) => {
-  const solicitante = await exigirAdmin(request);
-
-  const usuarios = await admin
-    .firestore()
-    .collection("users")
-    .where("groupId", "==", solicitante.groupId)
-    .get();
-
-  let actualizados = 0;
-
-  for (const documento of usuarios.docs) {
-    const rol = normalizarRol(documento.data().role);
-
-    try {
-      const cuenta = await admin.auth().getUser(documento.id);
-      const claims = cuenta.customClaims || {};
-
-      // Solo se toca a quien le falte algo: reasignar claims invalida el token.
-      if (claims.role === rol && claims.groupId === solicitante.groupId) {
-        continue;
-      }
-
-      await admin.auth().setCustomUserClaims(documento.id, {
-        ...claims,
-        role: rol,
-        groupId: solicitante.groupId,
-      });
-
-      actualizados++;
-    } catch (error) {
-      // Una ficha sin cuenta de acceso no debe frenar al resto.
-      console.warn(`No se pudo actualizar ${documento.id}:`, error.message);
-    }
-  }
-
-  return {
-    success: true,
-    actualizados,
-    total: usuarios.size,
-    message:
-      actualizados === 0
-        ? "Todos los usuarios ya tenían sus permisos al día."
-        : `Se actualizaron ${actualizados} de ${usuarios.size} usuarios. ` +
-          "Cada uno debe cerrar sesión y volver a entrar.",
-  };
-});
-
-// Función para ELIMINAR un usuario de la iglesia de quien llama
+// El pastor y la pastora eliminan operadores. A la pareja pastoral solo la
+// elimina el dueño, y al dueño no lo elimina nadie.
 exports.eliminarUsuarioAdmin = onCall(async (request) => {
-  const solicitante = await exigirAdmin(request);
+  const solicitante = await exigirPastor(request);
 
   const { uid } = request.data || {};
 
@@ -170,31 +184,39 @@ exports.eliminarUsuarioAdmin = onCall(async (request) => {
   }
 
   try {
-    const userRef = admin.firestore().collection("users").doc(uid);
-    const userSnap = await userRef.get();
+    const { ref: userRef, objetivo } = await exigirObjetivoDeMiIglesia(
+      uid,
+      solicitante,
+    );
 
-    if (!userSnap.exists) {
-      throw new HttpsError("not-found", "El usuario no existe.");
+    // El dueño es intocable: su uid ES el groupId de la iglesia, y Firebase no
+    // reutiliza uids, así que la iglesia quedaría huérfana para siempre.
+    if (uid === objetivo.groupId) {
+      throw new HttpsError(
+        "failed-precondition",
+        "No se puede eliminar la cuenta que registró la iglesia.",
+      );
     }
 
-    // El objetivo debe ser de la misma iglesia: nadie borra usuarios ajenos.
-    if (userSnap.data().groupId !== solicitante.groupId) {
+    // A un pastor o pastora solo lo elimina el dueño: entre pares, ninguno
+    // manda sobre el otro.
+    if (esPastor(objetivo.role) && solicitante.uid !== solicitante.groupId) {
       throw new HttpsError(
         "permission-denied",
-        "Ese usuario no pertenece a tu iglesia.",
+        "Solo quien registró la iglesia puede eliminar a un pastor o pastora.",
       );
     }
 
     // Borrar la foto de perfil. Va en un try aparte: que no exista no debe
     // impedir eliminar la cuenta.
     try {
-      await admin.storage().bucket().file(`users/${uid}/profile.jpg`).delete();
+      await getStorage().bucket().file(`users/${uid}/profile.jpg`).delete();
     } catch (error) {
       console.warn(`Sin foto que borrar para ${uid}:`, error.message);
     }
 
     // Borrar de Auth
-    await admin.auth().deleteUser(uid);
+    await getAuth().deleteUser(uid);
     // Borrar de Firestore
     await userRef.delete();
 

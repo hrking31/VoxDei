@@ -50,17 +50,26 @@ Al iniciar sesión verás dos botones grandes:
 
 Desde **Administrador → Usuarios** puedes crear cuentas para las personas que te ayudan.
 
+Si registraste la iglesia, lo primero que verás es la opción de dar de alta a tu pareja: si la registró un pastor, aparece **Pastora**, y si la registró una pastora, aparece **Pastor**. Una vez están los dos, esa opción desaparece y todas las cuentas que crees después serán **Operador**.
+
 ---
 
 ## Quién puede hacer qué
 
 | Rol | Quién es | Qué puede hacer |
 |---|---|---|
-| **Pastor / Pastora** | Quien registró la iglesia | Todo |
-| **Administrador** | Alguien de confianza a quien le das el mismo nivel | Todo, incluido crear usuarios y preparar prédicas |
-| **Asistente** | Quien opera la pantalla durante el servicio | Proyectar versículos, anuncios y mensajes |
+| **Pastor / Pastora** | Quien registró la iglesia y su pareja | Todo |
+| **Operador** | Quien maneja la pantalla durante el servicio | Proyectar versículos, anuncios, mensajes, canciones, imágenes y video |
 
-Un asistente puede manejar la pantalla sin riesgo de que modifique las prédicas guardadas ni las cuentas del equipo.
+Un operador puede manejar la pantalla sin riesgo de que modifique las prédicas guardadas ni las cuentas del equipo: esas dos secciones ni siquiera le aparecen.
+
+Sobre eliminar cuentas:
+
+- A la cuenta que **registró la iglesia no la puede borrar nadie**, ni ella misma. Es a propósito: si desapareciera, la iglesia se quedaría sin dueño y no habría forma de recuperarla.
+- A la **pareja pastoral** solo la puede eliminar quien registró la iglesia.
+- A un **operador** lo puede eliminar cualquiera de los dos pastores.
+
+Cada persona puede cambiar **su propia foto**, y solo la suya: se toca la foto de arriba en el Panel de Gestión. Nadie puede cambiarse su propio rol.
 
 ---
 
@@ -107,6 +116,19 @@ Sube fotos sueltas o una carpeta entera y proyéctalas en la pantalla.
 
 La imagen ocupa el centro de la pantalla. Si tienes encendido el título, se sigue viendo arriba, y el ticker sigue corriendo abajo.
 
+### Video
+
+Para proyectar videos de YouTube durante el servicio.
+
+- Copia el enlace del video en YouTube y pégalo. Ponle un nombre para reconocerlo después.
+- Toca **Guardar** y queda en la lista, listo para volver a usarlo cualquier domingo.
+- Toca el video de la lista para mandarlo a la pantalla.
+
+Dos cosas que conviene saber antes de usarlo en un servicio:
+
+- **El video se descarga directo de YouTube al computador de proyección.** Si el internet del templo va justo, se puede entrecortar. Vale la pena probarlo antes.
+- **Para que se escuche hay que poner la pantalla en completa.** El navegador no deja que un video empiece con sonido por su cuenta; ese es el gesto que lo desbloquea.
+
 ### Canciones
 
 Para proyectar las letras durante la alabanza.
@@ -144,7 +166,13 @@ Los cambios se ven en la vista previa mientras los haces, pero **solo llegan a l
 
 ### Usuarios
 
-Crea las cuentas de tu equipo eligiendo nombre, correo, contraseña y rol. También puedes ver la lista de tu equipo y eliminar a alguien tocando el lápiz junto a su nombre.
+Solo entran aquí el pastor y la pastora; a un operador ni le aparece el botón.
+
+Crea las cuentas de tu equipo con nombre, correo y contraseña. El rol solo se pregunta mientras falte tu pareja pastoral; después, todas las cuentas nuevas son de **Operador** y la pantalla te lo indica.
+
+En la pestaña del equipo ves a todos los tuyos. Al tocar el lápiz junto a un nombre se abre su ficha, y desde ahí puedes eliminar la cuenta si tienes permiso para hacerlo (mira la tabla de *Quién puede hacer qué*). Al eliminar se borra todo: su acceso, su ficha y su foto.
+
+El rol de una persona no se puede cambiar después: se elige al crear la cuenta.
 
 ---
 
@@ -158,6 +186,7 @@ Durante el servicio no siempre quieres mostrarlo todo. En cada herramienta hay t
 | 💬 **Globo de diálogo** | El texto grande del centro (mensaje, versículo o letra) |
 | 🏷️ **Etiqueta** | La cinta que se desliza abajo |
 | 🖼️ **Foto** | La imagen del centro (en la sección de Imágenes) |
+| 🎬 **Cámara de video** | El video del centro (en la sección de Video) |
 | 📺 **Televisor** | Deja encendido **solo** lo de esa sección y apaga el resto |
 
 Se encienden en verde cuando están activos. Así puedes, por ejemplo, dejar solo el ticker mientras la congregación canta, y encender el texto grande justo cuando llega el versículo.
@@ -194,6 +223,18 @@ No. Cada iglesia solo puede editar o borrar las canciones que ella misma subió.
 ## Novedades
 
 Aquí queda anotado lo que va cambiando en la aplicación, para que siempre sepas qué es nuevo.
+
+### 15 de agosto de 2026
+
+- **Nueva sección: Video.** Ya puedes proyectar videos de YouTube. Pegas el enlace, le pones un nombre para reconocerlo después y queda guardado para volver a usarlo. El video viaja de YouTube al computador de proyección, así que depende del internet del templo. Para que se escuche, hay que poner la pantalla completa.
+- **Crear usuarios vuelve a funcionar.** Durante unas horas, crear una cuenta para tu equipo fallaba en silencio: no aparecía la persona por ningún lado y tampoco salía ningún aviso. Ya está corregido.
+- **Los roles se simplificaron.** Ahora hay solo tres: **Pastor**, **Pastora** y **Operador** (antes se llamaba Asistente). Desapareció "administrador", que confundía y casi no se usaba.
+- **La pareja pastoral.** Quien registra la iglesia puede dar de alta a su pareja: si la registró un pastor, aparece la opción de crear a la pastora, y al revés. Una vez están los dos, esa opción desaparece y todo el que se cree en adelante es Operador, que maneja la proyección pero no las cuentas ni las prédicas.
+- **Nadie puede darse permisos a sí mismo.** Se cerró un fallo por el que una persona con conocimientos podía cambiarse el rol y entrar donde no le corresponde.
+- **Eliminar cuentas es más seguro.** A la cuenta que registró la iglesia no la puede borrar nadie, ni ella misma: si desapareciera, la iglesia quedaría sin dueño y sin arreglo. A la pareja pastoral solo la puede eliminar quien registró la iglesia.
+- **Tu foto de perfil.** Ahora cada quien puede poner o cambiar su propia foto: se toca la foto de arriba en el Panel de Gestión. Si todavía no tienes, verás un icono de cámara indicándolo.
+- **Los avisos se unificaron.** Antes cada pantalla mostraba sus mensajes de forma distinta y en sitios diferentes; algunos errores no se mostraban en absoluto. Ahora todos aparecen igual, centrados en la parte de abajo.
+- **Los selectores de color ya se ven completos.** En Estilos y colores, algunos quedaban cortados por el borde y otros no se veían. Ahora se abren centrados en la pantalla, con el código de color a mano.
 
 ### 14 de agosto de 2026 (noche)
 

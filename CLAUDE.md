@@ -52,6 +52,17 @@ Todos los nodos de RTDB se escriben bajo `<nodo>/${userData.groupId}`:
 
 `main.jsx` → `AuthProvider` → `BrowserRouter` → `App` → `AppProvider`. Consecuencia práctica: `useAuth()` está disponible en todas partes; `useAppContext()` solo dentro de `App`.
 
+Cada contexto está partido en dos archivos (15 de agosto de 2026), porque el refresco en caliente de Vite exige que un archivo exporte solo componentes:
+
+| Archivo | Contiene | Se importa desde |
+| --- | --- | --- |
+| `Context/AppContext.js` | `AppContext` + `useAppContext` | los componentes que consumen el estado |
+| `Context/AppProvider.jsx` | `AppProvider` | `App.jsx` |
+| `Context/AuthContext.js` | `AuthContext` + `useAuth` | los componentes que consumen la sesión |
+| `Context/AuthProvider.jsx` | `AuthProvider` | `main.jsx` |
+
+Los imports de hooks van **sin extensión** (`from "../Context/AuthContext"`): antes muchos escribían `AuthContext.jsx` y habrían apuntado a un archivo que ya no existe. No vuelvas a poner el hook y el proveedor en el mismo archivo.
+
 - **`AuthContext`**: sesión de Firebase Auth (`user`) más el documento `users/{uid}` de Firestore (`userData`, con `role`, `groupId`, `churchName`, `photo`). Expone `signup`, `login`, `logout`, `loading`.
 - **`AppContext`**: estado compartido del panel (slots de prédicas, items de ticker/mensajes, flags de visibilidad, velocidad del ticker) y el sistema de notificaciones.
 - **`InicializarEstados`**: componente sin UI montado en `App`. Centraliza las suscripciones globales (slots de prédicas, `onSnapshot` de tickers y mensajes, los nodos de visibilidad y velocidad). Espera a que `userData.groupId` exista antes de suscribirse. Las suscripciones globales van aquí, no en las vistas.
@@ -62,6 +73,16 @@ No se usa `alert` ni `confirm`. `AppContext` expone:
 
 - `showNotif(type, message)` — tipos `success` | `error` | `warning` | `info`; se cierra sola a los 4 s.
 - `confirmAction(message)` — devuelve una promesa que resuelve `true`/`false` según lo que pulse el usuario. Siempre con `await`.
+
+**`Notificaciones` es el único componente que puede pintar avisos** (unificado el 15 de agosto de 2026). Está montado una sola vez en `App.jsx`, dentro de `AppProvider`, así que cubre todas las rutas, incluidas login, registro y recuperación de contraseña. Se muestra **centrado en la parte inferior** (`bottom-6`, ancho `max-w-md`), con el mismo tamaño para todos los tipos.
+
+Reglas al escribir una vista:
+
+- Ninguna vista declara estados tipo `error` / `mensaje` para pintar texto de aviso. Antes lo hacían `ViewLogin`, `ViewRegister`, `ViewResetPassword`, `ViewUsers`, `ControlVersiculo` y `ControlImagenes`, cada una con su propio tamaño y color, y varias los pintaban dentro de un formulario concreto: los fallos ocurridos en otra pestaña de la misma vista quedaban mudos.
+- El texto no lleva emoji al principio (`✅`, `❌`, `🚫`…). El componente ya pone su icono según el tipo y el emoji descuadraba la altura.
+- El centrado se hace con una franja fija (`inset-x-0 … flex justify-center`) y la tarjeta dentro. No uses `-translate-x-1/2` en la tarjeta: framer-motion escribe su propio `transform` y lo pisa.
+
+Excepción deliberada: los scripts de carga masiva `Upload/CargarBiblia` y `Upload/CargarVesiculos` conservan su propio `mensaje` en pantalla. No es un aviso sino un **progreso** que se reescribe en cada capítulo ("Subiendo: Génesis capítulo 3"); como notificación dispararía cientos de avisos seguidos. Además están comentados en `ViewDisplay` y no se montan.
 
 ### Modelos de datos
 
@@ -75,29 +96,61 @@ No se usa `alert` ni `confirm`. `AppContext` expone:
 
 Los roles se definen en un solo sitio: **`src/Components/Roles/Roles.js`** (y su espejo CommonJS `functions/roles.js` para las Cloud Functions). Nunca escribas cadenas de rol a mano en un componente; importa las constantes.
 
-Jerarquía, alineada con el modelo de negocio (cada iglesia es un grupo cerrado):
+Jerarquía (reformada el 15 de agosto de 2026). **Solo hay dos niveles y tres roles**; se eliminaron `administrador` —nivel intermedio que no se usaba— y el nombre `Asistente`, sustituido por `Operador`:
 
 | Rol | Origen | Puede |
 | --- | --- | --- |
-| `Pastor` / `Pastora` | se crea en `ViewRegister`; su `uid` es el `groupId` de la iglesia | todo |
-| `administrador` | delegado por el pastor desde `ViewUsers` | gestionar usuarios y prédicas |
-| `Asistente` | creado por el pastor | solo proyectar contenido |
+| `Pastor` / `Pastora` | el primero se crea en `ViewRegister` (su `uid` es el `groupId`); su pareja, desde `ViewUsers` | todo |
+| `Operador` | creado por un pastor | solo manejar la proyección |
 
-Dos listas gobiernan el acceso: `ROLES_ADMIN` (gestión: `/ViewUsers`, `/ViewPredica`) y `ROLES_OPERADOR` (proyección: resto de rutas de contenido). `/ViewSelector` y `/ViewGestion` solo exigen sesión iniciada.
+Reglas de la pareja pastoral, iguales en la pantalla y en el servidor:
 
-`tieneRol(userData, roles)` normaliza antes de comparar: acepta el alias antiguo `"admin"` como `"administrador"` y tolera diferencias de mayúsculas, para no dejar fuera a usuarios ya guardados. **Sin `userData` devuelve `false`**: el acceso nunca se concede por falta de datos.
+- Una iglesia tiene **como mucho un `Pastor` y una `Pastora`**.
+- **Solo el dueño** (quien registró la iglesia) puede dar de alta a su contraparte: si registró un pastor, la única opción de rol que aparece es `Pastora`, y al revés.
+- Cuando la pareja ya existe, el selector de rol **desaparece** y todo lo que se cree en adelante nace como `Operador`.
+- **No hay cambio de rol posterior.** Se elige al crear y punto.
+
+Dos listas gobiernan el acceso: `ROLES_PASTORES` (`/ViewUsers`, `/ViewPredica`) y `ROLES_PROYECCION` (resto de rutas de contenido). `/ViewSelector` y `/ViewGestion` solo exigen sesión iniciada, pero `ViewGestion` oculta los botones de *Usuarios* y *Gestión Predica* a quien no sea pastor, en vez de dejar que choque con `/VistaNoAutorizada`.
+
+Quién puede eliminar a quién:
+
+| Quien borra | Operador | Su pareja pastoral | El dueño | A sí mismo |
+| --- | --- | --- | --- | --- |
+| Dueño (registró la iglesia) | sí | sí | — | no |
+| Pastor/Pastora añadido después | sí | — | **no** | no |
+
+Al dueño no lo elimina nadie: su `uid` **es** el `groupId`, y como Firebase no reutiliza uids, la iglesia quedaría huérfana sin retorno. A la pareja pastoral solo la elimina el dueño, para que un desacuerdo entre pares no descabece la iglesia.
+
+`tieneRol(userData, roles)` normaliza antes de comparar: tolera diferencias de mayúsculas y espacios sobrantes. **Sin `userData` devuelve `false`**: el acceso nunca se concede por falta de datos.
 
 ### Cloud Functions
 
 `functions/index.js` define `crearUsuarioAdmin` y `eliminarUsuarioAdmin` (**API v2**: `onCall(async (request) => …)` con `request.data` y `request.auth`; CommonJS, Node 24). Ojo: con `firebase-functions` v6+ el import raíz `require("firebase-functions")` apunta a v2, no a v1 — la firma vieja `(data, context)` deja `context` en `undefined`.
 
-Ambas validan con el helper `exigirAdmin(request)`, que **lee el rol del documento de Firestore, no del custom claim**: el pastor se registra desde el cliente y su token no lleva claim de rol. La iglesia (`groupId`) se hereda siempre de quien llama y nunca se acepta del cliente; al eliminar se comprueba que el objetivo pertenezca al mismo `groupId`, se impide borrarse a uno mismo y se borra también `users/{uid}/profile.jpg` de Storage.
+Ambas validan con el helper `exigirPastor(request)`, que **lee el rol del documento de Firestore, no del custom claim**: el pastor se registra desde el cliente y su token no lleva claim de rol. La iglesia (`groupId`) se hereda siempre de quien llama y nunca se acepta del cliente; `exigirObjetivoDeMiIglesia(uid, solicitante)` comprueba que el usuario afectado exista y sea de la misma iglesia.
+
+Lo que impone el servidor, además de lo que ya filtra la pantalla:
+
+- El `role` que llega del cliente se valida contra `ROLES`; si no viene ninguno, se crea como `Operador`.
+- Crear un `Pastor` o una `Pastora` exige ser el dueño (`uid === groupId`) y que no exista ya alguien con ese rol en la iglesia.
+- Eliminar: nunca a uno mismo ni al dueño; a un pastor o pastora, solo si quien llama es el dueño. Se borra también `users/{uid}/profile.jpg` de Storage.
 
 `ViewUsers` las invoca con `httpsCallable`. **No revertir esto a la creación desde el cliente**: `createUserWithEmailAndPassword` inicia sesión con la cuenta recién creada, de modo que el pastor perdía su sesión y —desde que `ProtectedRoutes` deniega sin rol válido— acababa expulsado a `/VistaNoAutorizada`.
 
-Al borrar se usa `selectedUser.id` (el id del documento, que es el uid) y no `selectedUser.uid`: las fichas creadas por `ViewRegister` y por el flujo antiguo **no guardan campo `uid`**, así que la comprobación anterior fallaba siempre y el borrado nunca se ejecutaba.
+Al borrar se usa `selectedUser.id`, el id del documento, que siempre coincide con el uid de la cuenta. Desde el 15 de agosto de 2026 `ViewRegister` también guarda el campo `uid` dentro de la ficha, igual que `crearUsuarioAdmin`, para que todos los documentos de `users` tengan la misma forma.
 
-La carpeta `functions/` aún no está versionada en git.
+La carpeta `functions/` **sí está versionada** (`index.js`, `roles.js`, `package.json`, `package-lock.json` y su `.gitignore`); solo se excluye `node_modules/`.
+
+**`firebase-admin` 14 eliminó la API antigua** (descubierto el 15 de agosto de 2026, con las funciones ya rotas en producción): `admin.firestore()`, `admin.auth()` y `admin.storage()` valen `undefined`, así que toda llamada moría en la primera línea de `exigirAdmin` con `TypeError: admin.firestore is not a function`. Nada se creaba ni se borraba. Hay que importar cada servicio por su subpath:
+
+```js
+const { initializeApp } = require("firebase-admin/app");
+const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const { getAuth } = require("firebase-admin/auth");
+const { getStorage } = require("firebase-admin/storage");
+```
+
+Ojo con `admin.firestore.FieldValue.serverTimestamp()`, que ahora es `FieldValue.serverTimestamp()`. El fallo **no aparece en el despliegue ni en el lint**: el paquete se instala bien y el archivo carga; solo revienta al ejecutarse. La forma rápida de verlo es `npx firebase functions:log | grep -v AuditLog`, que separa las ejecuciones reales del ruido de los despliegues.
 
 **Versiones acopladas** (2026-08-14): `firebase-admin@^14.2.0` + `firebase-functions@^7.3.2`. No las muevas por separado: `firebase-functions` 7.2.5 declara soporte de admin solo hasta `^13`, y desplegar esa combinación falla en el build de Google con `ERESOLVE`, no en local. Al comprobar compatibilidad, consulta los `peerDependencies` de la **versión instalada**, no de `@latest`.
 
@@ -109,11 +162,9 @@ El `groupId` es el uid del pastor que registró la iglesia. Consecuencia: **si e
 
 ### Custom claims y reglas de RTDB
 
-Las reglas de `database.rules.json` reconocen la pertenencia a una iglesia por `auth.uid === $groupId` (el pastor dueño) o por el custom claim `auth.token.groupId`. Ese claim solo lo asigna `crearUsuarioAdmin` al crear la cuenta, así que **los usuarios creados antes de conectar las Cloud Functions no lo tienen** y las reglas los bloquean.
+Las reglas de `database.rules.json` reconocen la pertenencia a una iglesia por `auth.uid === $groupId` (el pastor dueño) o por el custom claim `auth.token.groupId`. Ese claim lo asigna `crearUsuarioAdmin` al crear la cuenta, que es la única vía por la que se crean usuarios. El pastor dueño no lo necesita: las reglas lo reconocen por su uid.
 
-Para eso existe `sincronizarPermisos`: recorre los usuarios del `groupId` de quien llama y les asigna `role` y `groupId` como claims, saltando a los que ya los tienen (reasignar claims invalida el token). Se dispara desde el botón *"Sincronizar permisos del equipo"* en `ViewUsers`. **Después de ejecutarla, cada usuario debe cerrar sesión y volver a entrar**: el token no recoge claims nuevos hasta que se renueva.
-
-El pastor dueño nunca la necesita, porque las reglas lo reconocen por su uid.
+Existía una función `sincronizarPermisos`, con su botón *"Sincronizar permisos del equipo"* en `ViewUsers`, para repartir el claim a los usuarios creados antes de que existieran las Cloud Functions. **Se eliminó el 15 de agosto de 2026**: la app arranca sin datos heredados, así que no hay a quién reparar. Si algún día hiciera falta reintroducirla, ten presente el motivo por el que existía: asignar un claim no reescribe un token ya emitido, de modo que la persona debe cerrar sesión y volver a entrar (o el cliente debe forzar `getIdToken(true)`).
 
 ### Aislamiento de datos entre iglesias
 
@@ -125,7 +176,7 @@ iglesias/{groupId}/tickers/ticker1..6
 iglesias/{groupId}/messages/message1..6
 ```
 
-Construye siempre esas rutas con los helpers de **`src/Components/Firebase/RutasIglesia.js`** (`colIglesia`, `docIglesia`), que además fallan con un mensaje claro si falta el `groupId`. Antes estas colecciones vivían en la raíz con IDs fijos (`predica1`, `ticker1`…), de modo que dos iglesias escribían literalmente sobre el mismo documento.
+Construye siempre esas rutas con los helpers de **`src/Components/Firebase/RutasIglesia.js`** (`colIglesia`, `docIglesia`), que además fallan con un mensaje claro si falta el `groupId`. Antes estas colecciones vivían en la raíz con IDs fijos (`predica1`, `ticker1`…), de modo que dos iglesias escribían literalmente sobre el mismo documento. Esas colecciones raíz se borraron de Firestore desde la consola el 15 de agosto de 2026; ya no queda rastro de ellas.
 
 Excepciones deliberadas:
 
@@ -148,7 +199,15 @@ Ojo: las reglas de Storage no invalidan los enlaces de descarga ya generados con
 
 En Firestore, el `groupId` del solicitante se resuelve leyendo su documento `users/{uid}` con `get()`. En RTDB eso no es posible, así que la pertenencia se comprueba con `auth.uid === $groupId` (el pastor dueño) o con el custom claim `auth.token.groupId`.
 
-**Antes de desplegar las reglas de RTDB**: ese claim solo lo asigna la Cloud Function `crearUsuarioAdmin`. Como `ViewUsers` todavía crea usuarios desde el cliente, los asistentes existentes no lo tienen y las reglas los bloquearían. Hay que migrar `ViewUsers` a la Cloud Function (o asignar el claim a los usuarios ya creados) antes de activarlas.
+**El agujero que cerró la revisión del 15 de agosto de 2026**: `users/{uid}` permitía `update` a cualquiera sobre su propio documento, sin limitar campos. Cualquier operador podía abrir la consola del navegador, cambiarse el `role` a `Pastor` y entrar a la gestión de cuentas —o cambiarse el `groupId` y colarse en otra iglesia—. Ahora:
+
+- `update` propio: solo el campo `photo`, con `diff(resource.data).affectedKeys().hasOnly(['photo'])`. Nada de rol, iglesia, correo ni nombre.
+- `create`: solo el documento propio, con `groupId == uid` y rol `Pastor`/`Pastora`. Es decir, únicamente el registro de una iglesia nueva; nadie puede fabricarse una ficha dentro de la iglesia de otro.
+- `delete`: un pastor sobre alguien de su iglesia, nunca sobre sí mismo ni sobre el dueño; y si el objetivo es pastor o pastora, solo si quien borra es el dueño.
+
+El rol lo asigna siempre el servidor con permisos de administrador, que se saltan estas reglas. Por eso pueden ser tan estrictas.
+
+Ese claim lo asigna `crearUsuarioAdmin`, la única vía de creación de usuarios desde que `ViewUsers` dejó de crearlos en el cliente. Ya no hay que preparar nada antes de desplegar las reglas de RTDB: todo usuario nace con su claim puesto.
 
 ### Manual para el cliente (`README.md`)
 
@@ -176,7 +235,7 @@ Tailwind v4 mediante `@tailwindcss/vite`; **no hay `tailwind.config.js`**. El te
 - Las vistas viven en `src/Views/<Nombre>/<Nombre>.jsx` y deben reexportarse en `src/Views/index.js` para poder usarse en `App.jsx`.
 - Las rutas distinguen mayúsculas y se escriben tal cual (`/ViewGestion`, `/ViewSelector`, `/VOXDEI`). Ya hay al menos un `navigate("/Viewgestion")` mal escrito en `ViewUsers` que no coincide con ninguna ruta; conviene verificar el destino al copiar navegaciones.
 - `ViewGestion.jsx` exporta una función llamada internamente `ViewSelector`, distinta de la vista `ViewSelector`. No confundirlas: `ViewSelector` es la pantalla de entrada (abre el visor y cierra sesión), `ViewGestion` es la cuadrícula de opciones.
-- Regla de ESLint activa: `no-unused-vars` con `varsIgnorePattern: '^[A-Z_]'`.
+- Regla de ESLint activa: `no-unused-vars` con `varsIgnorePattern: '^[A-Z_]'`. De `eslint-plugin-react` solo está activada `react/jsx-uses-vars` (para que `no-unused-vars` no dé por muertas las variables usadas en el JSX, como `motion`); el preset completo del plugin está deliberadamente apagado.
 - `vite.config.js` fuerza un chunk manual llamado `firebase` para todo el SDK; el hosting sirve `dist/` con rewrite SPA a `index.html`.
 
 ---
@@ -216,8 +275,6 @@ y funcionando, pero no había sido revisado con detenimiento por el autor.
 1. `ControlPredica.jsx`, `ControlImagenes.jsx` y `ViewRegister.jsx` **no se revisaron línea por línea**; el resto sí.
 2. `ControlDisplay.jsx` cambió de clases de Tailwind a estilos calculados: es donde más se nota si algo se ve raro en el proyector.
 3. El título de la proyección sigue usando el tamaño base del texto (`style.text`), no `style.title`, que quedó definido sin usar.
-4. `ColorPicker.jsx` quedó huérfano tras el panel nuevo de estilos.
-5. `src/Components/Hooks/useScreenType.js` aparece modificado, pero **ese cambio ya estaba antes** de esta jornada.
 
 ### Prueba en producción del 14 de agosto de 2026 (incompleta)
 
@@ -241,55 +298,49 @@ hay un modal abierto. Los modales combinan `backdrop-blur-sm` con
 `bg-app-dark/90` y ese compositing hace muy costosa la captura; la página sigue
 respondiendo con normalidad a `find` y `get_page_text`.
 
-**Pendiente de arreglar, y no es solo cosmético:** `ModalCapitulo` y
-`ModalVersiculo` **no llevan `role="dialog"` ni `aria-modal="true"`** — solo
-`ModalLibros` los tiene. Además de dificultar la automatización, eso significa
-que un lector de pantalla no anuncia esos modales como diálogos.
+**Arreglado el 15 de agosto de 2026:** `ModalCapitulo` y `ModalVersiculo` ya
+llevan `role="dialog"`, `aria-modal="true"` y `aria-labelledby`, igual que
+`ModalLibros`.
+
+**Los selectores de color de `ControlEstilos`** eran un panel `absolute` dentro
+del acordeón, que tiene `overflow-hidden`: los colores del final de cada sección
+salían recortados y algunos no se veían. Ahora son una ventana `fixed` centrada,
+con su propio `role="dialog"` y cierre con Escape. El campo de texto guarda lo
+que se teclea en un estado aparte y solo aplica el color cuando el código
+hexadecimal está completo, para poder escribir sin que la paleta salte.
 
 ---
 
-## PARA MAÑANA (15 de agosto de 2026)
+## Estado al 15 de agosto de 2026
 
-### 1. Desplegar el módulo de video — bloqueante
+Todo lo de esta jornada está **desplegado**: funciones, hosting y las reglas de
+Firestore, Storage y Realtime Database. El módulo de video quedó activo.
 
-El módulo de YouTube está escrito y compila, pero **no está desplegado y no
-funcionará hasta que se desplieguen las reglas**: los nodos `displayVideo` y
-`displayVisibleVideo` son nuevos y hoy la Realtime Database los rechaza.
+### Pendiente de probar en producción
 
-```bash
-firebase deploy --only database
-npm run build && firebase deploy --only hosting
-```
+Nada de esto falló; simplemente no se ha recorrido con la app publicada:
 
-No se anunció en el README a propósito: ese archivo es el manual del cliente y
-no debe describir algo que todavía no está activo. **Añadir la entrada en
-Novedades justo después de desplegar.**
+- **El video**, que es lo único con incógnita real: viaja de YouTube al
+  computador de proyección sin pasar por Firebase, así que depende del internet
+  del templo. El sonido exige que alguien pulse pantalla completa.
+- Los **selectores de color** rehechos como ventana centrada.
+- El paso de capítulo a versículo, la proyección real de un versículo, ticker,
+  mensajes, imágenes, canciones y el guardado de estilos.
+- La **foto de perfil propia** (`MiFoto`), que escribe en Storage y toca el campo
+  `photo` de Firestore: es el único punto donde el cliente escribe en `users`, y
+  las reglas nuevas solo permiten ese campo.
 
-### 2. Probar el video
+### Decisiones pendientes
 
-La única incógnita real es si el internet del templo aguanta: el video viaja
-de YouTube al computador de proyección, sin pasar por Firebase. Comprobar
-además que el sonido salga — depende de que alguien pulse el botón de pantalla
-completa, que es lo que desbloquea el audio.
-
-### 3. Terminar la prueba en producción
-
-Quedó a medias (ver sección anterior): falta el paso de capítulo a versículo,
-proyección real, ticker, mensajes, imágenes, canciones y guardado de estilos.
-
-### 4. Decisiones pendientes del usuario
-
-- `ColorPicker.jsx` quedó huérfano tras el panel nuevo de estilos: ¿se borra?
 - Borrado de iglesia: requiere antes desacoplar el `groupId` del uid del pastor.
-- `src/Components/Hooks/useScreenType.js` sigue sin confirmar en git; ese
-  cambio es del autor, anterior a esta jornada.
-- Colecciones viejas (`predicas`, `tickers`, `messages` en la raíz) siguen en
-  Firestore, ya bloqueadas por las reglas. Se pueden borrar desde la consola.
 
-### 5. Menores
+### Menores
 
-- Instalar `eslint-plugin-react` dejaría el lint en cero: los 3 errores de
-  `motion` sin usar son un falso positivo, la variable sí se usa en el JSX.
-- Añadir `role="dialog"` a los modales de capítulo y versículo.
 - Las 9 alertas de `uuid` en `functions` no se pueden cerrar hasta que Google
   actualice sus librerías; revisar cada tanto.
+- `ModalLibros` es el único de los tres modales cuyo botón de cerrar sigue sin
+  `aria-label`.
+- Quedan 11 avisos (no errores) de `react-hooks/exhaustive-deps`, casi todos por
+  `userData.groupId` y `showNotif` fuera del array de dependencias. Antes de
+  «arreglarlos» hay que mirar caso por caso: añadir `showNotif` a las
+  dependencias puede resuscribir en bucle.

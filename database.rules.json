@@ -9,10 +9,9 @@
   //   - auth.token.groupId         → custom claim, que asigna la Cloud Function
   //                                  crearUsuarioAdmin al crear al usuario
   //
-  // IMPORTANTE: los usuarios creados desde el cliente (el flujo actual de
-  // ViewUsers) NO tienen el custom claim, así que estas reglas los bloquearán.
-  // Antes de desplegarlas, ViewUsers debe pasar a crear usuarios con la Cloud
-  // Function, o hay que asignar el claim a los usuarios ya existentes.
+  // Todo usuario nace con su claim puesto, porque crearUsuarioAdmin es la única
+  // vía de creación desde que ViewUsers dejó de crear cuentas en el cliente.
+  // Al pastor dueño se le reconoce por su uid, así que tampoco lo necesita.
   "rules": {
     "$nodo": {
       "$groupId": {

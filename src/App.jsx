@@ -18,8 +18,8 @@ import {
   ViewRegister,
 } from "./Views/index";
 import { ProtectedRoutes } from "./Components/ProtectedRoutes/ProtectedRoutes.jsx";
-import { ROLES_ADMIN, ROLES_OPERADOR } from "./Components/Roles/Roles.js";
-import { AppProvider } from "./Components/Context/AppContext";
+import { ROLES_PASTORES, ROLES_PROYECCION } from "./Components/Roles/Roles.js";
+import { AppProvider } from "./Components/Context/AppProvider.jsx";
 import InicializarEstados from "./Components/InicializarEstados/InicializarEstados";
 import Notificaciones from "./Components/Notificaciones/Notificaciones";
 
@@ -56,7 +56,7 @@ export default function App() {
         <Route
           path="/VOXDEI"
           element={
-            <ProtectedRoutes rolesPermitidos={ROLES_OPERADOR}>
+            <ProtectedRoutes rolesPermitidos={ROLES_PROYECCION}>
               <ViewDisplay />
             </ProtectedRoutes>
           }
@@ -65,7 +65,7 @@ export default function App() {
         <Route
           path="/ViewImagenes"
           element={
-            <ProtectedRoutes rolesPermitidos={ROLES_OPERADOR}>
+            <ProtectedRoutes rolesPermitidos={ROLES_PROYECCION}>
               <ViewImagenes />
             </ProtectedRoutes>
           }
@@ -74,7 +74,7 @@ export default function App() {
         <Route
           path="/ViewStylos"
           element={
-            <ProtectedRoutes rolesPermitidos={ROLES_OPERADOR}>
+            <ProtectedRoutes rolesPermitidos={ROLES_PROYECCION}>
               <ViewStylos />
             </ProtectedRoutes>
           }
@@ -83,7 +83,7 @@ export default function App() {
         <Route
           path="/ViewUsers"
           element={
-            <ProtectedRoutes rolesPermitidos={ROLES_ADMIN}>
+            <ProtectedRoutes rolesPermitidos={ROLES_PASTORES}>
               <ViewUsers />
             </ProtectedRoutes>
           }
@@ -92,7 +92,7 @@ export default function App() {
         <Route
           path="/viewTicker"
           element={
-            <ProtectedRoutes rolesPermitidos={ROLES_OPERADOR}>
+            <ProtectedRoutes rolesPermitidos={ROLES_PROYECCION}>
               <ViewTicker />
             </ProtectedRoutes>
           }
@@ -101,7 +101,7 @@ export default function App() {
         <Route
           path="/ViewMessage"
           element={
-            <ProtectedRoutes rolesPermitidos={ROLES_OPERADOR}>
+            <ProtectedRoutes rolesPermitidos={ROLES_PROYECCION}>
               <ViewMessage />
             </ProtectedRoutes>
           }
@@ -110,7 +110,7 @@ export default function App() {
         <Route
           path="/ViewPredica"
           element={
-            <ProtectedRoutes rolesPermitidos={ROLES_ADMIN}>
+            <ProtectedRoutes rolesPermitidos={ROLES_PASTORES}>
               <ViewPredica />
             </ProtectedRoutes>
           }
@@ -119,7 +119,7 @@ export default function App() {
         <Route
           path="/ViewVersiculo"
           element={
-            <ProtectedRoutes rolesPermitidos={ROLES_OPERADOR}>
+            <ProtectedRoutes rolesPermitidos={ROLES_PROYECCION}>
               <ViewVersiculo />
             </ProtectedRoutes>
           }
@@ -128,7 +128,7 @@ export default function App() {
         <Route
           path="/ViewCanciones"
           element={
-            <ProtectedRoutes rolesPermitidos={ROLES_OPERADOR}>
+            <ProtectedRoutes rolesPermitidos={ROLES_PROYECCION}>
               <ViewCanciones />
             </ProtectedRoutes>
           }
@@ -137,7 +137,7 @@ export default function App() {
         <Route
           path="/ViewVideo"
           element={
-            <ProtectedRoutes rolesPermitidos={ROLES_OPERADOR}>
+            <ProtectedRoutes rolesPermitidos={ROLES_PROYECCION}>
               <ViewVideo />
             </ProtectedRoutes>
           }

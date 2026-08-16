@@ -1,7 +1,6 @@
-import { createContext, useContext, useState } from "react";
+import { useState } from "react";
 import { ESTILOS_POR_DEFECTO } from "../Estilos/EstilosProyeccion";
-
-const AppContext = createContext();
+import { AppContext } from "./AppContext";
 
 export function AppProvider({ children }) {
   // Estados globales iniciales
@@ -77,5 +76,3 @@ export function AppProvider({ children }) {
     </AppContext.Provider>
   );
 }
-
-export const useAppContext = () => useContext(AppContext);

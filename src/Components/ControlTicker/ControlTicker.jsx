@@ -12,7 +12,7 @@ import {
   TvIcon,
 } from "@heroicons/react/24/solid";
 import { useAppContext } from "../Context/AppContext";
-import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import { useAuth } from "../../Components/Context/AuthContext";
 import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
 
 export default function ControlTicker() {
@@ -160,7 +160,7 @@ export default function ControlTicker() {
       setTicker("");
     } catch (error) {
       console.error("Error al agregar el ticker:", error);
-      showNotif("error", "❌ Error al guardar el ticker");
+      showNotif("error", "Error al guardar el ticker");
     }
   };
 

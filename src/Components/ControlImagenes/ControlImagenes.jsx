@@ -37,7 +37,6 @@ export default function ControlImagenes() {
   const [loading, setLoading] = useState(false);
   const [intervalo, setIntervalo] = useState(5); // segundos
   const [savedImages, setSavedImages] = useState([]); // imágenes ya guardadas en Firestore
-  const [error, setError] = useState("");
 
   // --- Helpers para seleccionar archivos / carpetas ---
   const handleFilesInput = (e) => {
@@ -45,10 +44,9 @@ export default function ControlImagenes() {
       f.type.startsWith("image/")
     );
     if (archivos.length === 0) {
-      setError("No se seleccionaron imágenes válidas.");
+      showNotif("error", "No se seleccionaron imágenes válidas.");
       return;
     }
-    setError("");
     setSelectedFiles(archivos);
     createLocalPreviews(archivos);
   };
@@ -60,10 +58,9 @@ export default function ControlImagenes() {
       f.type.startsWith("image/")
     );
     if (archivos.length === 0) {
-      setError("La carpeta no contiene imágenes válidas.");
+      showNotif("error", "La carpeta no contiene imágenes válidas.");
       return;
     }
-    setError("");
     setSelectedFiles(archivos);
     createLocalPreviews(archivos);
   };
@@ -140,10 +137,9 @@ export default function ControlImagenes() {
   // --- Acciones de botones ---
   const handleGuardar = async () => {
     if (selectedFiles.length === 0) {
-      setError("Selecciona al menos una imagen para guardar.");
+      showNotif("error", "Selecciona al menos una imagen para guardar.");
       return;
     }
-    setError("");
     setLoading(true);
     try {
       await uploadAndSave(selectedFiles);
@@ -151,10 +147,10 @@ export default function ControlImagenes() {
       setSelectedFiles([]);
       localPreviews.forEach((url) => URL.revokeObjectURL(url));
       setLocalPreviews([]);
-      showNotif("success", "✅ Imágenes guardadas correctamente");
+      showNotif("success", "Imágenes guardadas correctamente");
     } catch (err) {
       console.error(err);
-      showNotif("error", "❌ Error al guardar las imágenes");
+      showNotif("error", "Error al guardar las imágenes");
     } finally {
       setLoading(false);
     }
@@ -189,7 +185,7 @@ export default function ControlImagenes() {
     if (selectedFiles.length === 0) {
       showNotif(
         "warning",
-        "🚫 Selecciona imágenes o usa las que ya tienes guardadas"
+        "Selecciona imágenes o usa las que ya tienes guardadas"
       );
       return;
     }
@@ -203,10 +199,10 @@ export default function ControlImagenes() {
       setSelectedFiles([]);
       localPreviews.forEach((url) => URL.revokeObjectURL(url));
       setLocalPreviews([]);
-      showNotif("success", "✅ Imágenes proyectadas");
+      showNotif("success", "Imágenes proyectadas");
     } catch (err) {
       console.error("Error al proyectar:", err);
-      showNotif("error", "❌ Error al proyectar las imágenes");
+      showNotif("error", "Error al proyectar las imágenes");
     } finally {
       setLoading(false);
     }
@@ -218,7 +214,7 @@ export default function ControlImagenes() {
       await proyectarUrls([img.url]);
     } catch (err) {
       console.error("Error al proyectar imagen guardada:", err);
-      showNotif("error", "❌ Error al proyectar la imagen");
+      showNotif("error", "Error al proyectar la imagen");
     }
   };
 
@@ -242,12 +238,12 @@ export default function ControlImagenes() {
       showNotif(
         "success",
         urls.length > 1
-          ? `✅ Carrusel de ${urls.length} imágenes proyectado`
-          : "✅ Imagen proyectada"
+          ? `Carrusel de ${urls.length} imágenes proyectado`
+          : "Imagen proyectada"
       );
     } catch (err) {
       console.error("Error al proyectar la selección:", err);
-      showNotif("error", "❌ Error al proyectar las imágenes");
+      showNotif("error", "Error al proyectar las imágenes");
     }
   };
 
@@ -272,10 +268,10 @@ export default function ControlImagenes() {
       await deleteDoc(doc(db, "imagenes", img.id));
 
       setSeleccionGuardadas((prev) => prev.filter((x) => x !== img.id));
-      showNotif("success", "🗑️ Imagen eliminada");
+      showNotif("success", "Imagen eliminada");
     } catch (err) {
       console.error("Error eliminando:", err);
-      showNotif("error", "❌ No se pudo eliminar la imagen");
+      showNotif("error", "No se pudo eliminar la imagen");
     }
   };
 
@@ -498,7 +494,6 @@ export default function ControlImagenes() {
         )}
       </div>
 
-      {error && <p className="text-sm text-app-error p-2">{error}</p>}
     </div>
   );
 }

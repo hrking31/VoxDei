@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { auth, db } from "./../Firebase/Firebase";
 import { doc, getDoc } from "firebase/firestore";
 import {
@@ -7,9 +7,7 @@ import {
   onAuthStateChanged, // observa cambios en el estado de autenticación
   signOut, // cierra la sesión
 } from "firebase/auth";
-
-export const AuthContext = createContext();
-export const useAuth = () => useContext(AuthContext);
+import { AuthContext } from "./AuthContext";
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null); // Usuario Firebase

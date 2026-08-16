@@ -2,23 +2,22 @@ import { useState } from "react";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../Components/Firebase/Firebase";
 import { useNavigate } from "react-router-dom";
+import { useAppContext } from "../../Components/Context/AppContext";
 import Footer from "../../Components/Footer/Footer.jsx";
 
 export default function ViewResetPassword() {
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const { showNotif } = useAppContext();
   const navigate = useNavigate();
 
   const handleReset = async (e) => {
     e.preventDefault();
-    setMessage("");
-    setError("");
 
     try {
       await sendPasswordResetEmail(auth, email);
-      setMessage(
-        "✅ Si existe una cuenta asociada a este correo, recibirás un enlace de recuperación."
+      showNotif(
+        "success",
+        "Si existe una cuenta asociada a este correo, recibirás un enlace de recuperación."
       );
       setTimeout(() => navigate("/ViewLogin"), 3000); // vuelve al login
     } catch (err) {
@@ -29,7 +28,8 @@ export default function ViewResetPassword() {
         "auth/too-many-requests": "Demasiados intentos. Intenta más tarde.",
         "auth/network-request-failed": "Error de conexión. Revisa tu red.",
       };
-      setError(
+      showNotif(
+        "error",
         errorMessages[err.code] || "Error al enviar el correo de recuperación."
       );
     }
@@ -71,13 +71,6 @@ export default function ViewResetPassword() {
                 Enviar enlace de recuperación
               </button>
             </form>
-
-            {message && (
-              <p className="text-app-muted mt-4 text-center">{message}</p>
-            )}
-            {error && (
-              <p className="text-app-error mt-4 text-center">{error}</p>
-            )}
 
             <button
               onClick={() => navigate("/ViewLogin")}

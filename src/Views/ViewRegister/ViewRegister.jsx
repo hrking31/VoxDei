@@ -2,20 +2,21 @@ import { useState, useRef, useEffect } from "react";
 import { db, storage } from "../../Components/Firebase/Firebase.js";
 import { doc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import { useAuth } from "../../Components/Context/AuthContext";
+import { useAppContext } from "../../Components/Context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { UserPlusIcon, UserIcon } from "@heroicons/react/24/solid";
 import Footer from "../../Components/Footer/Footer.jsx";
 
 export default function ViewRegister() {
   const { signup, loading, setLoading, setUserData } = useAuth();
+  const { showNotif } = useAppContext();
   const navigate = useNavigate();
 
   const refGenero = useRef(null);
   const genderOptions = ["Masculino", "Femenino"];
   const [preview, setPreview] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
-  const [error, setError] = useState("");
 
   const [form, setForm] = useState({
     churchName: "",
@@ -29,7 +30,6 @@ export default function ViewRegister() {
   // Manejar cambios en el formulario
   const handleChange = ({ target: { name, value } }) => {
     setForm((prev) => ({ ...prev, [name]: value }));
-    setError("");
   };
 
   // Toggle dropdown
@@ -59,7 +59,6 @@ export default function ViewRegister() {
   // Crear usuario y guardar datos
   const handleCreate = async (e) => {
     e.preventDefault();
-    setError("");
 
     if (
       !form.churchName.trim() ||
@@ -68,12 +67,12 @@ export default function ViewRegister() {
       !form.email.trim() ||
       !form.password.trim()
     ) {
-      setError("Por favor completa todos los campos.");
+      showNotif("error", "Por favor completa todos los campos.");
       return;
     }
 
     if (!form.photo) {
-      setError("Por favor sube una foto");
+      showNotif("error", "Por favor sube una foto");
       return;
     }
 
@@ -94,8 +93,11 @@ export default function ViewRegister() {
       const role =
         form.gender.toLowerCase() === "femenino" ? "Pastora" : "Pastor";
 
-      // Guardar datos en Firestore
+      // Guardar datos en Firestore.
+      // El campo uid se guarda igual que en crearUsuarioAdmin, para que todas
+      // las fichas de usuario tengan la misma forma.
       const newUserData = {
+        uid,
         churchName: form.churchName,
         name: form.name,
         gender: form.gender,
@@ -120,7 +122,7 @@ export default function ViewRegister() {
       };
 
       console.error(err);
-      setError(errors[err.code] || "Error al crear el usuario.");
+      showNotif("error", errors[err.code] || "Error al crear el usuario.");
     } finally {
       setLoading(false);
     }
@@ -254,11 +256,6 @@ export default function ViewRegister() {
               </button>
             </form>
 
-            {error && (
-              <p className="text-red-400 text-center mt-4 font-semibold">
-                {error}
-              </p>
-            )}
           </div>
           {/* Enlace de inicio */}
           <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-6 sm:p-8 text-center">

@@ -10,6 +10,9 @@ export default function CapituloModal({
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="titulo-capitulos"
       className="fixed inset-0 flex items-center justify-center z-50 bg-app-dark overflow-auto "
       onClick={onClose}
     >
@@ -19,13 +22,17 @@ export default function CapituloModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl text-app-main font-bold">
+          <h2
+            id="titulo-capitulos"
+            className="text-2xl text-app-main font-bold"
+          >
             {" "}
             {selecLibro.nombre} capitulo
           </h2>
 
           <button
             onClick={onClose}
+            aria-label="Cerrar"
             className=" text-app-accent hover:text-app-error"
           >
             <XMarkIcon className="h-8 w-8 " />

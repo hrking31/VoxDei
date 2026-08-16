@@ -6,7 +6,7 @@ import {
   UserIcon,
 } from "@heroicons/react/24/solid";
 import Footer from "../../Components/Footer/Footer.jsx";
-import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import { useAuth } from "../../Components/Context/AuthContext";
 import Loading from "../../Components/Loading/Loading.jsx";
 
 export default function ViewSelector() {

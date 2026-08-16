@@ -3,7 +3,7 @@ import { onValue, ref } from "firebase/database";
 import { database, auth } from "../Firebase/Firebase";
 import { useAppContext } from "../Context/AppContext";
 import TickerAnimacion from "../TickerAnimacion/TickerAnimacion";
-import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import { useAuth } from "../../Components/Context/AuthContext";
 import useScreenType from "../../Components/Hooks/useScreenType.js";
 import { fondoDe, sombraDe, escalar } from "../Estilos/EstilosProyeccion";
 import { cargarApiYouTube, TOLERANCIA_SEGUNDOS } from "../Video/YouTube";

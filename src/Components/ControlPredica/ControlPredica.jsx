@@ -19,7 +19,7 @@ import LibrosModal from "../../Components/ModalLibros/ModalLibros";
 import CapituloModal from "../../Components/ModalCapitulo/ModalCapitulo";
 import VersiculoModal from "../../Components/ModalVersiculo/ModalVersiculo";
 import WhatsAppButton from "../WhatsAppButton/WhatsAppButton";
-import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import { useAuth } from "../../Components/Context/AuthContext";
 
 export default function Predica() {
   const navigate = useNavigate();

@@ -10,31 +10,27 @@ import {
   PaintBrushIcon,
   UserGroupIcon,
   XMarkIcon,
-  UserIcon,
 } from "@heroicons/react/24/solid";
 import Footer from "../../Components/Footer/Footer.jsx";
-import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import MiFoto from "../../Components/MiFoto/MiFoto.jsx";
+import { useAuth } from "../../Components/Context/AuthContext";
+import { esPastor } from "../../Components/Roles/Roles.js";
 
 export default function ViewSelector() {
   const { userData } = useAuth();
   const navigate = useNavigate();
+
+  // Gestión de usuarios y prédicas son solo del pastor o la pastora. Se ocultan
+  // en vez de dejar que el operador entre y choque con la pantalla de acceso
+  // denegado.
+  const mando = esPastor(userData);
 
   return (
     <div className="min-h-svh flex flex-col items-center justify-center bg-linear-to-b from-app-dark/50 to-app-light/50 ">
       <div className="flex flex-col items-center justify-items-start w-full flex-1 px-2">
         {userData && (
           <div className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-2 py-2 mt-4 mb-3 hover:shadow-inner hover:shadow-app-muted transition-shadow duration-300">
-            {userData.photo ? (
-              <img
-                src={userData.photo}
-                alt="user"
-                className="w-10 h-10 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                <UserIcon className="w-5 h-5 text-gray-500" />
-              </div>
-            )}
+            <MiFoto />
             <div className="flex flex-col flex-1 leading-tight">
               <span className="text-sm font-medium text-app-main">
                 {userData.name || "Usuario"}
@@ -77,11 +73,13 @@ export default function ViewSelector() {
             onClick={() => navigate("/ViewStylos")}
           />
 
-          <OptionButton
-            icon={<UserGroupIcon className="w-10 h-10 text-app-muted mb-2" />}
-            label="Usuarios"
-            onClick={() => navigate("/ViewUsers")}
-          />
+          {mando && (
+            <OptionButton
+              icon={<UserGroupIcon className="w-10 h-10 text-app-muted mb-2" />}
+              label="Usuarios"
+              onClick={() => navigate("/ViewUsers")}
+            />
+          )}
 
           <OptionButton
             icon={<TagIcon className="w-10 h-10 text-app-muted mb-2" />}
@@ -109,11 +107,13 @@ export default function ViewSelector() {
             onClick={() => navigate("/ViewVideo")}
           />
 
-          <OptionButton
-            icon={<MicrophoneIcon className="w-10 h-10 text-app-muted mb-2" />}
-            label="Gestión Predica"
-            onClick={() => navigate("/ViewPredica")}
-          />
+          {mando && (
+            <OptionButton
+              icon={<MicrophoneIcon className="w-10 h-10 text-app-muted mb-2" />}
+              label="Gestión Predica"
+              onClick={() => navigate("/ViewPredica")}
+            />
+          )}
 
           <OptionButton
             icon={<BookOpenIcon className="w-10 h-10 text-app-muted mb-2 " />}

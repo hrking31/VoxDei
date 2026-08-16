@@ -15,7 +15,7 @@ import {
   TvIcon,
 } from "@heroicons/react/24/solid";
 import { useAppContext } from "../Context/AppContext";
-import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import { useAuth } from "../../Components/Context/AuthContext";
 import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
 
 export default function ControlVersiculos() {
@@ -29,7 +29,6 @@ export default function ControlVersiculos() {
     versiculo: null,
   });
   const [resultado, setResultado] = useState(null);
-  const [error, setError] = useState("");
   const [modalActivo, setModalActivo] = useState(null);
   const [tipoLibros, setTipoLibros] = useState("antiguo");
   const [versiculoNumero, setVersiculoNumero] = useState(null);
@@ -85,10 +84,9 @@ export default function ControlVersiculos() {
         showNotif
       );
       setResultado(data);
-      setError("");
     } catch (err) {
       setResultado(null);
-      setError(err.message);
+      showNotif("error", err.message);
     }
   };
 
@@ -434,7 +432,6 @@ export default function ControlVersiculos() {
             </div>
           </div>
         </div>
-        {error && <p className="text-red-600 mt-4 font-medium">{error}</p>}
       </div>
       <LibrosModal
         open={modalActivo}

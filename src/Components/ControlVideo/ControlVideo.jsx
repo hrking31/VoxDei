@@ -21,7 +21,7 @@ import { database } from "../Firebase/Firebase";
 import { colIglesia, docIglesia, VIDEOS } from "../Firebase/RutasIglesia";
 import { idDeYouTube, miniaturaDe } from "../Video/YouTube";
 import { useAppContext } from "../Context/AppContext";
-import { useAuth } from "../../Components/Context/AuthContext.jsx";
+import { useAuth } from "../../Components/Context/AuthContext";
 
 // Convierte segundos a m:ss
 const enMinutos = (segundos) => {
@@ -66,7 +66,7 @@ export default function ControlVideo() {
       },
       (error) => {
         console.error("Error al cargar los videos:", error);
-        showNotif("error", "❌ No se pudieron cargar los videos");
+        showNotif("error", "No se pudieron cargar los videos");
       }
     );
 
@@ -101,12 +101,12 @@ export default function ControlVideo() {
     const videoId = idDeYouTube(enlace);
 
     if (!videoId) {
-      showNotif("error", "❌ Ese enlace de YouTube no se reconoce");
+      showNotif("error", "Ese enlace de YouTube no se reconoce");
       return;
     }
 
     if (!titulo.trim()) {
-      showNotif("warning", "🚫 Ponle un nombre para reconocerlo después");
+      showNotif("warning", "Ponle un nombre para reconocerlo después");
       return;
     }
 
@@ -120,10 +120,10 @@ export default function ControlVideo() {
 
       setTitulo("");
       setEnlace("");
-      showNotif("success", "✅ Video guardado");
+      showNotif("success", "Video guardado");
     } catch (error) {
       console.error("Error al guardar el video:", error);
-      showNotif("error", "❌ No se pudo guardar el video");
+      showNotif("error", "No se pudo guardar el video");
     }
   };
 
@@ -139,10 +139,10 @@ export default function ControlVideo() {
         setReproduciendo(false);
       }
 
-      showNotif("success", "🗑️ Video eliminado");
+      showNotif("success", "Video eliminado");
     } catch (error) {
       console.error("Error al eliminar el video:", error);
-      showNotif("error", "❌ No se pudo eliminar el video");
+      showNotif("error", "No se pudo eliminar el video");
     }
   };
 
