@@ -9,6 +9,7 @@ import {
   setDoc,
 } from "firebase/firestore";
 import {
+  CalendarDaysIcon,
   MusicalNoteIcon,
   PlusIcon,
   MinusIcon,
@@ -28,11 +29,9 @@ import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext";
 import { normalizar } from "../Canciones/UtilesCanciones";
 
-// Alto aproximado de una fila del listado, con el hueco que la separa de la
-// siguiente. Sirve para calcular cuántas caben sin desplazar la pantalla.
-const ALTO_FILA = 58;
-// A partir de este ancho el listado va a dos columnas (el `sm:` de Tailwind).
-const ANCHO_DOS_COLUMNAS = 640;
+// Cuántas favoritas se muestran: las mismas en ambos casos, pero en el celular
+// van en una columna y en el computador en dos, más grandes.
+const TOPE_FAVORITAS = 20;
 
 // Catálogo de canciones y lista del día. Esta pantalla solo gestiona: no toca
 // la proyección. Para eso está `ControlCancionProyectar`, en su propia ruta.
@@ -51,9 +50,7 @@ export default function ControlCanciones() {
   const [favoritas, setFavoritas] = useState([]);
   const [busqueda, setBusqueda] = useState("");
 
-  // Cuántas filas caben en el hueco del catálogo, para no desplazar la pantalla
-  const [caben, setCaben] = useState(6);
-  const listaRef = useRef(null);
+  const buscadorRef = useRef(null);
 
   // Catálogo compartido, en vivo
   useEffect(() => {
@@ -93,27 +90,30 @@ export default function ControlCanciones() {
     return () => unsubscribe();
   }, [userData?.groupId]);
 
-  // Se mide el hueco disponible y se recalcula al girar el teléfono o cambiar
-  // el tamaño de la ventana.
-  useEffect(() => {
-    const nodo = listaRef.current;
-    if (!nodo) return;
-
-    const medir = () => {
-      const columnas = nodo.clientWidth >= ANCHO_DOS_COLUMNAS ? 2 : 1;
-      const filas = Math.max(1, Math.floor(nodo.clientHeight / ALTO_FILA));
-      setCaben(filas * columnas);
-    };
-
-    medir();
-    const observador = new ResizeObserver(medir);
-    observador.observe(nodo);
-    return () => observador.disconnect();
-  }, []);
-
   const hayBusqueda = busqueda.trim().length > 0;
 
-  const cancionesFiltradas = canciones
+  // Cerrar la lista desplegable al tocar fuera o con Escape
+  useEffect(() => {
+    if (!hayBusqueda) return;
+
+    const alTocarFuera = (evento) => {
+      if (buscadorRef.current && !buscadorRef.current.contains(evento.target)) {
+        setBusqueda("");
+      }
+    };
+    const alPulsarEscape = (evento) => {
+      if (evento.key === "Escape") setBusqueda("");
+    };
+
+    document.addEventListener("mousedown", alTocarFuera);
+    document.addEventListener("keydown", alPulsarEscape);
+    return () => {
+      document.removeEventListener("mousedown", alTocarFuera);
+      document.removeEventListener("keydown", alPulsarEscape);
+    };
+  }, [hayBusqueda]);
+
+  const coincidencias = canciones
     .filter((cancion) =>
       normalizar(cancion.titulo).includes(normalizar(busqueda))
     )
@@ -122,13 +122,8 @@ export default function ControlCanciones() {
   // Las favoritas de la iglesia, en el orden en que se marcaron
   const cancionesFavoritas = favoritas
     .map((id) => canciones.find((cancion) => cancion.id === id))
-    .filter(Boolean);
-
-  // Sin buscar se ven las favoritas, tantas como quepan. Al buscar, manda la
-  // búsqueda y la lista se desplaza si hace falta.
-  const listaMostrada = hayBusqueda
-    ? cancionesFiltradas
-    : cancionesFavoritas.slice(0, caben);
+    .filter(Boolean)
+    .slice(0, TOPE_FAVORITAS);
 
   // Las canciones del día, en el orden en que se agregaron
   const cancionesDelDia = repertorio
@@ -205,6 +200,59 @@ export default function ControlCanciones() {
     }
   };
 
+  // Los cuatro botones que acompañan a una canción en el desplegable
+  const accionesDe = (cancion) => (
+    <>
+      <button
+        onClick={() => alternarFavorita(cancion)}
+        title={esFavorita(cancion) ? "Quitar de favoritas" : "Hacer favorita"}
+        className="p-1 rounded-full hover:bg-app-border shrink-0"
+      >
+        <StarIcon
+          className={`w-5 h-5 ${
+            esFavorita(cancion)
+              ? "text-app-main"
+              : "text-app-border hover:text-app-muted"
+          }`}
+        />
+      </button>
+
+      <button
+        onClick={() => agregarAlRepertorio(cancion)}
+        disabled={repertorio.includes(cancion.id)}
+        title="Agregar a la lista de hoy"
+        className={`p-1 rounded-full shrink-0 ${
+          repertorio.includes(cancion.id)
+            ? "text-app-success cursor-default"
+            : "text-app-muted hover:bg-app-border hover:text-app-main"
+        }`}
+      >
+        <PlusIcon className="w-5 h-5" />
+      </button>
+
+      {/* Solo se edita y borra lo que subió esta iglesia */}
+      {esMia(cancion) && (
+        <>
+          <button
+            onClick={() => navigate(`/ViewCancionEditar/${cancion.id}`)}
+            title="Editar"
+            className="p-1 rounded-full hover:bg-app-border shrink-0"
+          >
+            <PencilIcon className="w-5 h-5 text-app-muted" />
+          </button>
+
+          <button
+            onClick={() => eliminarCancion(cancion)}
+            title="Eliminar"
+            className="p-1 rounded-full hover:bg-app-border shrink-0"
+          >
+            <TrashIcon className="w-5 h-5 text-app-muted hover:text-app-error" />
+          </button>
+        </>
+      )}
+    </>
+  );
+
   // La pantalla mide lo que la ventana y no se desplaza: cada bloque se
   // desplaza por dentro.
   return (
@@ -237,11 +285,58 @@ export default function ControlCanciones() {
       </div>
 
       <div className="flex-1 min-h-0 flex flex-col gap-2 p-2 sm:p-4">
-        {/* LISTA DE HOY: privada de cada iglesia. Ocupa el 40% del alto y se
-            desplaza por dentro si hay muchas. */}
+        {/* BUSCADOR: al escribir se despliega la lista de nombres */}
+        <div ref={buscadorRef} className="shrink-0 relative">
+          <div className="flex items-center gap-2 bg-app-light border-2 border-app-border rounded-full px-3">
+            <MagnifyingGlassIcon className="w-5 h-5 text-app-main" />
+            <input
+              type="text"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar canción..."
+              className="flex-1 bg-transparent py-2 text-app-muted focus:outline-none"
+            />
+          </div>
+
+          {hayBusqueda && (
+            <div className="absolute top-full left-0 right-0 mt-1 z-30 max-h-80 overflow-y-auto scrollbar-custom bg-app-light border-2 border-app-border rounded-lg shadow-xl">
+              {coincidencias.length === 0 ? (
+                <p className="text-app-muted text-sm p-3">
+                  Ninguna canción coincide con la búsqueda.
+                </p>
+              ) : (
+                coincidencias.map((cancion) => (
+                  <div
+                    key={cancion.id}
+                    className="flex items-center gap-1 px-2 py-1 border-b border-app-border last:border-b-0 hover:bg-app-border/40"
+                  >
+                    <button
+                      onClick={() => navigate(`/ViewCancion/${cancion.id}`)}
+                      className="flex-1 text-left min-w-0 py-1"
+                    >
+                      <span className="flex items-baseline gap-1 min-w-0">
+                        <span className="font-semibold text-app-main truncate">
+                          {cancion.titulo}
+                        </span>
+                        <span className="text-[11px] text-app-muted shrink-0">
+                          {cancion.diapositivas?.length || 0} láminas
+                        </span>
+                      </span>
+                    </button>
+
+                    {accionesDe(cancion)}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* CANCIONES DE HOY */}
         <div className="basis-2/5 grow-0 shrink-0 min-h-0 flex flex-col bg-app-light border-2 border-app-main rounded-lg p-2">
           <div className="shrink-0 flex items-center justify-between gap-2 mb-1">
-            <h2 className="font-bold text-app-main">
+            <h2 className="font-bold text-app-main flex items-center gap-1">
+              <CalendarDaysIcon className="w-5 h-5 text-app-main" />
               Canciones de hoy {cancionesDelDia.length}
             </h2>
             {cancionesDelDia.length > 0 && (
@@ -256,18 +351,18 @@ export default function ControlCanciones() {
 
           {cancionesDelDia.length === 0 ? (
             <p className="text-sm text-app-muted">
-              Busca abajo las canciones del servicio y tócalas con el
+              Busca arriba las canciones del servicio y tócalas con el
               <PlusIcon className="w-4 h-4 inline mx-1" />
               para armar la lista de hoy.
             </p>
           ) : (
-            <div className="flex-1 min-h-0 overflow-y-auto scrollbar-custom pr-1 grid grid-cols-1 sm:grid-cols-2 gap-2 content-start">
+            <div className="flex-1 min-h-0 overflow-y-auto scrollbar-custom pr-1 grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2 content-start">
               {cancionesDelDia.map((cancion, orden) => (
                 <div
                   key={cancion.id}
-                  className="flex items-center gap-2 border border-app-border rounded-lg px-3 py-1.5 hover:border-app-main transition-colors"
+                  className="flex items-center gap-2 border border-app-border rounded-lg px-2 sm:px-3 py-1 sm:py-2 hover:border-app-main transition-colors"
                 >
-                  <span className="text-app-main font-bold w-5 text-center">
+                  <span className="text-app-main font-bold w-5 text-center shrink-0">
                     {orden + 1}
                   </span>
 
@@ -275,18 +370,20 @@ export default function ControlCanciones() {
                     onClick={() => navigate(`/ViewCancion/${cancion.id}`)}
                     className="flex-1 text-left min-w-0"
                   >
-                    <span className="block font-semibold text-app-main truncate">
-                      {cancion.titulo}
-                    </span>
-                    <span className="text-xs text-app-muted">
-                      {cancion.diapositivas?.length || 0} láminas
+                    <span className="flex items-baseline gap-1 min-w-0">
+                      <span className="font-semibold text-app-main truncate sm:text-lg">
+                        {cancion.titulo}
+                      </span>
+                      <span className="text-[11px] text-app-muted shrink-0">
+                        {cancion.diapositivas?.length || 0} láminas
+                      </span>
                     </span>
                   </button>
 
                   <button
                     onClick={() => quitarDelRepertorio(cancion)}
                     title="Quitar de la lista de hoy"
-                    className="p-1.5 rounded-full hover:bg-app-border"
+                    className="p-1 rounded-full hover:bg-app-border shrink-0"
                   >
                     <MinusIcon className="w-5 h-5 text-app-muted hover:text-app-error" />
                   </button>
@@ -296,119 +393,47 @@ export default function ControlCanciones() {
           )}
         </div>
 
-        {/* CATÁLOGO COMPARTIDO: ocupa el 60% restante */}
-        <div className="flex-1 min-h-0 flex flex-col">
-          <div className="shrink-0 flex items-center gap-2 bg-app-light border-2 border-app-border rounded-full px-3">
-            <MagnifyingGlassIcon className="w-5 h-5 text-app-main" />
-            <input
-              type="text"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar canción..."
-              className="flex-1 bg-transparent py-2 text-app-muted focus:outline-none"
-            />
+        {/* FAVORITAS: hasta 20, en una columna en el celular y dos, más
+            grandes, en el computador */}
+        <div className="flex-1 min-h-0 flex flex-col bg-app-light border-2 border-app-border rounded-lg p-2">
+          <div className="shrink-0 flex items-center justify-between gap-2 mb-1">
+            <h2 className="font-bold text-app-main flex items-center gap-1">
+              <StarIcon className="w-5 h-5 text-app-main" />
+              Favoritas {cancionesFavoritas.length}
+            </h2>
           </div>
 
-          <p className="shrink-0 text-[11px] text-app-muted px-2 py-1">
-            {hayBusqueda
-              ? `${cancionesFiltradas.length} de ${canciones.length} canciones`
-              : `Favoritas · ${listaMostrada.length} de ${cancionesFavoritas.length}`}
-          </p>
-
-          {/* El hueco se mide aquí: es lo que decide cuántas favoritas caben */}
-          <div ref={listaRef} className="flex-1 min-h-0">
-            {listaMostrada.length === 0 ? (
-              <p className="text-app-muted text-sm p-2">
-                {canciones.length === 0
-                  ? "El catálogo está vacío. Agrega la primera canción."
-                  : hayBusqueda
-                    ? "Ninguna canción coincide con la búsqueda."
-                    : "Todavía no tienes favoritas. Busca una canción y tócale la estrella para tenerla siempre aquí."}
-              </p>
-            ) : (
-              <div
-                className={`h-full grid grid-cols-1 sm:grid-cols-2 gap-2 content-start ${
-                  hayBusqueda ? "overflow-y-auto scrollbar-custom pr-1" : ""
-                }`}
-              >
-                {listaMostrada.map((cancion) => (
-                  <div
-                    key={cancion.id}
-                    className="flex items-center gap-2 border border-app-border rounded-lg px-3 py-1.5 hover:border-app-main transition-colors h-fit"
+          {cancionesFavoritas.length === 0 ? (
+            <p className="text-sm text-app-muted">
+              Busca una canción arriba y tócale la estrella para tenerla siempre
+              aquí.
+            </p>
+          ) : (
+            <div className="flex-1 min-h-0 overflow-y-auto scrollbar-custom pr-1 grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2 content-start">
+              {cancionesFavoritas.map((cancion) => (
+                <div
+                  key={cancion.id}
+                  className="flex items-center gap-1 border border-app-border rounded-lg px-2 sm:px-3 py-1 sm:py-2 hover:border-app-main transition-colors"
+                >
+                  <button
+                    onClick={() => navigate(`/ViewCancion/${cancion.id}`)}
+                    className="flex-1 text-left min-w-0"
                   >
-                    <button
-                      onClick={() => alternarFavorita(cancion)}
-                      title={
-                        esFavorita(cancion)
-                          ? "Quitar de favoritas"
-                          : "Marcar como favorita"
-                      }
-                      className="p-1 rounded-full hover:bg-app-border shrink-0"
-                    >
-                      <StarIcon
-                        className={`w-5 h-5 ${
-                          esFavorita(cancion)
-                            ? "text-app-main"
-                            : "text-app-border hover:text-app-muted"
-                        }`}
-                      />
-                    </button>
-
-                    <button
-                      onClick={() => navigate(`/ViewCancion/${cancion.id}`)}
-                      className="flex-1 text-left min-w-0"
-                    >
-                      <span className="block font-semibold text-app-main truncate">
+                    <span className="flex items-baseline gap-1 min-w-0">
+                      <span className="font-semibold text-app-main truncate sm:text-lg">
                         {cancion.titulo}
                       </span>
-                      <span className="text-xs text-app-muted">
+                      <span className="text-[11px] text-app-muted shrink-0">
                         {cancion.diapositivas?.length || 0} láminas
-                        {!esMia(cancion) && cancion.iglesia
-                          ? ` · ${cancion.iglesia}`
-                          : ""}
                       </span>
-                    </button>
+                    </span>
+                  </button>
 
-                    <button
-                      onClick={() => agregarAlRepertorio(cancion)}
-                      disabled={repertorio.includes(cancion.id)}
-                      title="Agregar a la lista de hoy"
-                      className={`p-1.5 rounded-full ${
-                        repertorio.includes(cancion.id)
-                          ? "text-app-success cursor-default"
-                          : "text-app-muted hover:bg-app-border hover:text-app-main"
-                      }`}
-                    >
-                      <PlusIcon className="w-5 h-5" />
-                    </button>
-
-                    {/* Solo se edita y borra lo que subió esta iglesia */}
-                    {esMia(cancion) && (
-                      <>
-                        <button
-                          onClick={() =>
-                            navigate(`/ViewCancionEditar/${cancion.id}`)
-                          }
-                          title="Editar"
-                          className="p-1.5 rounded-full hover:bg-app-border"
-                        >
-                          <PencilIcon className="w-5 h-5 text-app-muted" />
-                        </button>
-
-                        <button
-                          onClick={() => eliminarCancion(cancion)}
-                          title="Eliminar"
-                          className="p-1.5 rounded-full hover:bg-app-border"
-                        >
-                          <TrashIcon className="w-5 h-5 text-app-muted hover:text-app-error" />
-                        </button>
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  {accionesDe(cancion)}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

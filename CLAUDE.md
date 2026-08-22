@@ -235,7 +235,9 @@ Antes todo esto era `ControlCanciones` con `cancionActiva` y `formAbierto`: un t
 
 `partirLetra` y `normalizar` se compartieron en **`src/Components/Canciones/UtilesCanciones.js`** para no duplicarlas entre las tres.
 
-**Favoritas y medida de la pantalla** (22 de agosto de 2026). El catálogo no lista todo: sin búsqueda muestra las **favoritas de la iglesia**, marcadas a mano con la estrella de cada fila, cortadas a las que caben. `ControlCanciones` mide el hueco con un `ResizeObserver` sobre el contenedor de la lista y calcula `filas * columnas` con `ALTO_FILA` (58 px) y el corte de dos columnas en 640 px, el mismo `sm:` de Tailwind. Con texto en el buscador manda la búsqueda y la lista vuelve a desplazarse.
+**El catálogo no se lista entero** (22 de agosto de 2026). `ControlCanciones` son un buscador y dos recuadros: *Canciones de hoy* (`basis-2/5`) y *Favoritas* (el resto, tope `TOPE_FAVORITAS` = 20). El catálogo completo solo aparece **desplegado bajo el buscador** mientras hay texto, con el título a secas y los cuatro botones al lado (`accionesDe`); se cierra al tocar fuera o con Escape, vaciando `busqueda`.
+
+Hubo una versión que medía el hueco con un `ResizeObserver` para mostrar «las que quepan»; se cambió por el tope fijo con filas más compactas en móvil (una columna) y más grandes en escritorio (dos columnas), que da las mismas veinte en ambos casos.
 
 La lista vive en **`iglesias/{groupId}/repertorio/actual`, campo `favoritas`** (array de ids). **No puede vivir en la canción**: `firestore.rules` solo permite `update` sobre `canciones/{id}` a la iglesia dueña (`resource.data.creadoPor == miGroupId()`), así que marcar una canción ajena fallaría. Va en el mismo documento del repertorio, con `merge: true`, para no gastar una lectura más: ese documento ya se escucha. `guardarEnRepertorio` escribe siempre con `merge` porque ahí conviven dos listas —`canciones` (la de hoy) y `favoritas`— y tocar una no debe borrar la otra.
 
