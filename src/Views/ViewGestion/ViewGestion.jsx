@@ -83,7 +83,7 @@ export default function ViewSelector() {
 
           <OptionButton
             icon={<TagIcon className="w-10 h-10 text-app-muted mb-2" />}
-            label="Gestión Ticker"
+            label="Ticker"
             onClick={() => navigate("/ViewTicker")}
           />
 
@@ -91,26 +91,26 @@ export default function ViewSelector() {
             icon={
               <ChatBubbleLeftRightIcon className="w-10 h-10 text-app-muted mb-2" />
             }
-            label="Gestión Mensaje"
+            label="Mensajes"
             onClick={() => navigate("/ViewMessage")}
           />
 
           <OptionButton
             icon={<PhotoIcon className="w-10 h-10 text-app-muted mb-2" />}
-            label="Gestión Imagen"
+            label="Imágenes"
             onClick={() => navigate("/ViewImagenes")}
           />
 
           <OptionButton
             icon={<VideoCameraIcon className="w-10 h-10 text-app-muted mb-2" />}
-            label="Gestión Video"
+            label="Video"
             onClick={() => navigate("/ViewVideo")}
           />
 
           {mando && (
             <OptionButton
               icon={<MicrophoneIcon className="w-10 h-10 text-app-muted mb-2" />}
-              label="Gestión Predica"
+              label="Prédica"
               onClick={() => navigate("/ViewPredica")}
             />
           )}

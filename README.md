@@ -139,7 +139,9 @@ Para proyectar las letras durante la alabanza.
 
 Para cargar una canción nueva: escribe el título y **pega la letra completa**. Deja un renglón en blanco entre estrofa y estrofa, y la aplicación crea una lámina por cada bloque. Te va contando cuántas láminas quedarán mientras pegas.
 
-Durante el servicio, abres la canción y tocas cada lámina para proyectarla, o usas los botones **Anterior** y **Siguiente**. Si operas desde el computador, también funcionan las flechas del teclado. La lámina que está en pantalla queda marcada en verde, para no perderte a mitad de canción.
+Durante el servicio, abres la canción y **tocas cada lámina** para proyectarla. Si operas desde el computador, también funcionan las flechas del teclado. La lámina que está en pantalla queda marcada en verde, para no perderte a mitad de canción, y arriba, al lado del nombre de la canción, ves en cuál vas y cuántas hay.
+
+**En pantalla sale solo la letra.** El nombre de la canción no se proyecta, porque a quien está cantando no le aporta nada. Por eso esta sección no tiene interruptor de título: solo el del **ticker** y el del **texto**. El ticker se enciende solo al entrar, para que los anuncios sigan pasando durante la alabanza; si estorba, se apaga con su interruptor.
 
 ### Estilos y colores
 
@@ -223,6 +225,15 @@ No. Cada iglesia solo puede editar o borrar las canciones que ella misma subió.
 ## Novedades
 
 Aquí queda anotado lo que va cambiando en la aplicación, para que siempre sepas qué es nuevo.
+
+### 22 de agosto de 2026
+
+- **Las canciones ya se proyectan.** Al tocar una lámina, la letra no llegaba a la pantalla del templo: se quedaba en blanco. Ya sale como debe ser.
+- **En Canciones no se proyecta el título.** A quien está leyendo la letra el nombre de la canción no le aporta nada, así que ya no aparece en pantalla y su interruptor desapareció de esa sección. En Prédica el título sigue funcionando igual que siempre.
+- **La barra de la canción abierta quedó más despejada.** Se quitaron los botones **Anterior** y **Siguiente** —las láminas se proyectan tocándolas, y desde el computador siguen las flechas del teclado— y también el botón de **Salida**, que ahí sobraba: se vuelve con **Ver lista** y desde la lista ya está la salida. La cuenta de láminas subió arriba, junto al nombre de la canción.
+- **Canciones separa gestionar de proyectar.** La lista —buscar, cargar canciones nuevas, armar la de hoy— no toca la pantalla del templo, así que ahí ya no aparecen los interruptores. Al abrir una canción sí: la letra y la cinta de anuncios se encienden solas, el título queda apagado, y los interruptores vuelven a estar a mano por si quieres apagar la cinta.
+- **Los botones del panel ya se llaman como en este manual.** Decían “Gestión Ticker”, “Gestión Mensaje”, “Gestión Imagen”, “Gestión Video” y “Gestión Predica”. Ahora son **Ticker**, **Mensajes**, **Imágenes**, **Video** y **Prédica**, sin el añadido de “Gestión” y con la tilde de Prédica. Dentro de cada pantalla pasa lo mismo: donde decía “Panel de Control Ticker” ahora dice **Ticker**, y así con las demás, de modo que el botón y la pantalla que abre se llaman igual.
+- **El menú de los interruptores ya se ve.** Desde el celular, el botón del ojo abría un menú que se salía de la pantalla. Ahora aparece pegado al borde derecho y siempre por debajo de la barra superior, sin taparla nunca, igual en todas las secciones, y se cierra tocando por fuera o con la tecla Escape.
 
 ### 15 de agosto de 2026
 

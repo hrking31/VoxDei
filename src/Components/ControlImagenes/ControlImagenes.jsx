@@ -277,8 +277,9 @@ export default function ControlImagenes() {
 
   return (
     <div>
-      <h1 className="text-2xl text-left font-bold text-app-main p-2">
-        Panel de Control de Imágenes
+      <h1 className="font-bold text-app-main flex items-center gap-1 p-2">
+        <PhotoIcon className="w-5 h-5 shrink-0" />
+        <span>Imágenes</span>
       </h1>
 
       {/* CONTROLES: elegir archivos o carpeta */}

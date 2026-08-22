@@ -167,8 +167,9 @@ export default function ControlTicker() {
   return (
     <div className="min-h-dvh bg-linear-to-b from-app-dark/50 to-app-light/50">
       <div className="sticky top-0 border-b border-app-main bg-app-light z-10 ">
-        <h1 className="text-left font-bold text-app-main px-2">
-          Panel de Control Ticker
+        <h1 className="font-bold text-app-main flex items-center gap-1 px-2">
+          <TagIcon className="w-5 h-5 shrink-0" />
+          <span>Ticker</span>
         </h1>
 
         <div className="grid grid-cols-12">

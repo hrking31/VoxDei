@@ -219,7 +219,7 @@ export default function ControlVideo() {
           <h1 className="font-bold text-app-main flex items-center gap-1 truncate">
             <VideoCameraIcon className="w-5 h-5 shrink-0" />
             <span className="truncate">
-              {enPantalla ? enPantalla.titulo : "Videos"}
+              {enPantalla ? enPantalla.titulo : "Video"}
             </span>
           </h1>
 

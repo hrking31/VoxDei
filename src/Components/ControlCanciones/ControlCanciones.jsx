@@ -11,7 +11,6 @@ import {
   setDoc,
 } from "firebase/firestore";
 import {
-  BookmarkIcon,
   ChatBubbleLeftRightIcon,
   TagIcon,
   TvIcon,
@@ -20,8 +19,6 @@ import {
   MinusIcon,
   TrashIcon,
   PencilIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/solid";
 import { database, db } from "../Firebase/Firebase";
@@ -55,7 +52,6 @@ export default function ControlCanciones() {
   const navigate = useNavigate();
   const { userData } = useAuth();
   const {
-    visibleTitulo,
     setVisibleTitulo,
     visibleTexto,
     setVisibleTexto,
@@ -173,13 +169,6 @@ export default function ControlCanciones() {
         timestamp: Date.now(),
       });
 
-      // El título de la canción viaja por su propio canal
-      set(ref(database, `displayTitulo/${userData.groupId}`), {
-        text: cancionActiva.titulo,
-        display: "titulo",
-        timestamp: Date.now(),
-      });
-
       setIndiceActual(indice);
     },
     [cancionActiva, userData?.groupId]
@@ -218,16 +207,38 @@ export default function ControlCanciones() {
     return () => window.removeEventListener("keydown", manejarTecla);
   }, [cancionActiva, siguiente, anterior]);
 
-  // Visibilidad del titulo
-  const toggleVisibleTitulo = () => {
-    const nuevoEstado = !visibleTitulo;
-    setVisibleTitulo(nuevoEstado);
+  // Esta pantalla tiene dos caras: la lista de canciones, que es solo gestión y
+  // no toca la proyección, y la canción abierta, que sí proyecta. Solo al abrir
+  // una canción se deja lista la pantalla del templo: letra y ticker
+  // encendidos, título apagado, que aquí nunca se proyecta.
+  useEffect(() => {
+    if (!userData?.groupId || !cancionActiva) return;
+    const timestamp = Date.now();
 
+    setVisibleTitulo(false);
     update(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
-      visibleTitulo: nuevoEstado,
-      timestamp: Date.now(),
+      visibleTitulo: false,
+      timestamp,
     });
-  };
+
+    setVisibleTexto(true);
+    update(ref(database, `displayVisibleTexto/${userData.groupId}`), {
+      visibleTexto: true,
+      timestamp,
+    });
+
+    setVisibleTicker(true);
+    set(ref(database, `displayVisibleTicker/${userData.groupId}`), {
+      visibleTicker: true,
+      timestamp,
+    });
+  }, [
+    userData?.groupId,
+    cancionActiva,
+    setVisibleTitulo,
+    setVisibleTexto,
+    setVisibleTicker,
+  ]);
 
   // Visibilidad del texto
   const toggleVisibleTexto = () => {
@@ -251,15 +262,15 @@ export default function ControlCanciones() {
     });
   };
 
-  // Deja en pantalla el título y la letra, y apaga el ticker
+  // Deja en pantalla la letra y el ticker, y apaga el título
   const setAllVisible = () => {
-    setVisibleTitulo(true);
+    setVisibleTitulo(false);
     setVisibleTexto(true);
-    setVisibleTicker(false);
+    setVisibleTicker(true);
     const timestamp = Date.now();
 
     update(ref(database, `displayVisibleTitulo/${userData.groupId}`), {
-      visibleTitulo: true,
+      visibleTitulo: false,
       timestamp,
     });
 
@@ -269,7 +280,7 @@ export default function ControlCanciones() {
     });
 
     set(ref(database, `displayVisibleTicker/${userData.groupId}`), {
-      visibleTicker: false,
+      visibleTicker: true,
       timestamp,
     });
   };
@@ -376,6 +387,15 @@ export default function ControlCanciones() {
             </span>
           </h1>
 
+          {/* Cuántas láminas tiene la canción, o en cuál va */}
+          {cancionActiva && (
+            <span className="text-xs text-app-muted shrink-0">
+              {indiceActual === null
+                ? `${cancionActiva.diapositivas.length} láminas`
+                : `${indiceActual + 1} / ${cancionActiva.diapositivas.length}`}
+            </span>
+          )}
+
           <div className="flex items-center gap-2 shrink-0">
             {cancionActiva && (
               <button
@@ -383,99 +403,57 @@ export default function ControlCanciones() {
                   setCancionActiva(null);
                   setIndiceActual(null);
                 }}
-                className="text-xs sm:text-sm font-bold text-app-muted px-2 py-1 rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main"
+                className="w-20 h-8 text-xs sm:text-sm font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-main"
               >
                 Ver lista
               </button>
             )}
 
-            <button
-              onClick={() => navigate("/ViewGestion")}
-              className="px-3 py-1.5 boton-salida"
-            >
-              Salida
-            </button>
-
-            {/* Visibilidad */}
-            {isDesktop ? (
-              <div className="flex items-center gap-3">
-                <button onClick={toggleVisibleTicker}>
-                  <TagIcon
-                    className={`w-7 h-7 ${
-                      visibleTicker ? "text-app-success" : "text-app-muted"
-                    }`}
-                  />
-                </button>
-                <button onClick={toggleVisibleTitulo}>
-                  <BookmarkIcon
-                    className={`w-7 h-7 ${
-                      visibleTitulo ? "text-app-accent" : "text-app-muted"
-                    }`}
-                  />
-                </button>
-                <button onClick={toggleVisibleTexto}>
-                  <ChatBubbleLeftRightIcon
-                    className={`w-7 h-7 ${
-                      visibleTexto ? "text-app-main" : "text-app-muted"
-                    }`}
-                  />
-                </button>
-                <button onClick={setAllVisible}>
-                  <TvIcon className="w-7 h-7 text-app-success" />
-                </button>
-              </div>
-            ) : (
-              <ModalVisibilidad
-                toggleVisibleTicker={toggleVisibleTicker}
-                toggleVisibleTitulo={toggleVisibleTitulo}
-                toggleVisibleTexto={toggleVisibleTexto}
-                setAllVisible={setAllVisible}
-                colorClass={"text-app-success"}
-              />
+            {!cancionActiva && (
+              <button
+                onClick={() => navigate("/ViewGestion")}
+                className="px-3 py-1.5 boton-salida"
+              >
+                Salida
+              </button>
             )}
+
+            {/* Visibilidad: solo con una canción abierta, que es cuando se
+                proyecta. En la lista no aparece, porque ahí solo se gestiona. */}
+            {cancionActiva &&
+              (isDesktop ? (
+                <div className="flex items-center gap-3">
+                  <button onClick={toggleVisibleTicker}>
+                    <TagIcon
+                      className={`w-7 h-7 ${
+                        visibleTicker ? "text-app-success" : "text-app-muted"
+                      }`}
+                    />
+                  </button>
+                  <button onClick={toggleVisibleTexto}>
+                    <ChatBubbleLeftRightIcon
+                      className={`w-7 h-7 ${
+                        visibleTexto ? "text-app-main" : "text-app-muted"
+                      }`}
+                    />
+                  </button>
+                  <button onClick={setAllVisible}>
+                    <TvIcon className="w-7 h-7 text-app-success" />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-20 h-8">
+                  <ModalVisibilidad
+                    toggleVisibleTicker={toggleVisibleTicker}
+                    toggleVisibleTexto={toggleVisibleTexto}
+                    setAllVisible={setAllVisible}
+                    colorClass={"text-app-success"}
+                  />
+                </div>
+              ))}
           </div>
         </div>
 
-        {/* Controles de avance, solo con una canción abierta */}
-        {cancionActiva && (
-          <div className="flex items-center gap-2 pb-2">
-            <button
-              onClick={anterior}
-              disabled={indiceActual === null || indiceActual === 0}
-              className={`flex-1 py-2 rounded flex items-center justify-center gap-1 font-bold ${
-                indiceActual === null || indiceActual === 0
-                  ? "bg-transparent border-2 border-app-border text-app-border cursor-not-allowed"
-                  : "bg-app-light border-2 border-app-main text-app-main cursor-pointer"
-              }`}
-            >
-              <ChevronLeftIcon className="w-5 h-5" />
-              Anterior
-            </button>
-
-            <span className="text-xs text-app-muted w-16 text-center">
-              {indiceActual === null
-                ? `${cancionActiva.diapositivas.length} láminas`
-                : `${indiceActual + 1} / ${cancionActiva.diapositivas.length}`}
-            </span>
-
-            <button
-              onClick={siguiente}
-              disabled={
-                indiceActual !== null &&
-                indiceActual >= cancionActiva.diapositivas.length - 1
-              }
-              className={`flex-1 py-2 rounded flex items-center justify-center gap-1 font-bold ${
-                indiceActual !== null &&
-                indiceActual >= cancionActiva.diapositivas.length - 1
-                  ? "bg-transparent border-2 border-app-border text-app-border cursor-not-allowed"
-                  : "bg-green-500 text-white cursor-pointer"
-              }`}
-            >
-              Siguiente
-              <ChevronRightIcon className="w-5 h-5" />
-            </button>
-          </div>
-        )}
       </div>
 
       {/* CANCIÓN ABIERTA: sus láminas */}
@@ -515,7 +493,7 @@ export default function ControlCanciones() {
           <div className="bg-app-light border-2 border-app-main rounded-lg p-3">
             <div className="flex items-center justify-between gap-2 mb-2">
               <h2 className="font-bold text-app-main">
-                Canciones de hoy ({cancionesDelDia.length})
+                Canciones de hoy {cancionesDelDia.length}
               </h2>
               {cancionesDelDia.length > 0 && (
                 <button
@@ -534,7 +512,7 @@ export default function ControlCanciones() {
                 para armar la lista de hoy.
               </p>
             ) : (
-              <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {cancionesDelDia.map((cancion, orden) => (
                   <div
                     key={cancion.id}

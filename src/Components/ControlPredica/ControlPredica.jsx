@@ -540,7 +540,7 @@ export default function Predica() {
         {visible && numSlots && (
           <div className="text-center">
             <h1 className="font-bold text-sm sm:text-lg text-app-main">
-              Predica {numSlots}
+              Prédica {numSlots}
             </h1>
             <div className="mx-auto mt-1 w-18 sm:w-24 border-b-2 border-app-main"></div>
           </div>
