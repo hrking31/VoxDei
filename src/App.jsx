@@ -11,6 +11,8 @@ import {
   ViewPredica,
   ViewVersiculo,
   ViewCanciones,
+  ViewCancion,
+  ViewCancionEditar,
   ViewVideo,
   ViewResetPassword,
   ViewUsers,
@@ -130,6 +132,34 @@ export default function App() {
           element={
             <ProtectedRoutes rolesPermitidos={ROLES_PROYECCION}>
               <ViewCanciones />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/ViewCancion/:id"
+          element={
+            <ProtectedRoutes rolesPermitidos={ROLES_PROYECCION}>
+              <ViewCancion />
+            </ProtectedRoutes>
+          }
+        />
+
+        {/* Sin id es una canción nueva; con id se corrige una propia */}
+        <Route
+          path="/ViewCancionEditar"
+          element={
+            <ProtectedRoutes rolesPermitidos={ROLES_PROYECCION}>
+              <ViewCancionEditar />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/ViewCancionEditar/:id"
+          element={
+            <ProtectedRoutes rolesPermitidos={ROLES_PROYECCION}>
+              <ViewCancionEditar />
             </ProtectedRoutes>
           }
         />
