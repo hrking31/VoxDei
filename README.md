@@ -244,6 +244,21 @@ Además:
 
 - **Los botones del panel ya se llaman como en este manual.** Decían “Gestión Ticker”, “Gestión Mensaje”, “Gestión Imagen”, “Gestión Video” y “Gestión Predica”. Ahora son **Ticker**, **Mensajes**, **Imágenes**, **Video** y **Prédica**, sin el añadido de “Gestión” y con la tilde de Prédica. Dentro de cada pantalla pasa lo mismo: donde decía “Panel de Control Ticker” ahora dice **Ticker**, de modo que el botón y la pantalla que abre se llaman igual.
 - **El menú de los interruptores ya se ve.** Desde el celular, el botón del ojo abría un menú que se salía de la pantalla. Ahora aparece pegado al borde derecho y siempre por debajo de la barra superior, sin taparla nunca, igual en todas las secciones, y se cierra tocando por fuera o con la tecla Escape.
+- **El buscador se ve más despejado.** En la lista que se despliega al escribir, cada canción muestra solo su nombre: se quitó la cuenta de láminas, que ahí no ayudaba a encontrarla. En los recuadros de **Canciones de hoy** y **Favoritas** se sigue viendo.
+- **Más aire bajo el buscador.** El espacio entre la caja de búsqueda y el recuadro de Canciones de hoy quedó igual al del borde de arriba.
+- **Quitar una canción de la lista de hoy se ve con una papelera.** Antes era una rayita, que costaba entender. Sigue sacándola solo de la lista del día: la canción no se borra del catálogo.
+- **El buscador se limpia de un toque.** En el celular la lupa se convierte en una equis en cuanto escribes: al tocarla se borra lo escrito y se cierra la lista. En el computador la lupa se queda donde está y la equis aparece al final de la caja. También se cierra tocando por fuera o con la tecla Escape.
+- **El buscador dice cuántas canciones hay.** En el computador, a su derecha: «9 canciones de 100». En el celular, donde el espacio es corto, va dentro de la caja y en breve: «9 de 100». El número tiene su espacio reservado, así que nada se mueve mientras escribes.
+- **La lista de resultados ya no se confunde con lo de abajo.** Mientras buscas, el resto de la pantalla se oscurece y la lista queda encima, despegada por un filo claro. En el celular además ocupa toda la pantalla y los recuadros se esconden hasta que termines de buscar. Tocando la zona oscura se cierra la búsqueda.
+- **Las imágenes vuelven a proyectarse.** Al enviar una imagen a la pantalla, el sistema la rechazaba por permisos y no llegaba nada al templo. Ya está corregido. Ten en cuenta dos cosas: las fotos deben pesar menos de 10 MB, y si alguien de tu equipo tenía la sesión abierta desde antes, debe salir y volver a entrar.
+- **Ticker y Mensajes ahora tienen Favoritos, como las canciones.** Los textos que guardabas quedaban ahí para siempre y no había forma de borrarlos ni corregirlos. Ahora:
+  - El botón de **Guardar** es una **estrella**: lo que marques va al recuadro de **Favoritos**, que muestra cuántos tienes de los seis que caben.
+  - Cada favorito trae sus botones arriba a la derecha: **proyectar**, **lápiz** para corregirlo y **papelera** para eliminarlo, que pregunta antes de borrar. El texto va debajo, recortado a tres renglones, para que el recuadro sea pequeño y quepan varios a la vista.
+  - El favorito que está **en pantalla se pinta de verde** y lo dice, igual que la lámina de una canción.
+  - Al corregir uno, el título de arriba avisa cuál estás corrigiendo, y la estrella guarda el cambio en ese mismo sitio en vez de ocupar otro.
+  - Si borras uno del medio, el hueco se reutiliza: el siguiente que guardes ocupa ese número.
+- **Las favoritas llevan el nombre de tu iglesia.** El recuadro dice ahora, por ejemplo, «Favoritas Camino de Paz», para que quede claro que esa lista es de tu iglesia y no del catálogo común.
+- **Los dos recuadros dicen cuántas canciones tienen.** Al lado del título, en un óvalo gris, va la cuenta: «12 canciones» en Favoritas y «5 canciones» en las de hoy.
 
 ### 15 de agosto de 2026
 

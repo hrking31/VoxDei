@@ -12,11 +12,11 @@ import {
   CalendarDaysIcon,
   MusicalNoteIcon,
   PlusIcon,
-  MinusIcon,
   StarIcon,
   TrashIcon,
   PencilIcon,
   MagnifyingGlassIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/solid";
 import { db } from "../Firebase/Firebase";
 import {
@@ -38,7 +38,7 @@ const TOPE_FAVORITAS = 20;
 export default function ControlCanciones() {
   const navigate = useNavigate();
   const { userData } = useAuth();
-  const { showNotif, confirmAction } = useAppContext();
+  const { showNotif, confirmAction, isDesktop } = useAppContext();
 
   // Catálogo común a todas las iglesias
   const [canciones, setCanciones] = useState([]);
@@ -253,6 +253,34 @@ export default function ControlCanciones() {
     </>
   );
 
+  // El listado de coincidencias. Es el mismo contenido en las dos formas de
+  // mostrarlo: colgado de la caja en el computador y ocupando el hueco entero
+  // en el celular.
+  const resultados =
+    coincidencias.length === 0 ? (
+      <p className="text-app-muted text-sm p-3">
+        Ninguna canción coincide con la búsqueda.
+      </p>
+    ) : (
+      coincidencias.map((cancion) => (
+        <div
+          key={cancion.id}
+          className="flex items-center gap-1 px-2 py-1 border-b border-app-border last:border-b-0 hover:bg-app-border/40"
+        >
+          <button
+            onClick={() => navigate(`/ViewCancion/${cancion.id}`)}
+            className="flex-1 text-left min-w-0 py-1"
+          >
+            <span className="block font-semibold text-app-main truncate">
+              {cancion.titulo}
+            </span>
+          </button>
+
+          {accionesDe(cancion)}
+        </div>
+      ))
+    );
+
   // La pantalla mide lo que la ventana y no se desplaza: cada bloque se
   // desplaza por dentro.
   return (
@@ -285,59 +313,130 @@ export default function ControlCanciones() {
       </div>
 
       <div className="flex-1 min-h-0 flex flex-col gap-2 p-2 sm:p-4">
-        {/* BUSCADOR: al escribir se despliega la lista de nombres */}
-        <div ref={buscadorRef} className="shrink-0 relative">
-          <div className="flex items-center gap-2 bg-app-light border-2 border-app-border rounded-full px-3">
-            <MagnifyingGlassIcon className="w-5 h-5 text-app-main" />
-            <input
-              type="text"
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar canción..."
-              className="flex-1 bg-transparent py-2 text-app-muted focus:outline-none"
-            />
+        {/* Velo que apaga el resto de la pantalla mientras se busca, para que
+            la lista desplegada no se confunda con los recuadros de abajo. Va
+            fuera del buscador a propósito: así tocarlo cuenta como "tocar
+            fuera" y cierra la lista */}
+        {hayBusqueda && (
+          <div className="fixed inset-0 z-20 bg-app-dark/70" aria-hidden="true" />
+        )}
+
+        {/* BUSCADOR: al escribir se despliegan los nombres que coinciden. El
+            ref abarca también la lista del celular, para que tocar un
+            resultado no cuente como "tocar fuera" y la cierre antes de tiempo */}
+        <div
+          ref={buscadorRef}
+          className={`relative z-30 sm:mb-2 flex flex-col gap-2 ${
+            hayBusqueda && !isDesktop ? "flex-1 min-h-0" : "shrink-0"
+          }`}
+        >
+          <div className="shrink-0 flex items-center gap-2">
+            <div className="relative flex-1 min-w-0">
+              <div className="flex items-center gap-2 bg-app-light border-2 border-app-border rounded-full px-3">
+                {/* En el celular la lupa se vuelve X para limpiar, que ahorra
+                    ancho; en el computador se queda y la X va al otro extremo.
+                    Se pinta siempre como botón para que el alto no salte */}
+                {isDesktop ? (
+                  <MagnifyingGlassIcon className="w-5 h-5 text-app-main shrink-0" />
+                ) : (
+                  <button
+                    onClick={() => setBusqueda("")}
+                    disabled={!hayBusqueda}
+                    title={hayBusqueda ? "Limpiar la búsqueda" : "Buscar"}
+                    className={`shrink-0 p-1 rounded-full ${
+                      hayBusqueda ? "hover:bg-app-border" : "cursor-default"
+                    }`}
+                  >
+                    {hayBusqueda ? (
+                      <XMarkIcon className="w-5 h-5 text-app-muted hover:text-app-error" />
+                    ) : (
+                      <MagnifyingGlassIcon className="w-5 h-5 text-app-main" />
+                    )}
+                  </button>
+                )}
+
+                <input
+                  type="text"
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  placeholder="Buscar canción..."
+                  className="flex-1 bg-transparent py-2 text-app-muted focus:outline-none"
+                />
+
+                {/* En el celular la cuenta va aquí dentro y en corto */}
+                {!isDesktop && (
+                  <span className="shrink-0 text-sm text-app-muted">
+                    <span
+                      className="inline-block text-right tabular-nums"
+                      style={{ minWidth: `${String(canciones.length).length}ch` }}
+                    >
+                      {coincidencias.length}
+                    </span>{" "}
+                    de {canciones.length}
+                  </span>
+                )}
+
+                {/* En el computador, la X de limpiar al final de la caja */}
+                {isDesktop && hayBusqueda && (
+                  <button
+                    onClick={() => setBusqueda("")}
+                    title="Limpiar la búsqueda"
+                    className="p-1 rounded-full hover:bg-app-border shrink-0"
+                  >
+                    <XMarkIcon className="w-5 h-5 text-app-muted hover:text-app-error" />
+                  </button>
+                )}
+              </div>
+
+              {/* En el computador la lista cuelga de la caja */}
+              {isDesktop && hayBusqueda && (
+                <div className="absolute top-full left-0 right-0 mt-1 z-30 max-h-80 overflow-y-auto scrollbar-custom bg-app-light border-2 border-app-border rounded-lg ring-1 ring-white/10 shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+                  {resultados}
+                </div>
+              )}
+            </div>
+
+            {/* En el computador la cuenta va afuera y completa, pegada al borde
+                de abajo de la fila. Al número se le reserva el ancho del total,
+                con cifras de ancho fijo, para que el texto no baile ni mueva la
+                caja mientras se escribe */}
+            {isDesktop && (
+              <span className="shrink-0 self-end pb-1 text-base text-app-muted">
+                <span
+                  className="inline-block text-right tabular-nums"
+                  style={{ minWidth: `${String(canciones.length).length}ch` }}
+                >
+                  {coincidencias.length}
+                </span>{" "}
+                canciones de {canciones.length}
+              </span>
+            )}
           </div>
 
-          {hayBusqueda && (
-            <div className="absolute top-full left-0 right-0 mt-1 z-30 max-h-80 overflow-y-auto scrollbar-custom bg-app-light border-2 border-app-border rounded-lg shadow-xl">
-              {coincidencias.length === 0 ? (
-                <p className="text-app-muted text-sm p-3">
-                  Ninguna canción coincide con la búsqueda.
-                </p>
-              ) : (
-                coincidencias.map((cancion) => (
-                  <div
-                    key={cancion.id}
-                    className="flex items-center gap-1 px-2 py-1 border-b border-app-border last:border-b-0 hover:bg-app-border/40"
-                  >
-                    <button
-                      onClick={() => navigate(`/ViewCancion/${cancion.id}`)}
-                      className="flex-1 text-left min-w-0 py-1"
-                    >
-                      <span className="flex items-baseline gap-1 min-w-0">
-                        <span className="font-semibold text-app-main truncate">
-                          {cancion.titulo}
-                        </span>
-                        <span className="text-[11px] text-app-muted shrink-0">
-                          {cancion.diapositivas?.length || 0} láminas
-                        </span>
-                      </span>
-                    </button>
-
-                    {accionesDe(cancion)}
-                  </div>
-                ))
-              )}
+          {/* En el celular la lista ocupa el hueco entero y los recuadros se
+              ocultan: así no queda nada detrás con qué confundirla */}
+          {!isDesktop && hayBusqueda && (
+            <div className="flex-1 min-h-0 overflow-y-auto scrollbar-custom bg-app-light border-2 border-app-border rounded-lg ring-1 ring-white/10 shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+              {resultados}
             </div>
           )}
         </div>
 
         {/* CANCIONES DE HOY */}
-        <div className="basis-2/5 grow-0 shrink-0 min-h-0 flex flex-col bg-app-light border-2 border-app-main rounded-lg p-2">
+        <div
+          className={`basis-2/5 grow-0 shrink-0 min-h-0 flex flex-col bg-app-light border-2 border-app-main rounded-lg p-2 ${
+            !isDesktop && hayBusqueda ? "hidden" : ""
+          }`}
+        >
           <div className="shrink-0 flex items-center justify-between gap-2 mb-1">
-            <h2 className="font-bold text-app-main flex items-center gap-1">
-              <CalendarDaysIcon className="w-5 h-5 text-app-main" />
-              Canciones de hoy {cancionesDelDia.length}
+            <h2 className="font-bold text-app-main flex items-center gap-1 min-w-0">
+              <CalendarDaysIcon className="w-5 h-5 text-app-main shrink-0" />
+              <span className="truncate">Canciones de hoy</span>
+
+              {/* La cuenta, en un chip gris para no competir con el título */}
+              <span className="ml-3 shrink-0 rounded-full bg-app-border/40 px-2 py-0.5 text-xs font-normal text-app-muted">
+                {cancionesDelDia.length} canciones
+              </span>
             </h2>
             {cancionesDelDia.length > 0 && (
               <button
@@ -385,7 +484,7 @@ export default function ControlCanciones() {
                     title="Quitar de la lista de hoy"
                     className="p-1 rounded-full hover:bg-app-border shrink-0"
                   >
-                    <MinusIcon className="w-5 h-5 text-app-muted hover:text-app-error" />
+                    <TrashIcon className="w-5 h-5 text-app-muted hover:text-app-error" />
                   </button>
                 </div>
               ))}
@@ -395,11 +494,23 @@ export default function ControlCanciones() {
 
         {/* FAVORITAS: hasta 20, en una columna en el celular y dos, más
             grandes, en el computador */}
-        <div className="flex-1 min-h-0 flex flex-col bg-app-light border-2 border-app-border rounded-lg p-2">
+        <div
+          className={`flex-1 min-h-0 flex flex-col bg-app-light border-2 border-app-border rounded-lg p-2 ${
+            !isDesktop && hayBusqueda ? "hidden" : ""
+          }`}
+        >
           <div className="shrink-0 flex items-center justify-between gap-2 mb-1">
-            <h2 className="font-bold text-app-main flex items-center gap-1">
-              <StarIcon className="w-5 h-5 text-app-main" />
-              Favoritas {cancionesFavoritas.length}
+            <h2 className="font-bold text-app-main flex items-center gap-1 min-w-0">
+              <StarIcon className="w-5 h-5 text-app-main shrink-0" />
+              {/* El nombre de la iglesia recuerda que las favoritas son suyas */}
+              <span className="truncate">
+                Favoritas {userData?.churchName || ""}
+              </span>
+
+              {/* La cuenta, en un chip gris para no competir con el título */}
+              <span className="ml-3 shrink-0 rounded-full bg-app-border/40 px-2 py-0.5 text-xs font-normal text-app-muted">
+                {cancionesFavoritas.length} canciones
+              </span>
             </h2>
           </div>
 

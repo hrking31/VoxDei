@@ -90,7 +90,11 @@ Excepción deliberada: los scripts de carga masiva `Upload/CargarBiblia` y `Uplo
 
 **Prédicas**: exactamente 5 slots, `predicas/predica1`..`predica5`, cada uno con `items[]` de `{ tipo, contenido, timestamp }` donde `tipo` es `titulo` | `mensaje` | `versiculo` (en versículos, `contenido` es `{ cita, texto }`). El array `slots` del contexto refleja qué slots están ocupados.
 
-**Tickers y mensajes**: máximo 6 documentos (`ticker1`..`ticker6`, `message1`..`message6`) con campo `num`. Al llegar al límite se sobrescribe el de `timestamp` más antiguo reutilizando su `num`.
+**Tickers y mensajes**: máximo 6 documentos (`ticker1`..`ticker6`, `message1`..`message6`) con campo `num`. Desde el 22 de agosto de 2026 esa lista **es el recuadro de Favoritos** y se puede borrar, así que quedan huecos: al guardar, `numeroDestino()` toma el `num` que se está corrigiendo, si no el **primer hueco libre de 1..6**, y solo si están los seis ocupados sobrescribe el de `timestamp` más antiguo reutilizando su `num`. No vuelvas a calcular el número con `items.length + 1`: con un hueco en medio, eso pisa un documento existente.
+
+Las dos pantallas comparten **`src/Components/Favoritos/FavoritosTexto.jsx`**: el recuadro y las tarjetas. Cada tarjeta lleva los tres botones (proyectar, editar, eliminar) **arriba a la derecha**, junto al rótulo, y el texto debajo recortado a tres renglones (`line-clamp-3`), para que quepan varias sin alargar la página. Hubo una versión con un visor modal para leer el texto completo; se quitó el mismo día por innecesaria. El componente recibe `etiqueta` ("Mensaje" / "Ticker") y los manejadores; no toca Firestore ni RTDB por su cuenta, todo lo decide el panel que lo monta. El favorito que está en pantalla se marca con `border-app-success bg-app-success/10` y el rótulo «· en pantalla», igual que la lámina activa de `ControlCancionProyectar`.
+
+`numProyectado` es estado local del panel, no un nodo de RTDB: marca cuál de los seis se envió desde esta sesión. Al proyectar el texto del área de escritura se pone en `null`, porque lo que hay en pantalla ya no es ninguno de los favoritos. Una recarga lo pierde, y es deliberado: no vale la pena un nodo nuevo para una marca visual.
 
 ### Roles y rutas protegidas
 
@@ -193,7 +197,9 @@ Excepciones deliberadas:
 firebase deploy --only firestore:rules,database,storage
 ```
 
-En `storage.rules`, `users/{uid}/**` compara el uid directamente **sin consultar Firestore**: en el registro la foto se sube antes de que exista la ficha del usuario, así que una regla basada en `firestore.get()` haría fallar todo registro nuevo. `imagenes/{groupId}/**` sí resuelve la iglesia con `firestore.get()`. Ambas rutas exigen `contentType` de imagen y menos de 10 MB.
+En `storage.rules`, `users/{uid}/**` compara el uid directamente **sin consultar Firestore**: en el registro la foto se sube antes de que exista la ficha del usuario, así que una regla basada en `firestore.get()` haría fallar todo registro nuevo. Ambas rutas exigen `contentType` de imagen y menos de 10 MB.
+
+**`imagenes/{groupId}/**` tampoco consulta Firestore** (corregido el 22 de agosto de 2026). Antes resolvía la iglesia con `firestore.get()` sobre `users/{uid}`, y **toda subida moría con 403 `storage/unauthorized`**: las llamadas entre servicios (*cross-service rules*) exigen habilitación y permisos propios del agente de servicio de Storage, y cuando no se pueden resolver la regla **no lanza error, se evalúa como falsa**. El síntoma engañaba: en el panel se veía la miniatura —que es un `objectURL` del archivo local, no del subido— y el fallo aparecía al proyectar. Ahora se reconoce la iglesia como en RTDB: `request.auth.uid == groupId` (el pastor dueño) o el custom claim `request.auth.token.groupId`. Consecuencia a tener presente: quien tenga una sesión anterior a su claim debe volver a entrar.
 
 Ojo: las reglas de Storage no invalidan los enlaces de descarga ya generados con `getDownloadURL()`, que llevan un token y siguen sirviendo el archivo a quien lo tenga. Para cortar uno hay que revocar su token.
 

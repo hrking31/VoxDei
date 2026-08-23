@@ -16,7 +16,6 @@ import {
   onSnapshot,
   query,
   where,
-  orderBy,
 } from "firebase/firestore";
 import { PhotoIcon } from "@heroicons/react/24/solid";
 import { database, storage, db } from "../../Components/Firebase/Firebase.js";
@@ -79,28 +78,40 @@ export default function ControlImagenes() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
   // --- Escuchar imágenes ya guardadas en Firestore para mostrar miniaturas individuales ---
+  // --- Escuchar imágenes ya guardadas en Firestore para mostrar miniaturas ---
+  // Solo un `where` de igualdad: combinarlo con un `orderBy` sobre otro campo
+  // obligaría a un índice compuesto en Firestore, que no está declarado en el
+  // proyecto. Sin él la consulta falla entera y la galería queda vacía, así
+  // que el orden se hace aquí, con lo que ya llegó.
   useEffect(() => {
     if (!userData?.groupId) return;
 
     const q = query(
       collection(db, "imagenes"),
-      where("groupId", "==", userData.groupId),
-      orderBy("createdAt", "desc")
+      where("groupId", "==", userData.groupId)
     );
 
     const unsub = onSnapshot(
       q,
       (snap) => {
         const imgs = [];
-        snap.forEach((doc) => {
-          imgs.push({ id: doc.id, ...doc.data() });
+        snap.forEach((documento) => {
+          imgs.push({ id: documento.id, ...documento.data() });
         });
+
+        // Más recientes primero. Las recién creadas aún no tienen la marca de
+        // tiempo del servidor, así que se tratan como las más nuevas.
+        imgs.sort(
+          (a, b) =>
+            (b.createdAt?.seconds ?? Infinity) -
+            (a.createdAt?.seconds ?? Infinity)
+        );
         setSavedImages(imgs);
       },
       (err) => {
         console.error("Error al obtener imágenes guardadas:", err);
+        showNotif("error", "No se pudieron cargar las imágenes guardadas");
       }
     );
 

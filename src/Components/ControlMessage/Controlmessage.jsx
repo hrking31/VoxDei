@@ -2,11 +2,12 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ref, set, update } from "firebase/database";
 import { database } from "../Firebase/Firebase";
-import { setDoc } from "firebase/firestore";
+import { setDoc, deleteDoc } from "firebase/firestore";
 import { docIglesia, MESSAGES } from "../Firebase/RutasIglesia";
 import {
   BookmarkIcon,
   ChatBubbleLeftRightIcon,
+  StarIcon,
   TagIcon,
   TvIcon,
 } from "@heroicons/react/24/solid";
@@ -14,12 +15,20 @@ import EmojiButton from "../EmojiButton/EmojiButton";
 import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext";
 import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
+import FavoritosTexto from "../Favoritos/FavoritosTexto.jsx";
+
+// Cuántos mensajes caben en favoritos. Los documentos son message1..message6.
+const TOPE_FAVORITOS = 6;
 
 export default function ControlMenssage() {
   const navigate = useNavigate();
   const { userData } = useAuth();
   const [message, setMessage] = useState("");
-  const [itemSeleccionado, setItemSeleccionado] = useState(null);
+  // Cuál de los favoritos está en la pantalla del templo
+  const [numProyectado, setNumProyectado] = useState(null);
+  // Si se está corrigiendo un favorito, su número: al guardar se escribe encima
+  // en vez de ocupar otro sitio
+  const [numEditando, setNumEditando] = useState(null);
   const {
     messageItems,
     visibleTicker,
@@ -30,6 +39,7 @@ export default function ControlMenssage() {
     setVisibleTexto,
     isDesktop,
     showNotif,
+    confirmAction,
   } = useAppContext();
   const textareaRef = useRef(null);
 
@@ -52,6 +62,9 @@ export default function ControlMenssage() {
       display: "mensaje",
       timestamp: item?.timestamp || Date.now(),
     });
+
+    // Solo un favorito puede quedar marcado como el que está en pantalla
+    setNumProyectado(item?.num ?? null);
   };
 
   // Visibilidad del titulo
@@ -110,56 +123,77 @@ export default function ControlMenssage() {
     });
   };
 
-  // agrega un mensaje  a la bd
-  const agregarElemento = async () => {
-    try {
-      // Validar campo
-      if (message.trim() === "") return;
+  // A qué documento va lo que se está guardando: el que se corrige, el primer
+  // hueco libre o, si ya están los seis, el más antiguo.
+  const numeroDestino = () => {
+    if (numEditando) return { num: numEditando, reemplaza: false };
 
-      const nuevoMessage = {
+    const usados = messageItems.map((item) => item.num);
+    for (let num = 1; num <= TOPE_FAVORITOS; num++) {
+      if (!usados.includes(num)) return { num, reemplaza: false };
+    }
+
+    const masAntiguo = [...messageItems].sort(
+      (a, b) => a.timestamp - b.timestamp
+    )[0];
+    return { num: masAntiguo.num, reemplaza: true };
+  };
+
+  // Guarda el mensaje en favoritos: es el botón que antes decía "Guardar"
+  const guardarFavorito = async () => {
+    if (message.trim() === "") return;
+
+    try {
+      const { num, reemplaza } = numeroDestino();
+
+      await setDoc(docIglesia(userData.groupId, MESSAGES, `message${num}`), {
         text: message,
         timestamp: Date.now(),
-      };
+        num,
+      });
 
-      if (messageItems.length < 6) {
-        // Si hay menos de 6, agregar normalmente
-        const num = messageItems.length + 1;
-        const messageFinal = { ...nuevoMessage, num };
-
-        // Guardar en Firestore
-        await setDoc(
-          docIglesia(userData.groupId, MESSAGES, `message${num}`),
-          messageFinal
-        );
-        showNotif("success", `✅ Mensaje ${num} agregado correctamente`);
+      if (numEditando) {
+        showNotif("success", `Mensaje ${num} corregido`);
+      } else if (reemplaza) {
+        showNotif("info", `Se reemplazó el mensaje ${num} por uno nuevo`);
       } else {
-        // Si ya hay 6, sobrescribir el más antiguo
-        const ordenados = [...messageItems].sort(
-          (a, b) => a.timestamp - b.timestamp
-        );
-        const masAntiguo = ordenados[0]; // el primero
-
-        const messageFinal = {
-          ...nuevoMessage,
-          num: masAntiguo.num, // reusar su número
-        };
-
-        // Sobrescribir en Firestore
-        await setDoc(
-          docIglesia(userData.groupId, MESSAGES, `message${masAntiguo.num}`),
-          messageFinal
-        );
-
-        showNotif(
-          "info",
-          `🔄 Se reemplazó el mensaje ${masAntiguo.num} por uno nuevo`
-        );
+        showNotif("success", `Mensaje ${num} guardado en favoritos`);
       }
 
       setMessage("");
+      setNumEditando(null);
     } catch (error) {
       console.error("Error al agregar el mensaje:", error);
       showNotif("error", "Error al guardar el mensaje");
+    }
+  };
+
+  // Lleva el texto del favorito al recuadro de escritura para corregirlo
+  const editarFavorito = (item) => {
+    setMessage(item.text);
+    setNumEditando(item.num);
+    textareaRef.current?.focus();
+    showNotif("info", `Editando el mensaje ${item.num}`);
+  };
+
+  const eliminarFavorito = async (item) => {
+    const accepted = await confirmAction(
+      `¿Eliminar el mensaje ${item.num} de favoritos?`
+    );
+    if (!accepted) return;
+
+    try {
+      await deleteDoc(
+        docIglesia(userData.groupId, MESSAGES, `message${item.num}`)
+      );
+
+      if (numEditando === item.num) setNumEditando(null);
+      if (numProyectado === item.num) setNumProyectado(null);
+
+      showNotif("success", "Mensaje eliminado");
+    } catch (error) {
+      console.error("Error al eliminar el mensaje:", error);
+      showNotif("error", "No se pudo eliminar el mensaje");
     }
   };
 
@@ -169,6 +203,11 @@ export default function ControlMenssage() {
         <h1 className="font-bold text-app-main flex items-center gap-1 px-2">
           <ChatBubbleLeftRightIcon className="w-5 h-5 shrink-0" />
           <span>Mensajes</span>
+          {numEditando && (
+            <span className="text-xs font-normal text-app-muted">
+              · corrigiendo el mensaje {numEditando}
+            </span>
+          )}
         </h1>
 
         <div className="grid grid-cols-12">
@@ -188,7 +227,7 @@ export default function ControlMenssage() {
             </p>
           </div>
 
-          {/* boton guardar */}
+          {/* emoji y estrella de favoritos */}
           <div className="col-span-3 flex flex-col sm:flex-row items-center justify-center gap-2 p-2">
             <div className=" flex items-center justify-center">
               <EmojiButton
@@ -198,18 +237,20 @@ export default function ControlMenssage() {
 
             <button
               type="button"
-              onClick={() => {
-                agregarElemento(message), setMessage("");
-              }}
-              className={`w-full h-10 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-xs lg:text-base wrap-break-words
-              ${
+              onClick={guardarFavorito}
+              title={
+                numEditando
+                  ? `Guardar la corrección del mensaje ${numEditando}`
+                  : "Agregar a favoritos"
+              }
+              className={`p-1 rounded-full transition ${
                 !message
-                  ? "bg-transparent border-2 border-app-border font-bold text-app-border cursor-not-allowed"
-                  : "bg-green-500 text-white cursor-pointer"
+                  ? "text-app-border cursor-not-allowed"
+                  : "text-app-main hover:bg-app-border cursor-pointer"
               }`}
               disabled={!message}
             >
-              Guardar
+              <StarIcon className="w-8 h-8" />
             </button>
           </div>
         </div>
@@ -220,7 +261,7 @@ export default function ControlMenssage() {
             <button
               type="button"
               onClick={() => {
-                handleMessage(message), setMessage("");
+                handleMessage(), setMessage("");
               }}
               className={`w-full py-1.5 flex items-center justify-center text-center rounded text-xs sm:text-sm md:text-base wrap-break-words ${
                 !message
@@ -233,7 +274,10 @@ export default function ControlMenssage() {
             </button>
 
             <button
-              onClick={() => setMessage("")}
+              onClick={() => {
+                setMessage("");
+                setNumEditando(null);
+              }}
               className="w-full py-1.5 flex items-center justify-center text-center text-xs sm:text-sm md:text-base wrap-break-words font-bold text-app-muted rounded inset-shadow-sm inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error cursor-pointer"
             >
               Cancelar
@@ -306,31 +350,14 @@ export default function ControlMenssage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 p-1 sm:p-4">
-        {messageItems.map((item) => (
-          <div
-            key={item.id || `msg-${item.num}-${Date.now()}`}
-            onClick={() => {
-              handleMessage(item);
-              setItemSeleccionado(item.id || item.num);
-            }}
-            className={`relative p-3 border-app-border rounded-lg cursor-pointer transition-colors ${
-              itemSeleccionado === item.timestamp
-                ? "bg-yellow-100 shadow-md"
-                : "hover:bg-app-border active:bg-app-light"
-            }`}
-          >
-            <div className="sm:p-5">
-              <h2 className="flex sm:justify-center mb-0.5 sm:mb-2 sm:text-xl font-bold text-app-main">
-                {item.num}. Mensaje
-              </h2>
-              <p className="font-semibold text-app-muted text-sm leading-relaxed">
-                {item.text}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
+      <FavoritosTexto
+        etiqueta="Mensaje"
+        items={messageItems}
+        numProyectado={numProyectado}
+        onProyectar={handleMessage}
+        onEditar={editarFavorito}
+        onEliminar={eliminarFavorito}
+      />
     </div>
   );
 }

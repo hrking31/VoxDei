@@ -13,11 +13,18 @@ service firebase.storage {
       return request.auth != null;
     }
 
-    // La iglesia del usuario se consulta en su ficha de Firestore.
-    function miGroupId() {
-      return firestore.get(
-        /databases/(default)/documents/users/$(request.auth.uid)
-      ).data.groupId;
+    // La iglesia se reconoce igual que en la Realtime Database, SIN consultar
+    // Firestore:
+    //   - request.auth.uid == groupId  → el pastor dueño (su uid ES el groupId)
+    //   - request.auth.token.groupId   → custom claim que pone crearUsuarioAdmin
+    //
+    // Antes esto se resolvía con firestore.get() sobre users/{uid}. Esa llamada
+    // entre servicios necesita habilitación y permisos aparte del agente de
+    // Storage; cuando no puede resolverse la regla no falla con un error, se
+    // evalúa como falsa, y toda subida moría con 403 (storage/unauthorized).
+    function miIglesia(groupId) {
+      return request.auth.uid == groupId ||
+             request.auth.token.groupId == groupId;
     }
 
     // Solo imágenes y de hasta 10 MB: evita que se suba cualquier archivo.
@@ -39,11 +46,11 @@ service firebase.storage {
 
     // ---- Imágenes para proyectar ----
     match /imagenes/{groupId}/{archivo=**} {
-      allow read: if autenticado() && miGroupId() == groupId;
+      allow read: if autenticado() && miIglesia(groupId);
       allow write: if autenticado() &&
-                      miGroupId() == groupId &&
+                      miIglesia(groupId) &&
                       esImagenValida();
-      allow delete: if autenticado() && miGroupId() == groupId;
+      allow delete: if autenticado() && miIglesia(groupId);
     }
 
     // Todo lo demás queda cerrado.
