@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { db, storage } from "../../Components/Firebase/Firebase.js";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "../../Components/Context/AuthContext";
 import { useAppContext } from "../../Components/Context/AppContext";
@@ -9,7 +9,8 @@ import { UserPlusIcon, UserIcon } from "@heroicons/react/24/solid";
 import Footer from "../../Components/Footer/Footer.jsx";
 
 export default function ViewRegister() {
-  const { signup, loading, setLoading, setUserData } = useAuth();
+  const { signup, login, logout, loading, setLoading, setUserData } =
+    useAuth();
   const { showNotif } = useAppContext();
   const navigate = useNavigate();
 
@@ -56,6 +57,39 @@ export default function ViewRegister() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Crea la cuenta de acceso o, si quedó a medias de un intento anterior, la
+  // retoma.
+  //
+  // El registro son tres pasos (cuenta, foto, ficha) y no hay forma de
+  // hacerlos de una sola vez. Un corte de internet entre el primero y el
+  // último dejaba una cuenta sin iglesia: no podía entrar y tampoco volver a
+  // registrarse, porque "el correo ya está registrado". Ahora, si la
+  // contraseña coincide y la ficha no existe, se termina ese registro.
+  const obtenerCuenta = async () => {
+    try {
+      return await signup(form.email, form.password);
+    } catch (err) {
+      if (err.code !== "auth/email-already-in-use") throw err;
+
+      let credencial;
+      try {
+        credencial = await login(form.email, form.password);
+      } catch {
+        // Contraseña distinta: el correo es de otra persona.
+        throw err;
+      }
+
+      const ficha = await getDoc(doc(db, "users", credencial.user.uid));
+      if (ficha.exists()) {
+        // Registro completo: es una iglesia que ya existe.
+        await logout();
+        throw err;
+      }
+
+      return credencial;
+    }
+  };
+
   // Crear usuario y guardar datos
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -79,8 +113,8 @@ export default function ViewRegister() {
     setLoading(true);
 
     try {
-      // Crear usuario en Auth
-      const userCred = await signup(form.email, form.password);
+      // Crear usuario en Auth (o retomar uno a medias)
+      const userCred = await obtenerCuenta();
       const uid = userCred.user.uid;
 
       // Subir la imagen a Firebase Storage
@@ -119,10 +153,18 @@ export default function ViewRegister() {
         "auth/email-already-in-use": "El correo ya está registrado.",
         "auth/weak-password": "La contraseña debe tener al menos 6 caracteres.",
         "auth/invalid-email": "Correo inválido.",
+        "auth/network-request-failed":
+          "Error de red. Revisa tu conexión e inténtalo de nuevo.",
       };
 
       console.error(err);
-      showNotif("error", errors[err.code] || "Error al crear el usuario.");
+      // Lo que ya se creó no se pierde: al volver a pulsar con el mismo correo
+      // y contraseña, obtenerCuenta retoma el registro.
+      showNotif(
+        "error",
+        errors[err.code] ||
+          "No se pudo completar el registro. Inténtalo de nuevo."
+      );
     } finally {
       setLoading(false);
     }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { LockClosedIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../../Components/Context/AuthContext";
 import { useAppContext } from "../../Components/Context/AppContext";
@@ -7,10 +7,20 @@ import Footer from "../../Components/Footer/Footer.jsx";
 
 export default function ViewLogin() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const location = useLocation();
+  const { login, user: sesion, loading: cargandoSesion } = useAuth();
   const { showNotif } = useAppContext();
   const [user, setUser] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+
+  // Adónde iba antes de que ProtectedRoutes lo mandara aquí
+  const destino = location.state?.from?.pathname || "/ViewSelector";
+
+  // Con sesión ya iniciada no hay nada que hacer aquí. Es lo que recupera la
+  // ventana del proyector: si se cerró la sesión en el panel, esa ventana cae
+  // en el login; al volver a entrar desde el panel, la sesión llega también a
+  // ella y regresa sola a /VOXDEI.
+  if (!cargandoSesion && sesion) return <Navigate to={destino} replace />;
 
   const handleChange = ({ target: { name, value } }) => {
     setUser((prev) => ({ ...prev, [name]: value }));
@@ -28,7 +38,7 @@ export default function ViewLogin() {
     setLoading(true);
     try {
       await login(user.email, user.password);
-      navigate("/ViewSelector");
+      navigate(destino, { replace: true });
     } catch (err) {
       console.error("Error de inicio de sesión:", err.code);
 

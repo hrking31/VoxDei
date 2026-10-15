@@ -226,6 +226,17 @@ No. Cada iglesia solo puede editar o borrar las canciones que ella misma subió.
 
 Aquí queda anotado lo que va cambiando en la aplicación, para que siempre sepas qué es nuevo.
 
+### 15 de octubre de 2026
+
+Revisión de seguridad y estabilidad, pensando en llevar VOXDEI a la tienda de Android. Lo que cambia para ti:
+
+- **Sin internet ya no se queda cargando para siempre.** Si al abrir la app no hay conexión, aparece un aviso con el botón **Reintentar**, en vez de la rueda de "Procesando usuario..." sin fin.
+- **Un registro cortado se puede terminar.** Si se iba el internet justo al registrar la iglesia, la cuenta quedaba a medias: no podías entrar ni volver a registrarte, porque decía que el correo ya existía. Ahora basta con registrarte otra vez con el mismo correo y la misma contraseña, y se completa.
+- **La pantalla del templo se recupera sola.** Si se cerraba la sesión en el panel, la ventana de proyección se quedaba en la pantalla de inicio de sesión. Ahora, en cuanto vuelves a entrar desde el panel, regresa sola a la proyección. Y si pierde la conexión con lo que se proyecta, vuelve a engancharse a los pocos segundos.
+- **Al iniciar sesión ya no sale "No autorizado" por error.** Había un instante en que la app todavía no sabía tu rol y podía mandarte a esa pantalla aunque tuvieras permiso.
+- **Si algo falla, ya no queda la pantalla en blanco.** Aparece un aviso con un botón para recargar.
+- **Se actualizaron piezas internas del servidor** que tenían fallos de seguridad conocidos.
+
 ### 22 de agosto de 2026
 
 **Canciones quedó rehecha.** Es el cambio grande del día:

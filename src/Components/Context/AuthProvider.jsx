@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { auth, db } from "./../Firebase/Firebase";
 import { doc, getDoc } from "firebase/firestore";
 import {
@@ -13,6 +13,9 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null); // Usuario Firebase
   const [userData, setUserData] = useState(null); // Datos extra de Firestore
   const [loading, setLoading] = useState(true);
+  // La ficha no se pudo leer (sin internet, casi siempre). Distingue ese caso
+  // de una cuenta que de verdad no tiene ficha.
+  const [errorPerfil, setErrorPerfil] = useState(false);
 
   // Función para registrar un nuevo usuario
   const signup = (email, password) =>
@@ -29,29 +32,49 @@ export function AuthProvider({ children }) {
     setUserData(null);
   };
 
+  // Lee la ficha users/{uid}. Antes, si la lectura fallaba, la excepción
+  // escapaba, `loading` nunca volvía a false y la app quedaba para siempre en
+  // "Procesando usuario...". Ahora el fallo se marca y la pantalla ofrece
+  // reintentar (ver PerfilNoDisponible).
+  const cargarPerfil = useCallback(async (uid) => {
+    try {
+      const userDoc = await getDoc(doc(db, "users", uid));
+      setUserData(userDoc.exists() ? userDoc.data() : null);
+      setErrorPerfil(false);
+    } catch (error) {
+      console.error("Error al cargar el perfil:", error);
+      setUserData(null);
+      setErrorPerfil(true);
+    }
+  }, []);
+
+  const recargarPerfil = async () => {
+    if (!auth.currentUser) return;
+    setLoading(true);
+    await cargarPerfil(auth.currentUser.uid);
+    setLoading(false);
+  };
+
   // Observador de estado de autenticación
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-
       if (currentUser) {
-        // Cargar datos adicionales desde Firestore
-        const userDocRef = doc(db, "users", currentUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          setUserData(userDoc.data());
-        } else {
-          setUserData(null);
-        }
+        // La sesión no se da por lista hasta tener la ficha. Si `user` llegara
+        // antes que `userData`, las rutas protegidas verían a alguien con
+        // sesión pero sin rol y lo mandarían a /VistaNoAutorizada.
+        setLoading(true);
+        await cargarPerfil(currentUser.uid);
       } else {
         setUserData(null);
+        setErrorPerfil(false);
       }
 
+      setUser(currentUser);
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [cargarPerfil]);
 
   return (
     <AuthContext.Provider
@@ -64,6 +87,8 @@ export function AuthProvider({ children }) {
         userData,
         loading,
         setLoading,
+        errorPerfil,
+        recargarPerfil,
       }}
     >
       {children}

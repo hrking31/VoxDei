@@ -44,13 +44,15 @@ Todos los nodos de RTDB se escriben bajo `<nodo>/${userData.groupId}`:
 ### Flujo de proyección
 
 1. Los componentes `Control*` (`ControlTicker`, `ControlMessage`, `ControlVersiculo`, `ControlPredica`) escriben en RTDB con `set`/`update`.
-2. `ControlDisplay` (ruta `/VOXDEI`, que `ViewSelector` abre con `window.open` en ventana aparte) se suscribe con `onValue` y renderiza.
+2. `ControlDisplay` (ruta `/VOXDEI`, que `ViewSelector` abre con `window.open` en ventana aparte) se suscribe con `onValue` y renderiza. Cada suscripción lleva el callback de error `alCortarse`: RTDB se reconecta sola tras un corte de red, pero una suscripción **cancelada** (permiso denegado) no vuelve. `alCortarse` programa un único reintento a los 5 s (una ref impide que seis cancelaciones simultáneas disparen seis) que sube `reintento`, dependencia de todos los efectos. Toda suscripción nueva en esa vista debe llevar `alCortarse` y `[groupId, reintento, alCortarse]`.
 3. El campo `display` decide qué bloque se muestra: `"titulo"`, `"mensaje"`, `"mensajePredica"`, `"versiculo"`.
 4. Los flags `visibleTitulo` / `visibleTexto` / `visibleTicker` controlan qué secciones aparecen, y viven duplicados: en el contexto de React (respuesta inmediata en el panel) y en RTDB (sincronía con la pantalla).
 
 ### Contextos y arranque
 
-`main.jsx` → `AuthProvider` → `BrowserRouter` → `App` → `AppProvider`. Consecuencia práctica: `useAuth()` está disponible en todas partes; `useAppContext()` solo dentro de `App`.
+`main.jsx` → `CapturaErrores` → `AuthProvider` → `BrowserRouter` → `App` → `AppProvider`. Consecuencia práctica: `useAuth()` está disponible en todas partes; `useAppContext()` solo dentro de `App`.
+
+`CapturaErrores` (15 de octubre de 2026) es el *error boundary* de toda la app: sin él, un fallo al dibujar dejaba la pantalla en blanco. Es de clase porque React no tiene hook para esto, y como está por fuera del router y de los contextos navega con `window.location`.
 
 Cada contexto está partido en dos archivos (15 de agosto de 2026), porque el refresco en caliente de Vite exige que un archivo exporte solo componentes:
 
@@ -63,7 +65,14 @@ Cada contexto está partido en dos archivos (15 de agosto de 2026), porque el re
 
 Los imports de hooks van **sin extensión** (`from "../Context/AuthContext"`): antes muchos escribían `AuthContext.jsx` y habrían apuntado a un archivo que ya no existe. No vuelvas a poner el hook y el proveedor en el mismo archivo.
 
-- **`AuthContext`**: sesión de Firebase Auth (`user`) más el documento `users/{uid}` de Firestore (`userData`, con `role`, `groupId`, `churchName`, `photo`). Expone `signup`, `login`, `logout`, `loading`.
+- **`AuthContext`**: sesión de Firebase Auth (`user`) más el documento `users/{uid}` de Firestore (`userData`, con `role`, `groupId`, `churchName`, `photo`). Expone `signup`, `login`, `logout`, `loading`, `errorPerfil` y `recargarPerfil`.
+
+  Reglas del arranque (15 de octubre de 2026):
+  - **`user` y `userData` llegan juntos.** Al iniciar sesión, `onAuthStateChanged` pone `loading` en `true`, lee la ficha y solo después fija `user`. Antes `user` llegaba primero y, en ese hueco, `ProtectedRoutes` veía una sesión sin rol y mandaba a `/VistaNoAutorizada`.
+  - **La lectura de la ficha nunca deja `loading` colgado.** Si falla (sin internet), `errorPerfil` pasa a `true`. Antes la excepción escapaba y la app se quedaba para siempre en "Procesando usuario...".
+  - **Sesión sin ficha → `PerfilNoDisponible`**, desde `ProtectedRoutes`. Con `errorPerfil` ofrece *Reintentar* (`recargarPerfil`); sin él es un registro a medias y ofrece *Terminar registro*. Ese botón **navega primero y cierra sesión después**: al revés, `ProtectedRoutes` ve la sesión cerrada antes que la navegación y manda a `/ViewLogin` (pasó en la prueba del 15 de octubre de 2026).
+  - **El registro se puede retomar.** Son tres pasos no atómicos (cuenta, foto, ficha). Si el correo ya existe, `ViewRegister.obtenerCuenta` inicia sesión con esa contraseña y, si no hay ficha, sigue desde ahí; si la hay, cierra sesión y responde "correo ya registrado". Así un corte de red no deja cuentas zombis sin salida.
+  - **`ProtectedRoutes` manda al login con `state.from`** y `ViewLogin` redirige ahí en cuanto hay sesión. Es lo que recupera la ventana del proyector: si se cierra sesión en el panel, `/VOXDEI` cae al login; al volver a entrar, la sesión se comparte entre ventanas y regresa sola.
 - **`AppContext`**: estado compartido del panel (slots de prédicas, items de ticker/mensajes, flags de visibilidad, velocidad del ticker) y el sistema de notificaciones.
 - **`InicializarEstados`**: componente sin UI montado en `App`. Centraliza las suscripciones globales (slots de prédicas, `onSnapshot` de tickers y mensajes, los nodos de visibilidad y velocidad). Espera a que `userData.groupId` exista antes de suscribirse. Las suscripciones globales van aquí, no en las vistas.
 
@@ -388,11 +397,56 @@ Nada de esto falló; simplemente no se ha recorrido con la app publicada:
 
 ### Menores
 
-- Las 9 alertas de `uuid` en `functions` no se pueden cerrar hasta que Google
-  actualice sus librerías; revisar cada tanto.
+- ~~Las 9 alertas de `uuid` en `functions`~~: cerradas el 15 de octubre de 2026
+  con `npm audit fix` (sin `--force`); `functions` quedó en 0 vulnerabilidades,
+  con `firebase-admin` 14.5.0 instalado (dentro del `^14.2.0` declarado y del
+  `^14.0.0` que acepta `firebase-functions` 7.3.2). **Falta desplegar las
+  funciones** para que llegue a producción.
+- En la raíz quedan 4 avisos altos de `@grpc/grpc-js` dentro de `firebase`.
+  **No aplicar `npm audit fix --force`**: propone bajar a `firebase@9.14.0`.
+  No afectan a la app: `grpc-js` es el transporte de Node y no entra en el
+  bundle (comprobado en `dist/`). Se cerrarán cuando Firebase lo actualice.
 - `ModalLibros` es el único de los tres modales cuyo botón de cerrar sigue sin
   `aria-label`.
-- Quedan 11 avisos (no errores) de `react-hooks/exhaustive-deps`, casi todos por
-  `userData.groupId` y `showNotif` fuera del array de dependencias. Antes de
+- Quedan 8 avisos (no errores) de `react-hooks/exhaustive-deps`, casi todos por
+  `showNotif` fuera del array de dependencias (los seis de `ControlDisplay` se
+  cerraron el 15 de octubre de 2026). Antes de
   «arreglarlos» hay que mirar caso por caso: añadir `showNotif` a las
   dependencias puede resuscribir en bucle.
+
+---
+
+## Auditoría del 15 de octubre de 2026 (camino a Play Store)
+
+Hecho: dependencias (`npm audit fix`) y estabilidad del arranque, registro y
+proyección (ver *Contextos y arranque* y *Flujo de proyección*). Pendiente, por
+orden de prioridad:
+
+1. **Borrado de cuenta e iglesia** — Google Play lo exige desde la app y desde
+   una web. Bloqueado por el acoplamiento `groupId` = uid del dueño (ver
+   *Pendiente: el dueño de la iglesia*). Es lo más laborioso.
+2. **App Check** (Play Integrity / reCAPTCHA), `setGlobalOptions({ maxInstances })`
+   en `functions` y alertas de presupuesto: hoy cualquiera con la config
+   pública puede crear iglesias sin límite y llenar Storage.
+3. **Empaquetado Android**: no existe. Recomendado TWA (Bubblewrap) sobre el
+   hosting actual: `window.open` del proyector y el iframe de YouTube suelen
+   fallar dentro de un WebView de Capacitor. Falta manifiesto, service worker,
+   íconos y `assetlinks.json`.
+4. **Política de privacidad, ficha de "Seguridad de los datos" y moderación del
+   catálogo de canciones** (contenido generado por usuarios visible entre
+   iglesias: Google exige denunciar y condiciones de uso).
+5. **Validación en reglas**: forma y tamaño de `canciones`, `.validate` en los
+   nodos de RTDB, campos extra en `users` create; la regla de
+   `iglesias/{groupId}/**` no distingue rol (un operador puede escribir
+   prédicas fuera de la UI); `storage.rules` deja leer fotos de perfil a
+   cualquier autenticado; sin cabeceras de seguridad en `firebase.json`.
+6. **Una iglesia nueva arranca con el texto oculto.** Los flags de
+   `AppProvider` valen `""` y los nodos `displayVisible*` no existen hasta que
+   alguien pulsa un interruptor, así que `ControlDisplay` no pinta mensajes,
+   versículos ni prédicas: parece que la proyección no funciona. Convendría
+   tratar el nodo ausente como encendido, o escribirlos al registrar la iglesia.
+7. Menores: `crearUsuarioAdmin` no revierte la cuenta de Auth si falla la ficha
+   o el claim (y `gender` ausente hace fallar el `set` con `undefined`); un
+   `showNotif` encima de un `confirmAction` deja su promesa sin resolver; las
+   imágenes se suben sin comprimir; el catálogo de canciones se descarga
+   entero (ver `docs/BuscadorCanciones.md`).

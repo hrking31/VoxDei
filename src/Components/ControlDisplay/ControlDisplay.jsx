@@ -43,6 +43,29 @@ export default function DisplayView() {
     estilos,
   } = useAppContext();
   const { userData } = useAuth();
+  const groupId = userData.groupId;
+
+  // Reconexión de las suscripciones en vivo.
+  //
+  // Realtime Database se reconecta sola tras un corte de red, pero si cancela
+  // una suscripción (permiso denegado mientras la sesión cambia, por ejemplo)
+  // no la reanuda: la pantalla del templo se quedaba con lo último que vio.
+  // Al cancelarse cualquiera, se programa UN reintento que las rehace todas;
+  // la ref evita que seis cancelaciones a la vez disparen seis reintentos.
+  const [reintento, setReintento] = useState(0);
+  const reintentoPendiente = useRef(null);
+
+  const alCortarse = useCallback((error) => {
+    console.error("Proyección: se cortó una suscripción", error);
+    if (reintentoPendiente.current) return;
+
+    reintentoPendiente.current = setTimeout(() => {
+      reintentoPendiente.current = null;
+      setReintento((n) => n + 1);
+    }, 5000);
+  }, []);
+
+  useEffect(() => () => clearTimeout(reintentoPendiente.current), []);
 
   // Tamaños base según el tipo de pantalla, como valores CSS: los ajustes del
   // panel de estilos los multiplican por su porcentaje (ver `escalar`).
@@ -116,109 +139,133 @@ export default function DisplayView() {
 
   // Display Ticker
   useEffect(() => {
-    const tickerRef = ref(database, `displayTicker/${userData.groupId}`);
-    const unsubscribe = onValue(tickerRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data && typeof data.text === "string") {
-        setTicker(data.text);
-      }
-    });
+    const tickerRef = ref(database, `displayTicker/${groupId}`);
+    const unsubscribe = onValue(
+      tickerRef,
+      (snapshot) => {
+        const data = snapshot.val();
+        if (data && typeof data.text === "string") {
+          setTicker(data.text);
+        }
+      },
+      alCortarse
+    );
     return () => unsubscribe();
-  }, []);
+  }, [groupId, reintento, alCortarse]);
 
   //Display Message
   useEffect(() => {
-    const messageRef = ref(database, `displayMessage/${userData.groupId}`);
-    const unsubscribe = onValue(messageRef, (snapshot) => {
-      const data = snapshot.val();
-      if (
-        data &&
-        typeof data.text === "string" &&
-        typeof data.display === "string"
-      ) {
-        if (data.display === "mensaje") {
-          setMensaje(data.text);
-          setDisplay(data.display);
-        } else {
-          setMensajePredica(data.text);
-          setDisplay(data.display);
+    const messageRef = ref(database, `displayMessage/${groupId}`);
+    const unsubscribe = onValue(
+      messageRef,
+      (snapshot) => {
+        const data = snapshot.val();
+        if (
+          data &&
+          typeof data.text === "string" &&
+          typeof data.display === "string"
+        ) {
+          if (data.display === "mensaje") {
+            setMensaje(data.text);
+            setDisplay(data.display);
+          } else {
+            setMensajePredica(data.text);
+            setDisplay(data.display);
+          }
         }
-      }
-    });
+      },
+      alCortarse
+    );
     return () => unsubscribe();
-  }, []);
+  }, [groupId, reintento, alCortarse]);
 
   // Display Titulo
   useEffect(() => {
     if (!auth.currentUser) return;
 
-    const tituloRef = ref(database, `displayTitulo/${userData.groupId}`);
-    const unsubscribe = onValue(tituloRef, (snapshot) => {
-      const data = snapshot.val();
-      if (
-        data &&
-        typeof data.text === "string" &&
-        typeof data.display === "string"
-      ) {
-        setTituloPredica(data.text);
-        setDisplay(data.display);
-      }
-    });
+    const tituloRef = ref(database, `displayTitulo/${groupId}`);
+    const unsubscribe = onValue(
+      tituloRef,
+      (snapshot) => {
+        const data = snapshot.val();
+        if (
+          data &&
+          typeof data.text === "string" &&
+          typeof data.display === "string"
+        ) {
+          setTituloPredica(data.text);
+          setDisplay(data.display);
+        }
+      },
+      alCortarse
+    );
     return () => unsubscribe();
-  }, []);
+  }, [groupId, reintento, alCortarse]);
 
   // Display Versiculo
   useEffect(() => {
-    const versiculoRef = ref(database, `displayVersiculo/${userData.groupId}`);
-    const unsubscribe = onValue(versiculoRef, (snapshot) => {
-      const data = snapshot.val();
-      if (
-        data &&
-        (data.titulo === undefined || typeof data.titulo === "string") &&
-        typeof data.text === "string" &&
-        typeof data.cita === "string" &&
-        typeof data.display === "string"
-      ) {
-        setTituloVersiculo(data.titulo);
-        setVersiculo(data.text);
-        setCita(data.cita);
-        setDisplay(data.display);
-      }
-    });
+    const versiculoRef = ref(database, `displayVersiculo/${groupId}`);
+    const unsubscribe = onValue(
+      versiculoRef,
+      (snapshot) => {
+        const data = snapshot.val();
+        if (
+          data &&
+          (data.titulo === undefined || typeof data.titulo === "string") &&
+          typeof data.text === "string" &&
+          typeof data.cita === "string" &&
+          typeof data.display === "string"
+        ) {
+          setTituloVersiculo(data.titulo);
+          setVersiculo(data.text);
+          setCita(data.cita);
+          setDisplay(data.display);
+        }
+      },
+      alCortarse
+    );
     return () => unsubscribe();
-  }, []);
+  }, [groupId, reintento, alCortarse]);
 
   // Display Imagen
   useEffect(() => {
-    const imagenRef = ref(database, `displayImage/${userData.groupId}`);
-    const unsubscribe = onValue(imagenRef, (snapshot) => {
-      const data = snapshot.val();
-      if (!data) return;
+    const imagenRef = ref(database, `displayImage/${groupId}`);
+    const unsubscribe = onValue(
+      imagenRef,
+      (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
 
-      // "single" trae una imagen; "carousel" trae varias.
-      const lista =
-        data.type === "carousel" && Array.isArray(data.images)
-          ? data.images
-          : data.image
-            ? [data.image]
-            : [];
+        // "single" trae una imagen; "carousel" trae varias.
+        const lista =
+          data.type === "carousel" && Array.isArray(data.images)
+            ? data.images
+            : data.image
+              ? [data.image]
+              : [];
 
-      setImagenes(lista);
-      setIndiceImagen(0);
-      if (data.interval) setIntervaloImagen(data.interval);
-    });
+        setImagenes(lista);
+        setIndiceImagen(0);
+        if (data.interval) setIntervaloImagen(data.interval);
+      },
+      alCortarse
+    );
     return () => unsubscribe();
-  }, []);
+  }, [groupId, reintento, alCortarse]);
 
   // Display Video
   useEffect(() => {
-    const videoRef = ref(database, `displayVideo/${userData.groupId}`);
-    const unsubscribe = onValue(videoRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data?.videoId) setVideo(data);
-    });
+    const videoRef = ref(database, `displayVideo/${groupId}`);
+    const unsubscribe = onValue(
+      videoRef,
+      (snapshot) => {
+        const data = snapshot.val();
+        if (data?.videoId) setVideo(data);
+      },
+      alCortarse
+    );
     return () => unsubscribe();
-  }, []);
+  }, [groupId, reintento, alCortarse]);
 
   // El reproductor de YouTube se carga solo cuando hace falta
   useEffect(() => {
