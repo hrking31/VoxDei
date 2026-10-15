@@ -3,6 +3,7 @@ const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const { getAuth } = require("firebase-admin/auth");
 const { getStorage } = require("firebase-admin/storage");
+const { getDatabase } = require("firebase-admin/database");
 const {
   ROLES,
   ROL_POR_DEFECTO,
@@ -224,5 +225,133 @@ exports.eliminarUsuarioAdmin = onCall(async (request) => {
   } catch (error) {
     if (error instanceof HttpsError) throw error;
     throw new HttpsError("internal", error.message);
+  }
+});
+
+// Nodos de RTDB que cuelgan de `<nodo>/${groupId}`. Si se agrega uno nuevo en
+// el cliente, hay que sumarlo aquí o sobrevivirá al borrado de la iglesia.
+const NODOS_PROYECCION = [
+  "displayTitulo",
+  "displayMessage",
+  "displayVersiculo",
+  "displayTicker",
+  "displayImage",
+  "displayVideo",
+  "displayVisibleTitulo",
+  "displayVisibleTexto",
+  "displayVisibleTicker",
+  "displayVisibleImagen",
+  "displayVisibleVideo",
+  "speedTicker",
+];
+
+// Minutos que pueden pasar desde que la persona escribió su contraseña.
+const MINUTOS_CONFIRMACION = 5;
+
+// Borra la cuenta de una persona: sus archivos de Storage, su ficha y su
+// cuenta de Auth. La cuenta va al final: si algo falla antes, la sesión sigue
+// viva y se puede reintentar.
+async function borrarPersona(uid) {
+  await getStorage().bucket().deleteFiles({ prefix: `users/${uid}/` });
+  await db.collection("users").doc(uid).delete();
+
+  try {
+    await getAuth().deleteUser(uid);
+  } catch (error) {
+    // Ya borrada en un intento anterior: no es un fallo.
+    if (error.code !== "auth/user-not-found") throw error;
+  }
+}
+
+// Borra una iglesia entera. Solo se llama cuando se va su dueño, porque su uid
+// ES el groupId y la iglesia no puede seguir sin él.
+async function borrarIglesia(groupId) {
+  // Los demás miembros primero; el dueño lo borra quien llama, al final.
+  const miembros = await db
+    .collection("users")
+    .where("groupId", "==", groupId)
+    .get();
+
+  for (const miembro of miembros.docs) {
+    if (miembro.id !== groupId) await borrarPersona(miembro.id);
+  }
+
+  // Las canciones se quedan en el catálogo común, sin dueño: otras iglesias
+  // pueden tenerlas en sus listas. Sin `creadoPor` nadie puede editarlas.
+  const canciones = await db
+    .collection("canciones")
+    .where("creadoPor", "==", groupId)
+    .get();
+
+  const escritor = db.bulkWriter();
+  canciones.docs.forEach((cancion) =>
+    escritor.update(cancion.ref, { creadoPor: null, iglesia: "" }),
+  );
+
+  const imagenes = await db
+    .collection("imagenes")
+    .where("groupId", "==", groupId)
+    .get();
+  imagenes.docs.forEach((imagen) => escritor.delete(imagen.ref));
+  await escritor.close();
+
+  await getStorage()
+    .bucket()
+    .deleteFiles({ prefix: `imagenes/${groupId}/` });
+
+  // Prédicas, tickers, mensajes, repertorio y estilos.
+  await db.recursiveDelete(db.collection("iglesias").doc(groupId));
+
+  const nodos = {};
+  NODOS_PROYECCION.forEach((nodo) => {
+    nodos[`${nodo}/${groupId}`] = null;
+  });
+  await getDatabase().ref().update(nodos);
+}
+
+// Función para que cualquier persona ELIMINE SU PROPIA CUENTA (exigencia de
+// Google Play).
+//
+// - Operador o pareja pastoral: se borra solo su cuenta; la iglesia sigue.
+// - Dueño (uid === groupId): se borra la iglesia completa.
+// - Sin ficha (registro a medias): se borra lo que haya de la cuenta.
+//
+// La pantalla pide la contraseña justo antes (reauthenticateWithCredential),
+// y aquí se comprueba con `auth_time`: un token robado o una sesión olvidada
+// abierta no basta para borrar una iglesia.
+exports.eliminarMiCuenta = onCall({ timeoutSeconds: 300 }, async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Debes iniciar sesión.");
+  }
+
+  const { uid, token } = request.auth;
+  const segundosDesdeLogin = Date.now() / 1000 - token.auth_time;
+
+  if (segundosDesdeLogin > MINUTOS_CONFIRMACION * 60) {
+    throw new HttpsError(
+      "unauthenticated",
+      "Vuelve a escribir tu contraseña para confirmar.",
+    );
+  }
+
+  try {
+    const ficha = await db.collection("users").doc(uid).get();
+    const esDueno = ficha.exists && ficha.data().groupId === uid;
+
+    if (esDueno) await borrarIglesia(uid);
+    await borrarPersona(uid);
+
+    return {
+      success: true,
+      message: esDueno
+        ? "La iglesia y tu cuenta fueron eliminadas."
+        : "Tu cuenta fue eliminada.",
+    };
+  } catch (error) {
+    console.error(`Error al eliminar la cuenta ${uid}:`, error);
+    throw new HttpsError(
+      "internal",
+      "No se pudo terminar de eliminar la cuenta. Inténtalo de nuevo.",
+    );
   }
 });

@@ -445,6 +445,7 @@ import {
   ROL_OPERADOR,
   ROL_POR_DEFECTO,
   esDuenoDeLaIglesia,
+  esPastor,
   normalizarRol,
   rolDeLaPareja,
 } from "../../Components/Roles/Roles.js";
@@ -452,14 +453,18 @@ import Footer from "../../Components/Footer/Footer.jsx";
 import UserProfileCard from "../../Components/UserProfileCard/UserProfileCard.jsx";
 
 export default function ViewUsers() {
-  const { userData, loading, setLoading } = useAuth();
+  const { user, userData, loading, setLoading } = useAuth();
   const { showNotif, confirmAction } = useAppContext();
   const navigate = useNavigate();
   const refGenero = useRef(null);
   const genderOptions = ["Masculino", "Femenino"];
   const refRol = useRef(null);
   const [openDropdown, setOpenDropdown] = useState(null);
-  const [mode, setMode] = useState("create");
+  // La vista está abierta a todos los roles, pero solo el pastor o la pastora
+  // gestionan cuentas. El operador entra directo a la lista, sin pestaña Crear:
+  // aquí solo consulta al equipo y puede eliminar su propia cuenta.
+  const soyPastor = esPastor(userData);
+  const [mode, setMode] = useState(soyPastor ? "create" : "users");
   const [groupUsers, setGroupUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [newUser, setNewUser] = useState({
@@ -494,7 +499,7 @@ export default function ViewUsers() {
   // ¿Puedo eliminar a esta persona? Nunca a mí mismo ni a quien registró la
   // iglesia. A un pastor o pastora, solo si soy el dueño.
   const puedeEliminarA = (usuario) => {
-    if (!usuario) return false;
+    if (!usuario || !soyPastor) return false;
     if (usuario.id === userData?.uid) return false;
     if (usuario.id === usuario.groupId) return false;
 
@@ -714,9 +719,12 @@ export default function ViewUsers() {
         <h1 className="text-3xl sm:text-4xl font-bold text-app-main">
           Gestión de Usuarios
         </h1>
-        <p className="text-app-muted">Crea, edita o elimina usuarios.</p>
+        {soyPastor && (
+          <p className="text-app-muted">Crea, edita o elimina usuarios.</p>
+        )}
 
-        {/* Pestañas */}
+        {/* Pestañas: solo quien gestiona cuentas puede crear */}
+        {soyPastor && (
         <div className="flex justify-center items-center w-full">
           <div className="relative bg-app-light shadow-md p-1.5 flex items-center border-2 border-app-border w-full max-w-xs overflow-hidden">
             {/* Fondo animado */}
@@ -765,6 +773,7 @@ export default function ViewUsers() {
             </button>
           </div>
         </div>
+        )}
       </div>
 
       {/* Contenido dinámico */}
@@ -982,7 +991,8 @@ export default function ViewUsers() {
                       </span>
                     </div>
 
-                    <span className="text-[11px] bg-app-main/10 text-app-main px-3 py-1 rounded-full capitalize font-medium">
+                    {/* Ancho fijo: si no, "Operador" sale más ancho que "Pastor" */}
+                    <span className="w-20 shrink-0 text-center text-[11px] bg-app-main/10 text-app-main py-1 rounded-full capitalize font-medium">
                       {user.role}
                     </span>
 
@@ -1029,6 +1039,10 @@ export default function ViewUsers() {
         // al dueño nadie. El servidor lo vuelve a comprobar: esto solo evita
         // mostrar un botón que fallaría.
         puedeEliminar={puedeEliminarA(selectedUser)}
+        // En la ficha propia, en vez de eliminar, se ofrece irse: lleva a la
+        // pantalla que pide la contraseña (eliminarMiCuenta en el servidor).
+        esMiCuenta={selectedUser?.id === user?.uid}
+        onEliminarMiCuenta={() => navigate("/EliminarCuenta")}
       />
     </div>
   );

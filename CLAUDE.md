@@ -123,7 +123,9 @@ Reglas de la pareja pastoral, iguales en la pantalla y en el servidor:
 - Cuando la pareja ya existe, el selector de rol **desaparece** y todo lo que se cree en adelante nace como `Operador`.
 - **No hay cambio de rol posterior.** Se elige al crear y punto.
 
-Dos listas gobiernan el acceso: `ROLES_PASTORES` (`/ViewUsers`, `/ViewPredica`) y `ROLES_PROYECCION` (resto de rutas de contenido). `/ViewSelector` y `/ViewGestion` solo exigen sesión iniciada, pero `ViewGestion` oculta los botones de *Usuarios* y *Gestión Predica* a quien no sea pastor, en vez de dejar que choque con `/VistaNoAutorizada`.
+Dos listas gobiernan el acceso: `ROLES_PASTORES` (`/ViewPredica`) y `ROLES_PROYECCION` (resto de rutas de contenido). `/ViewSelector` y `/ViewGestion` solo exigen sesión iniciada, pero `ViewGestion` oculta el botón de *Gestión Predica* a quien no sea pastor, en vez de dejar que choque con `/VistaNoAutorizada`.
+
+**`/ViewUsers` está abierta a todos** (15 de octubre de 2026), porque es donde cada persona elimina su propia cuenta. Dentro, `soyPastor` decide: el operador entra directo a la lista (`mode` arranca en `"users"`), no ve la pestaña *Crear* y `puedeEliminarA` le devuelve siempre `false`. En la ficha propia (`esMiCuenta`), `UserProfileCard` muestra *Eliminar mi cuenta*, que navega a `/EliminarCuenta`. Ver el equipo no expone nada nuevo: la regla de `users` ya dejaba leer a toda la iglesia.
 
 Quién puede eliminar a quién:
 
@@ -138,7 +140,7 @@ Al dueño no lo elimina nadie: su `uid` **es** el `groupId`, y como Firebase no 
 
 ### Cloud Functions
 
-`functions/index.js` define `crearUsuarioAdmin` y `eliminarUsuarioAdmin` (**API v2**: `onCall(async (request) => …)` con `request.data` y `request.auth`; CommonJS, Node 24). Ojo: con `firebase-functions` v6+ el import raíz `require("firebase-functions")` apunta a v2, no a v1 — la firma vieja `(data, context)` deja `context` en `undefined`.
+`functions/index.js` define `crearUsuarioAdmin`, `eliminarUsuarioAdmin` y `eliminarMiCuenta` (**API v2**: `onCall(async (request) => …)` con `request.data` y `request.auth`; CommonJS, Node 24). Ojo: con `firebase-functions` v6+ el import raíz `require("firebase-functions")` apunta a v2, no a v1 — la firma vieja `(data, context)` deja `context` en `undefined`.
 
 Ambas validan con el helper `exigirPastor(request)`, que **lee el rol del documento de Firestore, no del custom claim**: el pastor se registra desde el cliente y su token no lleva claim de rol. La iglesia (`groupId`) se hereda siempre de quien llama y nunca se acepta del cliente; `exigirObjetivoDeMiIglesia(uid, solicitante)` comprueba que el usuario afectado exista y sea de la misma iglesia.
 
@@ -169,9 +171,27 @@ Ojo con `admin.firestore.FieldValue.serverTimestamp()`, que ahora es `FieldValue
 
 Se eliminó `firebase-functions-test` de las devDependencies: no había ni un test, nadie lo importaba, y su peer `firebase-admin@^8…^13` bloqueaba la actualización de seguridad. Si algún día se escriben pruebas, hay que reinstalarlo y verificar que su rango ya admita la versión de admin en uso.
 
-### Pendiente: el dueño de la iglesia
+### Borrado de la propia cuenta (`eliminarMiCuenta`)
 
-El `groupId` es el uid del pastor que registró la iglesia. Consecuencia: **si esa cuenta se borra, la iglesia queda sin dueño de forma irreversible**, porque las reglas identifican al dueño con `auth.uid === groupId` y Firebase no reutiliza uids. Por eso `eliminarUsuarioAdmin` impide que alguien se borre a sí mismo. No existe borrado de iglesia ni borrado en cascada de sus datos; si se aborda, conviene antes desacoplar el `groupId` del uid del pastor.
+Añadido el 15 de octubre de 2026 porque **Google Play exige que cada persona pueda borrar su cuenta desde la app y desde una web**. La pantalla es `ViewEliminarCuenta`, en la ruta **pública** `/EliminarCuenta` (sin `ProtectedRoutes`): sin sesión explica el proceso y manda al login con `state.from`, de modo que vuelve sola; esa URL es la que se declara en la ficha de la tienda. Con sesión pide la contraseña. Dentro de la app se llega desde la ficha propia en *Usuarios* (hubo un día un enlace al pie de `ViewSelector`; el usuario pidió moverlo).
+
+`eliminarUsuarioAdmin` sigue prohibiendo borrarse a uno mismo: son dos caminos distintos. Uno es la gestión del equipo (el pastor borra a otros); el otro, el derecho de cada persona a irse.
+
+El `groupId` es el uid del pastor que registró la iglesia, y las reglas identifican al dueño con `auth.uid === groupId`; Firebase no reutiliza uids. Por eso la función distingue tres casos:
+
+| Quién llama | Qué se borra |
+| --- | --- |
+| Operador o pareja pastoral | su carpeta `users/{uid}/` de Storage, su ficha y su cuenta de Auth. La iglesia sigue. |
+| Dueño (`uid === groupId`) | **la iglesia entera** (`borrarIglesia`) y después su cuenta |
+| Sin ficha (registro a medias) | lo que haya de la cuenta |
+
+`borrarIglesia` hace, en orden: borra a los demás miembros (`borrarPersona` por cada `users` con ese `groupId`); deja las `canciones` con `creadoPor` de la iglesia **sin dueño** (`creadoPor: null`, `iglesia: ""`), decisión del usuario para no romper las listas de otras iglesias, y con `creadoPor` nulo nadie puede editarlas; borra los documentos de `imagenes` y la carpeta `imagenes/{groupId}/` de Storage; `recursiveDelete` de `iglesias/{groupId}`; y pone a `null` cada `<nodo>/{groupId}` de **`NODOS_PROYECCION`**. **Si se crea un nodo nuevo de RTDB en el cliente, hay que añadirlo a esa lista** o sobrevivirá al borrado.
+
+La cuenta de Auth se borra **al final** de cada persona: si algo falla antes, la sesión sigue viva y basta con reintentar (todo el proceso tolera repetirse).
+
+**Confirmación con contraseña.** La pantalla llama a `reauthenticateWithCredential` justo antes, y la función rechaza el token si `auth_time` tiene más de `MINUTOS_CONFIRMACION` (5). Así una sesión abierta y olvidada en el computador del templo no basta para borrar una iglesia.
+
+Lo que **no** existe: transferir la iglesia a otra persona. Si algún día hace falta, hay que desacoplar antes el `groupId` del uid del dueño.
 
 ### Custom claims y reglas de RTDB
 
@@ -393,7 +413,7 @@ Nada de esto falló; simplemente no se ha recorrido con la app publicada:
 
 ### Decisiones pendientes
 
-- Borrado de iglesia: requiere antes desacoplar el `groupId` del uid del pastor.
+- Transferir una iglesia a otra persona: requiere antes desacoplar el `groupId` del uid del pastor. (El borrado ya existe: `eliminarMiCuenta`.)
 
 ### Menores
 
@@ -422,9 +442,9 @@ Hecho: dependencias (`npm audit fix`) y estabilidad del arranque, registro y
 proyección (ver *Contextos y arranque* y *Flujo de proyección*). Pendiente, por
 orden de prioridad:
 
-1. **Borrado de cuenta e iglesia** — Google Play lo exige desde la app y desde
-   una web. Bloqueado por el acoplamiento `groupId` = uid del dueño (ver
-   *Pendiente: el dueño de la iglesia*). Es lo más laborioso.
+1. ~~**Borrado de cuenta e iglesia**~~ — hecho el mismo día (ver *Borrado de
+   la propia cuenta*). Falta desplegar las funciones y probarlo con una
+   iglesia real, y declarar la URL `/EliminarCuenta` en Play Console.
 2. **App Check** (Play Integrity / reCAPTCHA), `setGlobalOptions({ maxInstances })`
    en `functions` y alertas de presupuesto: hoy cualquiera con la config
    pública puede crear iglesias sin límite y llenar Storage.
@@ -440,11 +460,13 @@ orden de prioridad:
    `iglesias/{groupId}/**` no distingue rol (un operador puede escribir
    prédicas fuera de la UI); `storage.rules` deja leer fotos de perfil a
    cualquier autenticado; sin cabeceras de seguridad en `firebase.json`.
-6. **Una iglesia nueva arranca con el texto oculto.** Los flags de
-   `AppProvider` valen `""` y los nodos `displayVisible*` no existen hasta que
-   alguien pulsa un interruptor, así que `ControlDisplay` no pinta mensajes,
-   versículos ni prédicas: parece que la proyección no funciona. Convendría
-   tratar el nodo ausente como encendido, o escribirlos al registrar la iglesia.
+6. ~~**Una iglesia nueva arranca con el texto oculto.**~~ Resuelto el mismo
+   día. Los flags de `AppProvider` valen `""` y los nodos `displayVisible*` no
+   existen hasta que alguien pulsa un interruptor, así que `ControlDisplay` no
+   pintaba mensajes, versículos ni prédicas. Ahora `InicializarEstados` trata
+   el nodo ausente de `displayVisibleTexto` como encendido
+   (`data?.visibleTexto ?? true`). Título y ticker siguen arrancando apagados
+   a propósito: encendidos sin contenido pintarían un hueco y una franja vacía.
 7. Menores: `crearUsuarioAdmin` no revierte la cuenta de Auth si falla la ficha
    o el claim (y `gender` ausente hace fallar el `set` con `undefined`); un
    `showNotif` encima de un `confirmAction` deja su promesa sin resolver; las

@@ -18,6 +18,7 @@ import {
   ViewUsers,
   VistaNoAutorizada,
   ViewRegister,
+  ViewEliminarCuenta,
 } from "./Views/index";
 import { ProtectedRoutes } from "./Components/ProtectedRoutes/ProtectedRoutes.jsx";
 import { ROLES_PASTORES, ROLES_PROYECCION } from "./Components/Roles/Roles.js";
@@ -36,6 +37,8 @@ export default function App() {
         <Route path="/ResetPassword" element={<ViewResetPassword />} />
         <Route path="/VistaNoAutorizada" element={<VistaNoAutorizada />} />
         <Route path="/ViewRegister" element={<ViewRegister />} />
+        {/* Pública a propósito: Google Play exige una web para pedir el borrado */}
+        <Route path="/EliminarCuenta" element={<ViewEliminarCuenta />} />
 
         <Route
           path="/ViewSelector"
@@ -85,7 +88,9 @@ export default function App() {
         <Route
           path="/ViewUsers"
           element={
-            <ProtectedRoutes rolesPermitidos={ROLES_PASTORES}>
+            // Abierta a todos: es donde cada quien puede eliminar su cuenta.
+            // Crear y borrar a otros lo limita la propia vista y el servidor.
+            <ProtectedRoutes rolesPermitidos={ROLES_PROYECCION}>
               <ViewUsers />
             </ProtectedRoutes>
           }

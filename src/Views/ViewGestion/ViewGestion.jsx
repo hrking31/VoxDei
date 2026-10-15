@@ -20,9 +20,10 @@ export default function ViewSelector() {
   const { userData } = useAuth();
   const navigate = useNavigate();
 
-  // Gestión de usuarios y prédicas son solo del pastor o la pastora. Se ocultan
-  // en vez de dejar que el operador entre y choque con la pantalla de acceso
-  // denegado.
+  // Gestión de prédicas es solo del pastor o la pastora. Se oculta en vez de
+  // dejar que el operador entre y choque con la pantalla de acceso denegado.
+  // Usuarios sí la ven todos: el operador la usa para ver al equipo y eliminar
+  // su propia cuenta.
   const mando = esPastor(userData);
 
   return (
@@ -73,13 +74,11 @@ export default function ViewSelector() {
             onClick={() => navigate("/ViewStylos")}
           />
 
-          {mando && (
-            <OptionButton
-              icon={<UserGroupIcon className="w-10 h-10 text-app-muted mb-2" />}
-              label="Usuarios"
-              onClick={() => navigate("/ViewUsers")}
-            />
-          )}
+          <OptionButton
+            icon={<UserGroupIcon className="w-10 h-10 text-app-muted mb-2" />}
+            label="Usuarios"
+            onClick={() => navigate("/ViewUsers")}
+          />
 
           <OptionButton
             icon={<TagIcon className="w-10 h-10 text-app-muted mb-2" />}

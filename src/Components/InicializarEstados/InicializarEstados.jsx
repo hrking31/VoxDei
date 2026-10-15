@@ -101,9 +101,9 @@ export default function InicializarEstados() {
       ref(database, `displayVisibleTexto/${userData.groupId}`),
       (snapshot) => {
         const data = snapshot.val();
-        if (data?.visibleTexto !== undefined) {
-          setVisibleTexto(data.visibleTexto);
-        }
+        // Sin nodo (iglesia nueva que nunca tocó el interruptor) el texto
+        // arranca encendido: si no, nada de lo que se envía se ve en pantalla.
+        setVisibleTexto(data?.visibleTexto ?? true);
       }
     );
 

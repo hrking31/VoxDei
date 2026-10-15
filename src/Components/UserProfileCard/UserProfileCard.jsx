@@ -2,8 +2,9 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 
 // Ficha de un miembro del equipo.
 //
-// Es solo de consulta: lo único que se puede hacer desde aquí es eliminar la
-// cuenta, y únicamente si quien mira es el dueño de la iglesia. Antes había
+// Es solo de consulta. Lo único que se puede hacer desde aquí es eliminar:
+// a otro, si quien mira es pastor y le corresponde (`puedeEliminar`), o la
+// propia cuenta, en la ficha de uno mismo (`esMiCuenta`). Antes había
 // también un botón "Cerrar sesión" que cerraba la sesión de QUIEN MIRABA, no la
 // del usuario de la ficha; se quitó porque inducía a error.
 export default function UserProfileCard({
@@ -12,6 +13,8 @@ export default function UserProfileCard({
   user,
   handleDelete,
   puedeEliminar = false,
+  esMiCuenta = false,
+  onEliminarMiCuenta,
 }) {
   if (!user) return null;
 
@@ -73,6 +76,18 @@ export default function UserProfileCard({
                   className="mt-8 w-full py-3 bg-app-error text-white font-medium rounded-xl hover:bg-red-700 transition shadow-lg"
                 >
                   Eliminar cuenta
+                </button>
+              )}
+
+              {esMiCuenta && onEliminarMiCuenta && (
+                <button
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    onEliminarMiCuenta();
+                  }}
+                  className="mt-8 w-full py-3 bg-app-error text-white font-medium rounded-xl hover:bg-red-700 transition shadow-lg"
+                >
+                  Eliminar mi cuenta
                 </button>
               )}
             </div>

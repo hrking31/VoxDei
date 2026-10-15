@@ -61,13 +61,14 @@ Si registraste la iglesia, lo primero que verás es la opción de dar de alta a 
 | **Pastor / Pastora** | Quien registró la iglesia y su pareja | Todo |
 | **Operador** | Quien maneja la pantalla durante el servicio | Proyectar versículos, anuncios, mensajes, canciones, imágenes y video |
 
-Un operador puede manejar la pantalla sin riesgo de que modifique las prédicas guardadas ni las cuentas del equipo: esas dos secciones ni siquiera le aparecen.
+Un operador puede manejar la pantalla sin riesgo de que modifique las prédicas guardadas ni las cuentas del equipo: la sección de prédicas ni le aparece, y en **Usuarios** solo puede ver al equipo y eliminar su propia cuenta.
 
 Sobre eliminar cuentas:
 
-- A la cuenta que **registró la iglesia no la puede borrar nadie**, ni ella misma. Es a propósito: si desapareciera, la iglesia se quedaría sin dueño y no habría forma de recuperarla.
+- A la cuenta que **registró la iglesia no la puede borrar nadie más**. Solo ella misma, y al hacerlo se borra la iglesia completa: sin su dueño, la iglesia no puede seguir.
 - A la **pareja pastoral** solo la puede eliminar quien registró la iglesia.
 - A un **operador** lo puede eliminar cualquiera de los dos pastores.
+- **Cada persona puede eliminar su propia cuenta** desde su ficha en **Usuarios**.
 
 Cada persona puede cambiar **su propia foto**, y solo la suya: se toca la foto de arriba en el Panel de Gestión. Nadie puede cambiarse su propio rol.
 
@@ -168,11 +169,11 @@ Los cambios se ven en la vista previa mientras los haces, pero **solo llegan a l
 
 ### Usuarios
 
-Solo entran aquí el pastor y la pastora; a un operador ni le aparece el botón.
+Entra todo el equipo, pero solo el pastor y la pastora crean y eliminan cuentas. Un operador ve la lista del equipo y nada más; en su propia ficha tiene el botón **Eliminar mi cuenta**.
 
 Crea las cuentas de tu equipo con nombre, correo y contraseña. El rol solo se pregunta mientras falte tu pareja pastoral; después, todas las cuentas nuevas son de **Operador** y la pantalla te lo indica.
 
-En la pestaña del equipo ves a todos los tuyos. Al tocar el lápiz junto a un nombre se abre su ficha, y desde ahí puedes eliminar la cuenta si tienes permiso para hacerlo (mira la tabla de *Quién puede hacer qué*). Al eliminar se borra todo: su acceso, su ficha y su foto.
+En la pestaña del equipo ves a todos los tuyos. Al tocar el lápiz junto a un nombre se abre su ficha, y desde ahí puedes eliminar la cuenta si tienes permiso para hacerlo (mira la tabla de *Quién puede hacer qué*). Al eliminar se borra todo: su acceso, su ficha y su foto. En tu propia ficha el botón dice **Eliminar mi cuenta** y te pide la contraseña para confirmar.
 
 El rol de una persona no se puede cambiar después: se elige al crear la cuenta.
 
@@ -220,6 +221,9 @@ Hasta 6 anuncios de ticker, 6 mensajes y 5 prédicas completas. Al pasarte, se r
 **Si otra iglesia borra una canción del catálogo, ¿pierdo la mía?**
 No. Cada iglesia solo puede editar o borrar las canciones que ella misma subió.
 
+**¿Cómo elimino mi cuenta?**
+Entra a **Usuarios**, toca el lápiz junto a tu nombre y pulsa **Eliminar mi cuenta**; escribe tu contraseña y confirma. También puedes hacerlo desde la página `/EliminarCuenta` sin abrir la app. Se borran tu cuenta, tu nombre, tu correo y tu foto. Si eres quien registró la iglesia, se borra **la iglesia completa**: todos sus usuarios, prédicas, mensajes, tickers, imágenes y estilos. Las canciones que aportó al catálogo común se quedan, sin el nombre de la iglesia. No se puede deshacer.
+
 ---
 
 ## Novedades
@@ -235,6 +239,8 @@ Revisión de seguridad y estabilidad, pensando en llevar VOXDEI a la tienda de A
 - **La pantalla del templo se recupera sola.** Si se cerraba la sesión en el panel, la ventana de proyección se quedaba en la pantalla de inicio de sesión. Ahora, en cuanto vuelves a entrar desde el panel, regresa sola a la proyección. Y si pierde la conexión con lo que se proyecta, vuelve a engancharse a los pocos segundos.
 - **Al iniciar sesión ya no sale "No autorizado" por error.** Había un instante en que la app todavía no sabía tu rol y podía mandarte a esa pantalla aunque tuvieras permiso.
 - **Si algo falla, ya no queda la pantalla en blanco.** Aparece un aviso con un botón para recargar.
+- **Una iglesia nueva ya ve el texto desde el primer día.** Antes los mensajes, versículos y prédicas no aparecían en la proyección hasta que alguien pulsaba el botón del ojo, y parecía que no funcionaba. Ahora el texto empieza visible; el título y el ticker se siguen encendiendo cuando los necesites.
+- **Ya puedes eliminar tu cuenta.** Cualquier persona puede borrar su propia cuenta desde **Usuarios**, en su propia ficha; para eso, la sección **Usuarios** ahora la ve todo el equipo (los operadores solo pueden mirar). Si quien la borra es quien registró la iglesia, se borra la iglesia completa. Es un requisito de la tienda de Android.
 - **Se actualizaron piezas internas del servidor** que tenían fallos de seguridad conocidos.
 
 ### 22 de agosto de 2026
