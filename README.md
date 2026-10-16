@@ -240,6 +240,8 @@ Revisión de seguridad y estabilidad, pensando en llevar VOXDEI a la tienda de A
 - **Al iniciar sesión ya no sale "No autorizado" por error.** Había un instante en que la app todavía no sabía tu rol y podía mandarte a esa pantalla aunque tuvieras permiso.
 - **Si algo falla, ya no queda la pantalla en blanco.** Aparece un aviso con un botón para recargar.
 - **Una iglesia nueva ya ve el texto desde el primer día.** Antes los mensajes, versículos y prédicas no aparecían en la proyección hasta que alguien pulsaba el botón del ojo, y parecía que no funcionaba. Ahora el texto empieza visible; el título y el ticker se siguen encendiendo cuando los necesites.
+- **Contraseñas más seguras.** Las cuentas nuevas piden al menos 8 caracteres. Las que ya existen siguen entrando igual.
+- **Quien registra una iglesia verifica su correo.** Al registrarte te llega un correo con un enlace; hasta pulsarlo, la app te muestra la pantalla **Verifica tu correo** (con un botón para reenviarlo). Así nadie registra iglesias con correos inventados, y tú te aseguras de poder recuperar la contraseña. El resto del equipo no tiene que hacerlo.
 - **Ya puedes eliminar tu cuenta.** Cualquier persona puede borrar su propia cuenta desde **Usuarios**, en su propia ficha; para eso, la sección **Usuarios** ahora la ve todo el equipo (los operadores solo pueden mirar). Si quien la borra es quien registró la iglesia, se borra la iglesia completa. Es un requisito de la tienda de Android.
 - **Se actualizaron piezas internas del servidor** que tenían fallos de seguridad conocidos.
 

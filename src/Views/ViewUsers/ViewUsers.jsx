@@ -451,6 +451,10 @@ import {
 } from "../../Components/Roles/Roles.js";
 import Footer from "../../Components/Footer/Footer.jsx";
 import UserProfileCard from "../../Components/UserProfileCard/UserProfileCard.jsx";
+import {
+  AVISO_CLAVE_CORTA,
+  LARGO_MINIMO_CLAVE,
+} from "../../Components/Validaciones/Validaciones.js";
 
 export default function ViewUsers() {
   const { user, userData, loading, setLoading } = useAuth();
@@ -538,7 +542,7 @@ export default function ViewUsers() {
     const mensajes = {
       "auth/email-already-in-use": "El correo ya está registrado.",
       "auth/invalid-email": "Correo inválido.",
-      "auth/weak-password": "La contraseña debe tener al menos 6 caracteres.",
+      "auth/weak-password": AVISO_CLAVE_CORTA,
       unauthenticated: "Tu sesión expiró. Vuelve a iniciar sesión.",
       "permission-denied": "No tienes permiso para hacer esto.",
       "not-found": "El usuario ya no existe.",
@@ -562,6 +566,11 @@ export default function ViewUsers() {
       !newUser.gender
     ) {
       showNotif("error", "Por favor completa todos los campos.");
+      return;
+    }
+
+    if (newUser.password.length < LARGO_MINIMO_CLAVE) {
+      showNotif("error", AVISO_CLAVE_CORTA);
       return;
     }
 
@@ -861,7 +870,7 @@ export default function ViewUsers() {
                   <input
                     type="password"
                     name="password"
-                    placeholder="Contraseña"
+                    placeholder={`Contraseña (mínimo ${LARGO_MINIMO_CLAVE} caracteres)`}
                     value={newUser.password}
                     onChange={handleChange}
                     className="p-2 sm:p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"

@@ -1,12 +1,17 @@
 import { useState, useRef, useEffect } from "react";
-import { db, storage } from "../../Components/Firebase/Firebase.js";
+import { auth, db, storage } from "../../Components/Firebase/Firebase.js";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { sendEmailVerification } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useAuth } from "../../Components/Context/AuthContext";
 import { useAppContext } from "../../Components/Context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { UserPlusIcon, UserIcon } from "@heroicons/react/24/solid";
 import Footer from "../../Components/Footer/Footer.jsx";
+import {
+  AVISO_CLAVE_CORTA,
+  LARGO_MINIMO_CLAVE,
+} from "../../Components/Validaciones/Validaciones.js";
 
 export default function ViewRegister() {
   const { signup, login, logout, loading, setLoading, setUserData } =
@@ -105,6 +110,11 @@ export default function ViewRegister() {
       return;
     }
 
+    if (form.password.length < LARGO_MINIMO_CLAVE) {
+      showNotif("error", AVISO_CLAVE_CORTA);
+      return;
+    }
+
     if (!form.photo) {
       showNotif("error", "Por favor sube una foto");
       return;
@@ -147,11 +157,20 @@ export default function ViewRegister() {
       // Actualizar contexto
       setUserData(newUserData);
 
+      // Quien registra una iglesia debe verificar su correo antes de usarla
+      // (ProtectedRoutes lo para en VerificarCorreo). Si el envío falla, desde
+      // esa pantalla se puede reenviar: no se frena el registro por esto.
+      try {
+        await sendEmailVerification(auth.currentUser);
+      } catch (errorCorreo) {
+        console.error("No se pudo enviar la verificación:", errorCorreo);
+      }
+
       navigate("/ViewSelector");
     } catch (err) {
       const errors = {
         "auth/email-already-in-use": "El correo ya está registrado.",
-        "auth/weak-password": "La contraseña debe tener al menos 6 caracteres.",
+        "auth/weak-password": AVISO_CLAVE_CORTA,
         "auth/invalid-email": "Correo inválido.",
         "auth/network-request-failed":
           "Error de red. Revisa tu conexión e inténtalo de nuevo.",
@@ -281,7 +300,7 @@ export default function ViewRegister() {
               <input
                 type="password"
                 name="password"
-                placeholder="Contraseña"
+                placeholder={`Contraseña (mínimo ${LARGO_MINIMO_CLAVE} caracteres)`}
                 value={form.password}
                 onChange={handleChange}
                 className="p-2 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"

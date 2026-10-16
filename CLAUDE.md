@@ -73,6 +73,8 @@ Los imports de hooks van **sin extensión** (`from "../Context/AuthContext"`): a
   - **Sesión sin ficha → `PerfilNoDisponible`**, desde `ProtectedRoutes`. Con `errorPerfil` ofrece *Reintentar* (`recargarPerfil`); sin él es un registro a medias y ofrece *Terminar registro*. Ese botón **navega primero y cierra sesión después**: al revés, `ProtectedRoutes` ve la sesión cerrada antes que la navegación y manda a `/ViewLogin` (pasó en la prueba del 15 de octubre de 2026).
   - **El registro se puede retomar.** Son tres pasos no atómicos (cuenta, foto, ficha). Si el correo ya existe, `ViewRegister.obtenerCuenta` inicia sesión con esa contraseña y, si no hay ficha, sigue desde ahí; si la hay, cierra sesión y responde "correo ya registrado". Así un corte de red no deja cuentas zombis sin salida.
   - **`ProtectedRoutes` manda al login con `state.from`** y `ViewLogin` redirige ahí en cuanto hay sesión. Es lo que recupera la ventana del proyector: si se cierra sesión en el panel, `/VOXDEI` cae al login; al volver a entrar, la sesión se comparte entre ventanas y regresa sola.
+  - **El dueño verifica su correo** (15 de octubre de 2026). `ViewRegister` llama a `sendEmailVerification` al terminar, y `ProtectedRoutes` muestra `VerificarCorreo` en vez de cualquier ruta protegida mientras `user.uid === userData.groupId && !correoVerificado`. Solo el dueño: operadores y pareja pastoral los da de alta un pastor ya verificado. `correoVerificado` es una copia en estado de `user.emailVerified`, porque `reload()` muta el mismo objeto y React no se entera; `comprobarVerificacion` hace `reload()` y, si ya está verificado, `getIdToken(true)`, porque **el servidor mira `email_verified` en el token**: `crearUsuarioAdmin` rechaza al dueño sin verificar. `/EliminarCuenta` es pública y sigue a su alcance. Los correos de Firebase salen en español por `auth.languageCode = "es"` en `Firebase.js`.
+  - **Contraseñas nuevas de 8 caracteres o más**: `LARGO_MINIMO_CLAVE` en `Components/Validaciones/Validaciones.js`, con su espejo en `functions/index.js`. Se comprueba en `ViewRegister`, en `ViewUsers` y en `crearUsuarioAdmin`; nunca en el login. Además, la **política de contraseñas de Firebase Auth** está activa desde el 15 de octubre de 2026 (consola → Authentication → Configuración): modo *Exigir*, mínimo 8, sin requisitos de mayúsculas, números ni símbolos, y **con actualización forzada al iniciar sesión**. Consecuencia: una cuenta con contraseña de menos de 8 no entra; Firebase devuelve `auth/password-does-not-meet-requirements` y `ViewLogin` (y la reautenticación de `ViewEliminarCuenta`) no lo traducen, así que muestran el error genérico. La salida es «¿Olvidaste tu contraseña?» o que el pastor borre y recree al usuario. Decisión del usuario: con una sola iglesia registrada, de prueba, no valía la pena un mensaje propio; si la app ya tuviera usuarios reales, conviene añadirlo.
 - **`AppContext`**: estado compartido del panel (slots de prédicas, items de ticker/mensajes, flags de visibilidad, velocidad del ticker) y el sistema de notificaciones.
 - **`InicializarEstados`**: componente sin UI montado en `App`. Centraliza las suscripciones globales (slots de prédicas, `onSnapshot` de tickers y mensajes, los nodos de visibilidad y velocidad). Espera a que `userData.groupId` exista antes de suscribirse. Las suscripciones globales van aquí, no en las vistas.
 
@@ -294,6 +296,21 @@ Reglas que sobreviven al reparto: solo la pantalla de proyección escribe en RTD
 
 Hubo una versión intermedia que preparaba la pantalla al entrar a la sección y que quitaba `ModalVisibilidad` del todo; ambas cosas se corrigieron al aclararse que la lista es solo gestión. `ModalVisibilidad` **omite la opción cuyo `onClick` no le llegue** (`.filter((opcion) => opcion.onClick)`), así que basta con no pasarle `toggleVisibleTitulo`; las demás vistas lo siguen recibiendo y no cambian.
 
+### Cabeceras de seguridad (`firebase.json`)
+
+Añadidas el 15 de octubre de 2026: `Content-Security-Policy`, `X-Frame-Options: DENY`, `X-Content-Type-Options`, `Referrer-Policy` y `Permissions-Policy` (cámara, micrófono, ubicación, pagos y USB apagados). Solo existen en el hosting publicado: **ni `npm run dev`, ni `firebase serve`, ni el emulador de hosting las aplican** (comprobado con firebase-tools 15.19). Para probarlas en local, tras `npm run build`, se sirvió `dist/` con un servidor Node de pocas líneas que lee `hosting.headers` de `firebase.json` y aplica el rewrite SPA, y se escuchó el evento `securitypolicyviolation` en el navegador.
+
+La CSP es una lista blanca. **Todo dominio nuevo que cargue la app debe sumarse ahí** o el navegador lo bloqueará en producción sin fallar en desarrollo:
+
+- `script-src`: `www.youtube.com` (API del reproductor) y `*.firebaseio.com` (RTDB usa JSONP de respaldo si no hay WebSocket).
+- `img-src`: Storage, `ui-avatars.com`, `i.ytimg.com` (miniaturas), `blob:` (vista previa local de imágenes).
+- `connect-src`: `*.googleapis.com` (Auth, Firestore, Storage), RTDB (`https`/`wss`) y funciones (`*.cloudfunctions.net`, `*.run.app`).
+- `frame-src`: YouTube y el `authDomain`.
+- `style-src 'unsafe-inline'`: hace falta por las librerías que inyectan estilos.
+- **App Check** (pendiente) necesitará `https://www.google.com` y `https://www.gstatic.com` en `script-src` y `frame-src` para reCAPTCHA.
+
+`frame-ancestors 'none'` impide incrustar la app en otra web. El proyector se abre con `window.open`, no en un iframe, así que no le afecta.
+
 ### Estilos
 
 Tailwind v4 mediante `@tailwindcss/vite`; **no hay `tailwind.config.js`**. El tema vive en `src/index.css` con `@theme` y tokens `--color-app-*` (`app-dark`, `app-light`, `app-main`, `app-accent`, `app-muted`, `app-border`, `app-success`, `app-error`). Usa siempre esas clases (`text-app-muted`, `bg-app-light`) en vez de colores crudos de Tailwind. También hay utilidades propias: `scrollbar-custom`, `boton-salida`, `form-dark` / `form-light` / `form-dark2` (arreglos de autofill), `animate-menu-open`.
@@ -443,11 +460,16 @@ proyección (ver *Contextos y arranque* y *Flujo de proyección*). Pendiente, po
 orden de prioridad:
 
 1. ~~**Borrado de cuenta e iglesia**~~ — hecho el mismo día (ver *Borrado de
-   la propia cuenta*). Falta desplegar las funciones y probarlo con una
-   iglesia real, y declarar la URL `/EliminarCuenta` en Play Console.
-2. **App Check** (Play Integrity / reCAPTCHA), `setGlobalOptions({ maxInstances })`
-   en `functions` y alertas de presupuesto: hoy cualquiera con la config
-   pública puede crear iglesias sin límite y llenar Storage.
+   la propia cuenta*). Funciones desplegadas y probado de punta a punta con
+   una iglesia real (borrar, volver a registrar). Falta desplegar el hosting
+   y declarar la URL `/EliminarCuenta` en Play Console.
+2. **App Check** (reCAPTCHA; en un TWA la app es una web, así que no aplica
+   Play Integrity) y alertas de presupuesto: hoy cualquiera con la config
+   pública puede crear iglesias sin límite y llenar Storage. Acordado con el
+   usuario para el 16 de octubre de 2026: primero en modo observación y,
+   tras unos días con la app publicada, el bloqueo. `setGlobalOptions({
+   maxInstances: 10 })` ya está en `functions/index.js` (pendiente de
+   desplegar).
 3. **Empaquetado Android**: no existe. Recomendado TWA (Bubblewrap) sobre el
    hosting actual: `window.open` del proyector y el iframe de YouTube suelen
    fallar dentro de un WebView de Capacitor. Falta manifiesto, service worker,
@@ -459,7 +481,8 @@ orden de prioridad:
    nodos de RTDB, campos extra en `users` create; la regla de
    `iglesias/{groupId}/**` no distingue rol (un operador puede escribir
    prédicas fuera de la UI); `storage.rules` deja leer fotos de perfil a
-   cualquier autenticado; sin cabeceras de seguridad en `firebase.json`.
+   cualquier autenticado. (Las cabeceras de seguridad y la verificación de
+   correo del dueño se hicieron el 15 de octubre de 2026.)
 6. ~~**Una iglesia nueva arranca con el texto oculto.**~~ Resuelto el mismo
    día. Los flags de `AppProvider` valen `""` y los nodos `displayVisible*` no
    existen hasta que alguien pulsa un interruptor, así que `ControlDisplay` no

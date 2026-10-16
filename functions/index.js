@@ -1,4 +1,5 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { setGlobalOptions } = require("firebase-functions/v2");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const { getAuth } = require("firebase-admin/auth");
@@ -17,7 +18,15 @@ const {
 // "TypeError: admin.firestore is not a function".
 initializeApp();
 
+// Techo de costos: ninguna función levanta más de 10 copias a la vez. Una
+// iglesia nunca se acerca a eso; solo frena un bombardeo de llamadas.
+setGlobalOptions({ maxInstances: 10 });
+
 const db = getFirestore();
+
+// Largo mínimo de una contraseña nueva. Espejo de LARGO_MINIMO_CLAVE en
+// src/Components/Validaciones/Validaciones.js: si cambia uno, cambia el otro.
+const LARGO_MINIMO_CLAVE = 8;
 
 // Comprueba que quien llama es pastor o pastora de su iglesia.
 //
@@ -93,6 +102,26 @@ exports.crearUsuarioAdmin = onCall(async (request) => {
     throw new HttpsError(
       "invalid-argument",
       "Faltan datos: nombre, correo y contraseña son obligatorios.",
+    );
+  }
+
+  if (String(password).length < LARGO_MINIMO_CLAVE) {
+    throw new HttpsError(
+      "invalid-argument",
+      `La contraseña debe tener al menos ${LARGO_MINIMO_CLAVE} caracteres.`,
+    );
+  }
+
+  // Quien registró la iglesia debe haber verificado su correo antes de dar de
+  // alta a nadie: frena iglesias de correo inventado que crean cuentas en
+  // serie. La pareja pastoral no lo necesita: la dio de alta el dueño.
+  if (
+    solicitante.uid === solicitante.groupId &&
+    !request.auth.token.email_verified
+  ) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Verifica tu correo antes de crear usuarios.",
     );
   }
 

@@ -6,6 +6,7 @@ import {
   signInWithEmailAndPassword, // inicia sesión
   onAuthStateChanged, // observa cambios en el estado de autenticación
   signOut, // cierra la sesión
+  sendEmailVerification, // envía el correo de verificación
 } from "firebase/auth";
 import { AuthContext } from "./AuthContext";
 
@@ -16,6 +17,9 @@ export function AuthProvider({ children }) {
   // La ficha no se pudo leer (sin internet, casi siempre). Distingue ese caso
   // de una cuenta que de verdad no tiene ficha.
   const [errorPerfil, setErrorPerfil] = useState(false);
+  // Copia en estado de `user.emailVerified`. Hace falta porque `reload()`
+  // cambia ese campo dentro del mismo objeto y React no se entera.
+  const [correoVerificado, setCorreoVerificado] = useState(false);
 
   // Función para registrar un nuevo usuario
   const signup = (email, password) =>
@@ -55,6 +59,20 @@ export function AuthProvider({ children }) {
     setLoading(false);
   };
 
+  const reenviarVerificacion = () => sendEmailVerification(auth.currentUser);
+
+  // Tras pulsar el enlace del correo, Firebase no avisa a la app: hay que
+  // volver a leer la cuenta. Se renueva también el token, porque el servidor
+  // (crearUsuarioAdmin) mira `email_verified` en él, no en la cuenta.
+  const comprobarVerificacion = async () => {
+    if (!auth.currentUser) return false;
+    await auth.currentUser.reload();
+    const verificado = auth.currentUser.emailVerified;
+    if (verificado) await auth.currentUser.getIdToken(true);
+    setCorreoVerificado(verificado);
+    return verificado;
+  };
+
   // Observador de estado de autenticación
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -69,6 +87,7 @@ export function AuthProvider({ children }) {
         setErrorPerfil(false);
       }
 
+      setCorreoVerificado(Boolean(currentUser?.emailVerified));
       setUser(currentUser);
       setLoading(false);
     });
@@ -89,6 +108,9 @@ export function AuthProvider({ children }) {
         setLoading,
         errorPerfil,
         recargarPerfil,
+        correoVerificado,
+        reenviarVerificacion,
+        comprobarVerificacion,
       }}
     >
       {children}
