@@ -16,6 +16,8 @@ import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext";
 import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
 import FavoritosTexto from "../Favoritos/FavoritosTexto.jsx";
+import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
+import { useTurno } from "../Hooks/useTurno.js";
 
 // Cuántos mensajes caben en favoritos. Los documentos son message1..message6.
 const TOPE_FAVORITOS = 6;
@@ -23,6 +25,9 @@ const TOPE_FAVORITOS = 6;
 export default function ControlMenssage() {
   const navigate = useNavigate();
   const { userData } = useAuth();
+  // Solo quien tiene el turno del cronograma (o un pastor) envía a la pantalla.
+  // Escribir y guardar favoritos sí se puede siempre.
+  const { exigirTurno } = useTurno();
   const [message, setMessage] = useState("");
   // Cuál de los favoritos está en la pantalla del templo
   const [numProyectado, setNumProyectado] = useState(null);
@@ -56,6 +61,7 @@ export default function ControlMenssage() {
     const textToSend = item?.text || message;
 
     if (!textToSend.trim()) return;
+    if (!exigirTurno()) return;
 
     set(ref(database, `displayMessage/${userData.groupId}`), {
       text: textToSend,
@@ -69,6 +75,7 @@ export default function ControlMenssage() {
 
   // Visibilidad del titulo
   const toggleVisibleTitulo = () => {
+    if (!exigirTurno()) return;
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
 
@@ -80,6 +87,7 @@ export default function ControlMenssage() {
 
   // Visibilidad del texto
   const toggleVisibleTexto = () => {
+    if (!exigirTurno()) return;
     const nuevoEstado = !visibleTexto;
     setVisibleTexto(nuevoEstado);
 
@@ -91,6 +99,7 @@ export default function ControlMenssage() {
 
   // Visibilidad del ticker
   const toggleVisibleTicker = () => {
+    if (!exigirTurno()) return;
     const nuevoEstado = !visibleTicker;
     setVisibleTicker(nuevoEstado);
 
@@ -102,6 +111,7 @@ export default function ControlMenssage() {
 
   // Visibilidad solo texto
   const setAllVisible = () => {
+    if (!exigirTurno()) return;
     setVisibleTexto(true);
     setVisibleTitulo(false);
     setVisibleTicker(false);
@@ -200,6 +210,7 @@ export default function ControlMenssage() {
   return (
     <div className="min-h-dvh bg-linear-to-b from-app-dark/50 to-app-light/50">
       <div className="sticky top-0 border-b border-app-main bg-app-light z-10 ">
+        <FranjaTurno />
         <h1 className="font-bold text-app-main flex items-center gap-1 px-2">
           <ChatBubbleLeftRightIcon className="w-5 h-5 shrink-0" />
           <span>Mensajes</span>

@@ -4,6 +4,7 @@ import { LockClosedIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../../Components/Context/AuthContext";
 import { useAppContext } from "../../Components/Context/AppContext";
 import Footer from "../../Components/Footer/Footer.jsx";
+import CampoClave from "../../Components/CampoClave/CampoClave.jsx";
 
 export default function ViewLogin() {
   const navigate = useNavigate();
@@ -50,8 +51,7 @@ export default function ViewLogin() {
           "Demasiados intentos fallidos. Intenta de nuevo más tarde.",
         "auth/network-request-failed": "Error de red. Revisa tu conexión.",
         "auth/invalid-credential":
-          "Credenciales inválidas. Verifica tu correo y contraseña.",
-      };
+          "Credenciales inválidas. Verifica tu correo y contraseña.",      };
 
       showNotif(
         "error",
@@ -98,10 +98,10 @@ export default function ViewLogin() {
 
               {/* Contraseña */}
               <div className="flex flex-col">
-                <input
-                  type="password"
+                <CampoClave
                   name="password"
                   placeholder="********"
+                  autoComplete="current-password"
                   value={user.password}
                   onChange={handleChange}
                   className="p-2.5 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"

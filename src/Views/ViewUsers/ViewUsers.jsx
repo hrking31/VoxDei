@@ -451,9 +451,11 @@ import {
 } from "../../Components/Roles/Roles.js";
 import Footer from "../../Components/Footer/Footer.jsx";
 import UserProfileCard from "../../Components/UserProfileCard/UserProfileCard.jsx";
+import CampoClave from "../../Components/CampoClave/CampoClave.jsx";
+import RequisitosClave from "../../Components/RequisitosClave/RequisitosClave.jsx";
 import {
-  AVISO_CLAVE_CORTA,
-  LARGO_MINIMO_CLAVE,
+  AVISO_CLAVE_DEBIL,
+  claveValida,
 } from "../../Components/Validaciones/Validaciones.js";
 
 export default function ViewUsers() {
@@ -542,7 +544,7 @@ export default function ViewUsers() {
     const mensajes = {
       "auth/email-already-in-use": "El correo ya está registrado.",
       "auth/invalid-email": "Correo inválido.",
-      "auth/weak-password": AVISO_CLAVE_CORTA,
+      "auth/weak-password": AVISO_CLAVE_DEBIL,
       unauthenticated: "Tu sesión expiró. Vuelve a iniciar sesión.",
       "permission-denied": "No tienes permiso para hacer esto.",
       "not-found": "El usuario ya no existe.",
@@ -569,8 +571,8 @@ export default function ViewUsers() {
       return;
     }
 
-    if (newUser.password.length < LARGO_MINIMO_CLAVE) {
-      showNotif("error", AVISO_CLAVE_CORTA);
+    if (!claveValida(newUser.password)) {
+      showNotif("error", AVISO_CLAVE_DEBIL);
       return;
     }
 
@@ -867,24 +869,19 @@ export default function ViewUsers() {
                   />
 
                   {/* Input contrseña */}
-                  <input
-                    type="password"
+                  <CampoClave
                     name="password"
-                    placeholder={`Contraseña (mínimo ${LARGO_MINIMO_CLAVE} caracteres)`}
+                    autoComplete="new-password"
+                    placeholder="Contraseña"
                     value={newUser.password}
                     onChange={handleChange}
                     className="p-2 sm:p-3 border border-app-border focus:outline-none focus:ring-2 focus:ring-app-main transition rounded-lg text-app-muted"
                   />
+                  <RequisitosClave clave={newUser.password} />
 
                   {/* Rol. El selector solo aparece mientras el dueño pueda dar
                       de alta a su pareja pastoral; después todo es Operador. */}
-                  {!puedeElegirRol ? (
-                    <p className="text-sm text-app-muted px-1">
-                      Se creará como <strong>{ROL_OPERADOR}</strong>: podrá
-                      manejar la proyección, pero no las cuentas ni las
-                      prédicas.
-                    </p>
-                  ) : (
+                  {puedeElegirRol && (
                   <div ref={refRol} className="relative">
                     <button
                       type="button"
@@ -1052,6 +1049,9 @@ export default function ViewUsers() {
         // pantalla que pide la contraseña (eliminarMiCuenta en el servidor).
         esMiCuenta={selectedUser?.id === user?.uid}
         onEliminarMiCuenta={() => navigate("/EliminarCuenta")}
+        // La lista guarda su propia copia de las fichas: tras cambiar la foto
+        // se recarga para que se vea también ahí.
+        alCambiarFoto={() => setRecargar((n) => n + 1)}
       />
     </div>
   );

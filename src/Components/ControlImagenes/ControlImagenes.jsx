@@ -21,12 +21,18 @@ import { PhotoIcon } from "@heroicons/react/24/solid";
 import { database, storage, db } from "../../Components/Firebase/Firebase.js";
 import { useAuth } from "../../Components/Context/AuthContext";
 import { useAppContext } from "../../Components/Context/AppContext";
+import { comprimirImagen } from "../ComprimirImagen/ComprimirImagen.js";
+import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
+import { useTurno } from "../Hooks/useTurno.js";
 
 export default function ControlImagenes() {
   const navigate = useNavigate();
   const { userData } = useAuth();
   const { visibleImagen, setVisibleImagen, showNotif, confirmAction } =
     useAppContext();
+  // Solo quien tiene el turno del cronograma (o un pastor) envía a la pantalla.
+  // Subir, guardar y borrar imágenes sí se puede siempre.
+  const { exigirTurno } = useTurno();
   // Imágenes guardadas que el usuario marcó para proyectar juntas
   const [seleccionGuardadas, setSeleccionGuardadas] = useState([]);
 
@@ -123,7 +129,8 @@ export default function ControlImagenes() {
     if (!filesToUpload || filesToUpload.length === 0) return [];
 
     const uploadedUrls = [];
-    for (const file of filesToUpload) {
+    for (const original of filesToUpload) {
+      const file = await comprimirImagen(original);
       // ruta por groupId + timestamp + nombre
       const path = `imagenes/${userData.groupId}/${Date.now()}-${file.name}`;
       const sRef = storageRef(storage, path);
@@ -169,6 +176,7 @@ export default function ControlImagenes() {
 
   // Enciende o apaga la imagen en la pantalla de proyección
   const toggleVisibleImagen = (estado) => {
+    if (!exigirTurno()) return;
     const nuevoEstado = estado ?? !visibleImagen;
     setVisibleImagen(nuevoEstado);
 
@@ -200,6 +208,8 @@ export default function ControlImagenes() {
       );
       return;
     }
+    // Antes de subir: si no es su turno, que no espere la subida para enterarse
+    if (!exigirTurno()) return;
     setLoading(true);
     try {
       // subir primero para obtener URLs
@@ -221,6 +231,7 @@ export default function ControlImagenes() {
 
   // Proyectar una imagen guardada (miniatura)
   const handleProyectarGuardada = async (img) => {
+    if (!exigirTurno()) return;
     try {
       await proyectarUrls([img.url]);
     } catch (err) {
@@ -242,7 +253,7 @@ export default function ControlImagenes() {
       .filter((img) => seleccionGuardadas.includes(img.id))
       .map((img) => img.url);
 
-    if (urls.length === 0) return;
+    if (urls.length === 0 || !exigirTurno()) return;
 
     try {
       await proyectarUrls(urls);
@@ -288,6 +299,9 @@ export default function ControlImagenes() {
 
   return (
     <div>
+      <div className="sticky top-0 z-10">
+        <FranjaTurno />
+      </div>
       <h1 className="font-bold text-app-main flex items-center gap-1 p-2">
         <PhotoIcon className="w-5 h-5 shrink-0" />
         <span>Imágenes</span>

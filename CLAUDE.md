@@ -73,8 +73,9 @@ Los imports de hooks van **sin extensión** (`from "../Context/AuthContext"`): a
   - **Sesión sin ficha → `PerfilNoDisponible`**, desde `ProtectedRoutes`. Con `errorPerfil` ofrece *Reintentar* (`recargarPerfil`); sin él es un registro a medias y ofrece *Terminar registro*. Ese botón **navega primero y cierra sesión después**: al revés, `ProtectedRoutes` ve la sesión cerrada antes que la navegación y manda a `/ViewLogin` (pasó en la prueba del 15 de octubre de 2026).
   - **El registro se puede retomar.** Son tres pasos no atómicos (cuenta, foto, ficha). Si el correo ya existe, `ViewRegister.obtenerCuenta` inicia sesión con esa contraseña y, si no hay ficha, sigue desde ahí; si la hay, cierra sesión y responde "correo ya registrado". Así un corte de red no deja cuentas zombis sin salida.
   - **`ProtectedRoutes` manda al login con `state.from`** y `ViewLogin` redirige ahí en cuanto hay sesión. Es lo que recupera la ventana del proyector: si se cierra sesión en el panel, `/VOXDEI` cae al login; al volver a entrar, la sesión se comparte entre ventanas y regresa sola.
-  - **El dueño verifica su correo** (15 de octubre de 2026). `ViewRegister` llama a `sendEmailVerification` al terminar, y `ProtectedRoutes` muestra `VerificarCorreo` en vez de cualquier ruta protegida mientras `user.uid === userData.groupId && !correoVerificado`. Solo el dueño: operadores y pareja pastoral los da de alta un pastor ya verificado. `correoVerificado` es una copia en estado de `user.emailVerified`, porque `reload()` muta el mismo objeto y React no se entera; `comprobarVerificacion` hace `reload()` y, si ya está verificado, `getIdToken(true)`, porque **el servidor mira `email_verified` en el token**: `crearUsuarioAdmin` rechaza al dueño sin verificar. `/EliminarCuenta` es pública y sigue a su alcance. Los correos de Firebase salen en español por `auth.languageCode = "es"` en `Firebase.js`.
-  - **Contraseñas nuevas de 8 caracteres o más**: `LARGO_MINIMO_CLAVE` en `Components/Validaciones/Validaciones.js`, con su espejo en `functions/index.js`. Se comprueba en `ViewRegister`, en `ViewUsers` y en `crearUsuarioAdmin`; nunca en el login. Además, la **política de contraseñas de Firebase Auth** está activa desde el 15 de octubre de 2026 (consola → Authentication → Configuración): modo *Exigir*, mínimo 8, sin requisitos de mayúsculas, números ni símbolos, y **con actualización forzada al iniciar sesión**. Consecuencia: una cuenta con contraseña de menos de 8 no entra; Firebase devuelve `auth/password-does-not-meet-requirements` y `ViewLogin` (y la reautenticación de `ViewEliminarCuenta`) no lo traducen, así que muestran el error genérico. La salida es «¿Olvidaste tu contraseña?» o que el pastor borre y recree al usuario. Decisión del usuario: con una sola iglesia registrada, de prueba, no valía la pena un mensaje propio; si la app ya tuviera usuarios reales, conviene añadirlo.
+  - **Todos verifican su correo** (el dueño desde el 15 de octubre de 2026; todo el equipo desde el 23). `ViewRegister` llama a `sendEmailVerification` al terminar, y `ProtectedRoutes` muestra `VerificarCorreo` en vez de cualquier ruta protegida mientras `!correoVerificado`. Se extendió al equipo porque un correo mal escrito por el pastor dejaba una cuenta cuyo «¿Olvidaste tu contraseña?» llegaba a un buzón ajeno; así la persona no puede entrar y el error salta a la vista. A quien crea `crearUsuarioAdmin` no le llega ningún correo (el SDK de administrador no los envía), así que `VerificarCorreo` le muestra primero «Enviarme el enlace» (`enviado` arranca en `false` salvo para el dueño). `correoVerificado` es una copia en estado de `user.emailVerified`, porque `reload()` muta el mismo objeto y React no se entera; `comprobarVerificacion` hace `reload()` y, si ya está verificado, `getIdToken(true)`, porque **el servidor mira `email_verified` en el token**: `crearUsuarioAdmin` rechaza a cualquier pastor sin verificar. `/EliminarCuenta` es pública y sigue a su alcance. Los correos de Firebase salen en español por `auth.languageCode = "es"` en `Firebase.js`.
+  - **Contraseñas nuevas: 12 caracteres, mayúscula, minúscula, número y símbolo** (23 de octubre de 2026; antes, solo 8 caracteres). Las reglas viven en `REQUISITOS_CLAVE` / `claveValida` de `Components/Validaciones/Validaciones.js`, con su espejo en `functions/index.js`, y **tienen que coincidir con la política de contraseñas de Firebase Auth** (consola → Authentication → Configuración: modo *Exigir* y **actualización forzada al iniciar sesión**). Si la app aceptara algo que Firebase rechaza, la cuenta quedaría bloqueada en su siguiente inicio de sesión, y `crearUsuarioAdmin` es el punto delicado: el SDK de administrador se salta la política. Firebase cuenta mayúsculas y minúsculas solo en `A-Z`/`a-z` (la Ñ y las tildes no cuentan) y acepta como símbolo solo los de `allowedNonAlphanumericCharacters`, que se consultan en `https://identitytoolkit.googleapis.com/v2/passwordPolicy?key=<apiKey>` (no están `+`, `=` ni el espacio). Se comprueba en `ViewRegister`, `ViewUsers` (con la lista en vivo `RequisitosClave`) y `crearUsuarioAdmin`; nunca en el login. Quien tenga una contraseña anterior recibe `auth/password-does-not-meet-requirements` al entrar, y **a propósito no se traduce**: ve el error genérico del login. Decisión del usuario (23 de octubre de 2026): nada de mensajes ni vistas para la transición; con una sola iglesia, de prueba, si algo no cumple se elimina y se vuelve a crear. Si la app ya tuviera iglesias reales, conviene reconsiderarlo.
+  - **`CampoClave`** (23 de octubre de 2026) es el único campo de contraseña de la app: lleva el botón de ojo para mostrarla, **momentáneo y no interruptor** (pedido del usuario): se ve solo mientras se mantiene pulsado, con eventos de puntero más Espacio/Enter para el teclado. **El ojo va fuera del campo, a su derecha**, no superpuesto dentro: los gestores de contraseñas pintan su logo en el borde derecho interior y lo tapaban (lo reportó el usuario). Pásale siempre `autoComplete` (`current-password` / `new-password`); sin él, Chrome rellenaba la contraseña guardada del pastor al crear a otra persona en `ViewUsers`.
 - **`AppContext`**: estado compartido del panel (slots de prédicas, items de ticker/mensajes, flags de visibilidad, velocidad del ticker) y el sistema de notificaciones.
 - **`InicializarEstados`**: componente sin UI montado en `App`. Centraliza las suscripciones globales (slots de prédicas, `onSnapshot` de tickers y mensajes, los nodos de visibilidad y velocidad). Espera a que `userData.groupId` exista antes de suscribirse. Las suscripciones globales van aquí, no en las vistas.
 
@@ -83,7 +84,7 @@ Los imports de hooks van **sin extensión** (`from "../Context/AuthContext"`): a
 No se usa `alert` ni `confirm`. `AppContext` expone:
 
 - `showNotif(type, message)` — tipos `success` | `error` | `warning` | `info`; se cierra sola a los 4 s.
-- `confirmAction(message)` — devuelve una promesa que resuelve `true`/`false` según lo que pulse el usuario. Siempre con `await`.
+- `confirmAction(message)` — devuelve una promesa que resuelve `true`/`false` según lo que pulse el usuario. Siempre con `await`. Como hay un solo recuadro, **si otro aviso u otra pregunta tapa una pregunta pendiente, esta se resuelve `false`** (`preguntaPendiente` en `AppProvider`, 23 de octubre de 2026). Antes la promesa quedaba sin resolver y la acción colgada.
 
 **`Notificaciones` es el único componente que puede pintar avisos** (unificado el 15 de agosto de 2026). Está montado una sola vez en `App.jsx`, dentro de `AppProvider`, así que cubre todas las rutas, incluidas login, registro y recuperación de contraseña. Se muestra **centrado en la parte inferior** (`bottom-6`, ancho `max-w-md`), con el mismo tamaño para todos los tipos.
 
@@ -151,6 +152,7 @@ Lo que impone el servidor, además de lo que ya filtra la pantalla:
 - El `role` que llega del cliente se valida contra `ROLES`; si no viene ninguno, se crea como `Operador`.
 - Crear un `Pastor` o una `Pastora` exige ser el dueño (`uid === groupId`) y que no exista ya alguien con ese rol en la iglesia.
 - Eliminar: nunca a uno mismo ni al dueño; a un pastor o pastora, solo si quien llama es el dueño. Se borra también `users/{uid}/profile.jpg` de Storage.
+- Crear es **todo o nada** (23 de octubre de 2026): si falla la ficha o el claim después de `createUser`, se borran la ficha y la cuenta de Auth. Antes quedaba una cuenta sin ficha que no salía en la lista del pastor y ocupaba el correo para siempre. `gender` es obligatorio (Firestore rechaza `undefined`), y `auth/email-already-exists` / `auth/invalid-email` se devuelven en español: el cliente muestra `err.message`, y sin traducir salía el texto de Firebase en inglés.
 
 `ViewUsers` las invoca con `httpsCallable`. **No revertir esto a la creación desde el cliente**: `createUserWithEmailAndPassword` inicia sesión con la cuenta recién creada, de modo que el pastor perdía su sesión y —desde que `ProtectedRoutes` deniega sin rol válido— acababa expulsado a `/VistaNoAutorizada`.
 
@@ -168,6 +170,14 @@ const { getStorage } = require("firebase-admin/storage");
 ```
 
 Ojo con `admin.firestore.FieldValue.serverTimestamp()`, que ahora es `FieldValue.serverTimestamp()`. El fallo **no aparece en el despliegue ni en el lint**: el paquete se instala bien y el archivo carga; solo revienta al ejecutarse. La forma rápida de verlo es `npx firebase functions:log | grep -v AuditLog`, que separa las ejecuciones reales del ruido de los despliegues.
+
+**En el PC del autor, publicar las funciones exige más margen** (23 de octubre de 2026). Antes de subir, el CLI carga `functions/index.js` para descubrir qué funciones hay y solo espera 10 s; ahí tarda unos 13 s (medido con `node -e "require('./functions/index.js')"`), por la cantidad de archivos de `firebase-admin`, no por el código. El error es `User code failed to load. Cannot determine backend specification. Timeout after 10000` y aborta antes de publicar nada, incluidos hosting y reglas. Se publica así:
+
+```bash
+FUNCTIONS_DISCOVERY_TIMEOUT=60 npx firebase deploy --only functions
+```
+
+El despliegue a producción lo corre el usuario con `!`: el clasificador de permisos de Claude Code lo bloquea aunque el usuario lo apruebe.
 
 **Versiones acopladas** (2026-08-14): `firebase-admin@^14.2.0` + `firebase-functions@^7.3.2`. No las muevas por separado: `firebase-functions` 7.2.5 declara soporte de admin solo hasta `^13`, y desplegar esa combinación falla en el build de Google con `ERESOLVE`, no en local. Al comprobar compatibilidad, consulta los `peerDependencies` de la **versión instalada**, no de `@latest`.
 
@@ -260,6 +270,10 @@ Nunca describas en el manual una función que no esté terminada sin marcarla co
 
 **Imágenes**: `ControlImagenes` escribe en `displayImage/${groupId}` (`type: "single" | "carousel"`, `images[]`, `interval` en milisegundos) y `ControlDisplay` lo consume rotando con un `setInterval`. La visibilidad va aparte, en `displayVisibleImagen/${groupId}`, con su propio flag `visibleImagen` en `AppContext`. La imagen ocupa la franja central y **sustituye al texto** mientras está encendida; título y ticker conservan sus propios interruptores.
 
+**La foto de perfil se cambia solo en la ficha propia** (23 de octubre de 2026, a pedido del usuario): `UserProfileCard` monta `MiFoto` en lugar de la imagen cuando `esMiCuenta`, y su `alCambiar` hace que `ViewUsers` recargue la lista, que guarda su propia copia de las fichas. La cabecera de `ViewGestion` muestra la foto pero ya no la cambia; no vuelvas a poner `MiFoto` ahí.
+
+**Toda imagen se comprime antes de subirse** (23 de octubre de 2026) con `comprimirImagen(archivo, ladoMaximo)` de `Components/ComprimirImagen/ComprimirImagen.js`: lado máximo 1920 (`LADO_PROYECCION`) en `ControlImagenes` y 512 (`LADO_PERFIL`) en `MiFoto` y `ViewRegister`. Es canvas puro, sin librerías. Pasa a JPEG al 85 % salvo el PNG, que sigue siendo PNG por la transparencia; GIF, SVG, lo que el navegador no sabe leer (HEIC fuera de Safari) y lo que no adelgaza se suben tal cual. Si se añade otra subida, pásala por ahí.
+
 **Canciones**: una canción es `{ titulo, diapositivas: string[], creadoPor, iglesia }`. Desde el 22 de agosto de 2026 el módulo son **tres pantallas con ruta propia**, no un componente con estados internos:
 
 | Ruta | Componente | Qué hace | ¿Toca la proyección? |
@@ -295,6 +309,26 @@ Reglas que sobreviven al reparto: solo la pantalla de proyección escribe en RTD
 - El efecto que deja la pantalla lista —apaga `visibleTitulo`, enciende `visibleTexto` y `visibleTicker`, en el contexto y en RTDB— se dispara **al abrir una canción**, no al montar la vista. Encender `visibleTexto` ahí no es un adorno: si el operador llega con el texto apagado, es lo único que evita que la letra no se vea.
 
 Hubo una versión intermedia que preparaba la pantalla al entrar a la sección y que quitaba `ModalVisibilidad` del todo; ambas cosas se corrigieron al aclararse que la lista es solo gestión. `ModalVisibilidad` **omite la opción cuyo `onClick` no le llegue** (`.filter((opcion) => opcion.onClick)`), así que basta con no pasarle `toggleVisibleTitulo`; las demás vistas lo siguen recibiendo y no cambian.
+
+### Cronograma y turnos (23 de octubre de 2026)
+
+Decide quién puede escribir en la pantalla en cada momento. Reglas acordadas con el usuario: pastor y pastora **siempre**; con un servicio en curso, su operador (si se cruzan dos, el que **empezó más tarde**); sin servicio, quien tenga el **ensayo**; sin servicio ni ensayo, solo pastores.
+
+| Pieza | Dónde |
+| --- | --- |
+| Servicios | Firestore `iglesias/{groupId}/cronograma/{id}`: `{ nombre, inicio, fin, dias[], fecha, operadorUid, operadorNombre, activo }`. `dias` usa `Date.getDay()` (0 = domingo); vacío = una sola vez en `fecha` (`AAAA-MM-DD`). Sin cruces de medianoche: `fin > inicio`. |
+| Ensayo | RTDB `turnoEnsayo/{groupId}`: `{ uid, nombre, inicio (serverTimestamp), iniciadoPor }`. Termina con «Terminar», al empezar cualquier servicio (`empezoAlgunServicio`: no «revive» cuando ese servicio acaba) o a las `HORAS_ENSAYO` (3). Está en `database.rules.json` y en `NODOS_PROYECCION`. |
+| Lógica | `Components/Cronograma/UtilesCronograma.js`, funciones puras (`turnoActual`, `puedeProyectar`…). Se probaron 18 casos con Node desde una carpeta temporal; no hay suite en el proyecto. |
+| Hora | La del **servidor**: `InicializarEstados` escucha `.info/serverTimeOffset` (`desfaseReloj` en `AppContext`) y `useTurno` suma ese desfase a `Date.now()`, recalculando cada 30 s. Así un celular con el reloj adelantado no cambia de turno antes que los demás. Día y hora se leen en la zona horaria del dispositivo. |
+| Hook | `Components/Hooks/useTurno.js` → `{ turno, puedoProyectar, exigirTurno }`. |
+| Pantallas | `/ViewCronograma` (todos; ahí se puede dar el ensayo a otro operador) y `/ViewServicioEditar[/:id]` (ruta con `ROLES_PASTORES`). `useOperadores` (`Cronograma/useEquipo.js`) lee una vez los operadores de la iglesia. |
+| Franja | `Cronograma/FranjaTurno.jsx`, dentro del encabezado `sticky` de cada panel (así `ModalVisibilidad` sigue abriendo debajo). Verde si puedes, roja si no; botones Iniciar / Tomar (con confirmación) / Terminar ensayo. |
+
+**El bloqueo es de la app, no de las reglas**: RTDB no puede leer el cronograma ni entender «domingo a las 8». Cada función que escribe en la pantalla empieza con `if (!exigirTurno()) return;` en los 7 paneles: `ControlTicker`, `Controlmessage`, `ControlVersiculo`, `ControlPredica`, `ControlCancionProyectar`, `ControlImagenes` y `ControlVideo`. **Cualquier envío nuevo a la pantalla debe llevar esa guardia.** Lo que es preparar (escribir, guardar favoritos, subir imágenes, armar el repertorio) no se bloquea, y **`ControlEstilos` queda libre** por decisión del usuario. Los botones no se atenúan: el aviso sale al pulsarlos.
+
+En `ControlCancionProyectar`, el efecto que prepara la pantalla al abrir una canción solo corre con `puedoProyectar` (está en sus dependencias): si el turno llega con la canción abierta, se prepara entonces.
+
+**`firestore.rules`**: el `cronograma` no puede llevar un `match` propio más estricto, porque en Firestore basta con que una regla permita y la general de `iglesias/{groupId}/**` ya dejaba escribir a todos. Por eso la regla general pasó a `iglesias/{groupId}/{coleccion}/{documento=**}` con `coleccion != 'cronograma' || soyPastor()`.
 
 ### Cabeceras de seguridad (`firebase.json`)
 
@@ -490,8 +524,7 @@ orden de prioridad:
    el nodo ausente de `displayVisibleTexto` como encendido
    (`data?.visibleTexto ?? true`). Título y ticker siguen arrancando apagados
    a propósito: encendidos sin contenido pintarían un hueco y una franja vacía.
-7. Menores: `crearUsuarioAdmin` no revierte la cuenta de Auth si falla la ficha
-   o el claim (y `gender` ausente hace fallar el `set` con `undefined`); un
-   `showNotif` encima de un `confirmAction` deja su promesa sin resolver; las
-   imágenes se suben sin comprimir; el catálogo de canciones se descarga
-   entero (ver `docs/BuscadorCanciones.md`).
+7. Menores: el catálogo de canciones se descarga entero (ver
+   `docs/BuscadorCanciones.md`). (La reversión de `crearUsuarioAdmin`, la
+   pregunta tapada de `confirmAction` y la compresión de imágenes se hicieron
+   el 23 de octubre de 2026.)

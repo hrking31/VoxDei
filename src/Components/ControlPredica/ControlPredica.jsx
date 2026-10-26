@@ -20,10 +20,15 @@ import CapituloModal from "../../Components/ModalCapitulo/ModalCapitulo";
 import VersiculoModal from "../../Components/ModalVersiculo/ModalVersiculo";
 import WhatsAppButton from "../WhatsAppButton/WhatsAppButton";
 import { useAuth } from "../../Components/Context/AuthContext";
+import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
+import { useTurno } from "../Hooks/useTurno.js";
 
 export default function Predica() {
   const navigate = useNavigate();
   const { userData } = useAuth();
+  // Solo quien tiene el turno del cronograma (o un pastor) envía a la pantalla.
+  // Preparar y guardar la prédica sí se puede siempre.
+  const { exigirTurno } = useTurno();
   const [libro, setLibro] = useState({
     sigla: null,
     nombre: null,
@@ -144,6 +149,7 @@ export default function Predica() {
   };
 
   const enviarAProyeccion = (elemento) => {
+    if (!exigirTurno()) return;
     if (elemento.tipo === "mensaje") {
       set(ref(database, `displayMessage/${userData.groupId}`), {
         text: elemento.contenido,
@@ -168,6 +174,7 @@ export default function Predica() {
 
   // Visibilidad del título
   const toggleVisibleTitulo = () => {
+    if (!exigirTurno()) return;
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
 
@@ -179,6 +186,7 @@ export default function Predica() {
 
   // Visibilidad del texto
   const toggleVisibleTexto = () => {
+    if (!exigirTurno()) return;
     const nuevoEstado = !visibleTexto;
     setVisibleTexto(nuevoEstado);
 
@@ -190,6 +198,7 @@ export default function Predica() {
 
   // Visibilidad del ticker
   const toggleVisibleTicker = () => {
+    if (!exigirTurno()) return;
     const nuevoEstado = !visibleTicker;
     setVisibleTicker(nuevoEstado);
 
@@ -202,6 +211,9 @@ export default function Predica() {
   return (
     <div className="min-h-dvh bg-linear-to-b from-app-dark/50 to-app-light/50">
       <div className="sticky top-0 border-b border-app-main bg-app-light z-10 px-2 ">
+        <div className="-mx-2">
+          <FranjaTurno />
+        </div>
         <div className="flex items-center justify-between w-full h-12 ">
           <button
             onClick={() => setVisible(!visible)}

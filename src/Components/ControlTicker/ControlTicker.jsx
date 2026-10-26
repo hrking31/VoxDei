@@ -16,6 +16,8 @@ import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext";
 import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
 import FavoritosTexto from "../Favoritos/FavoritosTexto.jsx";
+import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
+import { useTurno } from "../Hooks/useTurno.js";
 
 // Cuántos tickers caben en favoritos. Los documentos son ticker1..ticker6.
 const TOPE_FAVORITOS = 6;
@@ -23,6 +25,9 @@ const TOPE_FAVORITOS = 6;
 export default function ControlTicker() {
   const navigate = useNavigate();
   const { userData } = useAuth();
+  // Solo quien tiene el turno del cronograma (o un pastor) envía a la pantalla.
+  // Escribir y guardar favoritos sí se puede siempre.
+  const { exigirTurno } = useTurno();
   const [ticker, setTicker] = useState("");
   // Cuál de los favoritos está en la pantalla del templo
   const [numProyectado, setNumProyectado] = useState(null);
@@ -49,6 +54,7 @@ export default function ControlTicker() {
     const textToSend = item?.text || ticker;
 
     if (!textToSend.trim()) return;
+    if (!exigirTurno()) return;
 
     set(ref(database, `displayTicker/${userData.groupId}`), {
       text: textToSend,
@@ -61,6 +67,7 @@ export default function ControlTicker() {
 
   // Visibilidad del titulo
   const toggleVisibleTitulo = () => {
+    if (!exigirTurno()) return;
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
 
@@ -72,6 +79,7 @@ export default function ControlTicker() {
 
   // Visibilidad del texto
   const toggleVisibleTexto = () => {
+    if (!exigirTurno()) return;
     const nuevoEstado = !visibleTexto;
     setVisibleTexto(nuevoEstado);
 
@@ -83,6 +91,7 @@ export default function ControlTicker() {
 
   // Visibilidad del ticker
   const toggleVisibleTicker = () => {
+    if (!exigirTurno()) return;
     const nuevoEstado = !visibleTicker;
     setVisibleTicker(nuevoEstado);
 
@@ -94,6 +103,7 @@ export default function ControlTicker() {
 
   // Visibilidad solo ticker
   const setAllVisible = () => {
+    if (!exigirTurno()) return;
     setVisibleTicker(true);
     setVisibleTitulo(false);
     setVisibleTexto(false);
@@ -117,6 +127,7 @@ export default function ControlTicker() {
 
   // Configura la velocidad del ticker
   const configSpeed = (nuevoValor) => {
+    if (!exigirTurno()) return;
     setVelocidadTicker(nuevoValor);
     set(ref(database, `speedTicker/${userData.groupId}`), {
       velocidad: nuevoValor,
@@ -199,6 +210,7 @@ export default function ControlTicker() {
   return (
     <div className="min-h-dvh bg-linear-to-b from-app-dark/50 to-app-light/50">
       <div className="sticky top-0 border-b border-app-main bg-app-light z-10 ">
+        <FranjaTurno />
         <h1 className="font-bold text-app-main flex items-center gap-1 px-2">
           <TagIcon className="w-5 h-5 shrink-0" />
           <span>Ticker</span>

@@ -13,6 +13,8 @@ import { CANCIONES } from "../Firebase/RutasIglesia";
 import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext";
 import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
+import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
+import { useTurno } from "../Hooks/useTurno.js";
 
 // Pantalla de proyección de una canción. Es la única de las tres pantallas de
 // canciones que toca la del templo: el catálogo y el formulario no la tocan.
@@ -29,6 +31,9 @@ export default function ControlCancionProyectar() {
     isDesktop,
     showNotif,
   } = useAppContext();
+
+  // Solo quien tiene el turno del cronograma (o un pastor) envía a la pantalla
+  const { puedoProyectar, exigirTurno } = useTurno();
 
   const [cancion, setCancion] = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -61,9 +66,10 @@ export default function ControlCancionProyectar() {
   }, [id, navigate]);
 
   // Al entrar, la pantalla del templo queda lista: letra y ticker encendidos y
-  // el título apagado, que aquí nunca se proyecta.
+  // el título apagado, que aquí nunca se proyecta. Fuera de turno no se toca
+  // nada; si el turno llega con la canción abierta, se prepara entonces.
   useEffect(() => {
-    if (!userData?.groupId) return;
+    if (!userData?.groupId || !puedoProyectar) return;
     const timestamp = Date.now();
 
     setVisibleTitulo(false);
@@ -83,7 +89,13 @@ export default function ControlCancionProyectar() {
       visibleTicker: true,
       timestamp,
     });
-  }, [userData?.groupId, setVisibleTitulo, setVisibleTexto, setVisibleTicker]);
+  }, [
+    userData?.groupId,
+    puedoProyectar,
+    setVisibleTitulo,
+    setVisibleTexto,
+    setVisibleTicker,
+  ]);
 
   // Envía una lámina a la pantalla. El título no viaja: `display` es un solo
   // interruptor, y escribir dos canales con valores distintos deja el centro
@@ -94,6 +106,7 @@ export default function ControlCancionProyectar() {
 
       const total = cancion.diapositivas.length;
       if (indice < 0 || indice >= total) return;
+      if (!exigirTurno()) return;
 
       set(ref(database, `displayMessage/${userData.groupId}`), {
         text: cancion.diapositivas[indice],
@@ -103,7 +116,10 @@ export default function ControlCancionProyectar() {
 
       setIndiceActual(indice);
     },
-    [cancion, userData?.groupId]
+    // exigirTurno cambia en cada dibujo; lo que importa es si se puede
+    // proyectar, que es de lo que depende su respuesta.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [cancion, userData?.groupId, puedoProyectar]
   );
 
   const siguiente = useCallback(() => {
@@ -138,6 +154,7 @@ export default function ControlCancionProyectar() {
 
   // Visibilidad del texto
   const toggleVisibleTexto = () => {
+    if (!exigirTurno()) return;
     const nuevoEstado = !visibleTexto;
     setVisibleTexto(nuevoEstado);
 
@@ -149,6 +166,7 @@ export default function ControlCancionProyectar() {
 
   // Visibilidad del ticker
   const toggleVisibleTicker = () => {
+    if (!exigirTurno()) return;
     const nuevoEstado = !visibleTicker;
     setVisibleTicker(nuevoEstado);
 
@@ -160,6 +178,7 @@ export default function ControlCancionProyectar() {
 
   // Deja en pantalla la letra y el ticker, y apaga el título
   const setAllVisible = () => {
+    if (!exigirTurno()) return;
     setVisibleTitulo(false);
     setVisibleTexto(true);
     setVisibleTicker(true);
@@ -193,6 +212,9 @@ export default function ControlCancionProyectar() {
     <div className="min-h-svh bg-linear-to-b from-app-dark/50 to-app-light/50">
       {/* ENCABEZADO */}
       <div className="sticky top-0 border-b border-app-main bg-app-light z-10 px-2">
+        <div className="-mx-2">
+          <FranjaTurno />
+        </div>
         <div className="flex items-center justify-between gap-2 py-1">
           <h1 className="font-bold text-app-main flex items-center gap-1 truncate">
             <MusicalNoteIcon className="w-5 h-5 shrink-0" />

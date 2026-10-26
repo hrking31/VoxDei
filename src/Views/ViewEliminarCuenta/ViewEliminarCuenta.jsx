@@ -8,6 +8,7 @@ import { useAuth } from "../../Components/Context/AuthContext";
 import { useAppContext } from "../../Components/Context/AppContext";
 import Loading from "../../Components/Loading/Loading.jsx";
 import Footer from "../../Components/Footer/Footer.jsx";
+import CampoClave from "../../Components/CampoClave/CampoClave.jsx";
 
 // Borrado de la propia cuenta, exigido por Google Play desde la app y desde
 // una web. Por eso la ruta es pública: sin sesión explica cómo hacerlo (es la
@@ -58,8 +59,7 @@ export default function ViewEliminarCuenta() {
         "auth/wrong-password": "La contraseña no es correcta.",
         "auth/missing-password": "Escribe tu contraseña.",
         "auth/too-many-requests": "Demasiados intentos. Intenta más tarde.",
-        "auth/network-request-failed": "Error de conexión. Revisa tu red.",
-      };
+        "auth/network-request-failed": "Error de conexión. Revisa tu red.",      };
       showNotif(
         "error",
         errorMessages[err.code] ||
@@ -142,8 +142,7 @@ export default function ViewEliminarCuenta() {
                   Cuenta: <span className="text-gray-300">{user.email}</span>
                 </p>
 
-                <input
-                  type="password"
+                <CampoClave
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Tu contraseña"

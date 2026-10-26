@@ -17,10 +17,15 @@ import {
 import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext";
 import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
+import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
+import { useTurno } from "../Hooks/useTurno.js";
 
 export default function ControlVersiculos() {
   const navigate = useNavigate();
   const { userData } = useAuth();
+  // Solo quien tiene el turno del cronograma (o un pastor) envía a la pantalla.
+  // Buscar y leer versículos sí se puede siempre.
+  const { exigirTurno } = useTurno();
   const [libro, setLibro] = useState({
     sigla: null,
     nombre: null,
@@ -91,6 +96,7 @@ export default function ControlVersiculos() {
   };
 
   const handleProjectarVersiculo = (versiculo, numero, titulo) => {
+    if (!exigirTurno()) return;
     const citaCompleta = `${resultado.libro} ${resultado.capitulo}:${numero}`;
     set(ref(database, `displayVersiculo/${userData.groupId}`), {
       titulo: titulo,
@@ -205,6 +211,7 @@ export default function ControlVersiculos() {
 
   // Visibilidad del titulo
   const toggleVisibleTitulo = () => {
+    if (!exigirTurno()) return;
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
 
@@ -216,6 +223,7 @@ export default function ControlVersiculos() {
 
   // Visibilidad del texto
   const toggleVisibleTexto = () => {
+    if (!exigirTurno()) return;
     const nuevoEstado = !visibleTexto;
     setVisibleTexto(nuevoEstado);
 
@@ -227,6 +235,7 @@ export default function ControlVersiculos() {
 
   // Visibilidad del ticker
   const toggleVisibleTicker = () => {
+    if (!exigirTurno()) return;
     const nuevoEstado = !visibleTicker;
     setVisibleTicker(nuevoEstado);
 
@@ -238,6 +247,7 @@ export default function ControlVersiculos() {
 
   // Visibilidad solo texto
   const setAllVisible = () => {
+    if (!exigirTurno()) return;
     setVisibleTexto(true);
     setVisibleTitulo(false);
     setVisibleTicker(false);
@@ -263,6 +273,9 @@ export default function ControlVersiculos() {
     <div className="min-h-dvh bg-linear-to-b from-app-dark/50 to-app-light/50">
       {/* BLOQUE STICKY */}
       <div className="grid grid-cols-12 w-full sticky border-b border-app-main bg-app-dark top-0 z-10 pt-3 pb-4">
+        <div className="col-span-12 -mt-3 mb-2">
+          <FranjaTurno />
+        </div>
         {/* Fila de capítulos */}
         <div className="col-span-12  overflow-x-auto scrollbar-custom [&::-webkit-scrollbar]:hidden xl:[&::-webkit-scrollbar]:block">
           <div className="flex gap-2 whitespace-nowrap">

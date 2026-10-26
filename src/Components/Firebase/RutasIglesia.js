@@ -35,6 +35,10 @@ export const ESTILOS = "estilos";
 export const REPERTORIO = "repertorio";
 export const REPERTORIO_ACTUAL = "actual";
 
+// Servicios del cronograma: quién proyecta y cuándo. La escriben solo pastor y
+// pastora (firestore.rules); la lee toda la iglesia. Ver Cronograma/.
+export const CRONOGRAMA = "cronograma";
+
 // Catálogo de canciones COMPARTIDO por todas las iglesias, igual que `biblia`.
 // Vive en la raíz, no dentro de iglesias/{groupId}. Cualquier iglesia puede
 // agregar canciones; cada una solo edita o borra las que subió (campo

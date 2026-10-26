@@ -37,6 +37,8 @@ Nadie desde fuera puede cambiar lo que se proyecta en tu templo.
 
 En la pantalla de inicio, entra a **Registrar iglesia** y completa el nombre de la iglesia, tu nombre, tu correo, una contraseña y una foto de perfil.
 
+La contraseña debe tener al menos 12 caracteres, con una mayúscula, una minúscula, un número y un símbolo; debajo del campo verás cuáles te faltan. Después te llegará un correo con un enlace: ábrelo para activar tu iglesia.
+
 Quien registra la iglesia queda como **pastor o pastora**: es el dueño de la cuenta y quien manda.
 
 ### 2. Entra al panel
@@ -52,6 +54,8 @@ Desde **Administrador → Usuarios** puedes crear cuentas para las personas que 
 
 Si registraste la iglesia, lo primero que verás es la opción de dar de alta a tu pareja: si la registró un pastor, aparece **Pastora**, y si la registró una pastora, aparece **Pastor**. Una vez están los dos, esa opción desaparece y todas las cuentas que crees después serán **Operador**.
 
+La primera vez que cada persona entre, la app le pedirá confirmar su correo con el botón **Enviarme el enlace**. Si no le llega, revisa que escribiste bien su dirección; si estaba mal, elimina la cuenta y créala de nuevo.
+
 ---
 
 ## Quién puede hacer qué
@@ -59,7 +63,7 @@ Si registraste la iglesia, lo primero que verás es la opción de dar de alta a 
 | Rol | Quién es | Qué puede hacer |
 |---|---|---|
 | **Pastor / Pastora** | Quien registró la iglesia y su pareja | Todo |
-| **Operador** | Quien maneja la pantalla durante el servicio | Proyectar versículos, anuncios, mensajes, canciones, imágenes y video |
+| **Operador** | Quien maneja la pantalla durante el servicio | Proyectar versículos, anuncios, mensajes, canciones, imágenes y video **en su turno** (mira *Cronograma*) |
 
 Un operador puede manejar la pantalla sin riesgo de que modifique las prédicas guardadas ni las cuentas del equipo: la sección de prédicas ni le aparece, y en **Usuarios** solo puede ver al equipo y eliminar su propia cuenta.
 
@@ -70,7 +74,7 @@ Sobre eliminar cuentas:
 - A un **operador** lo puede eliminar cualquiera de los dos pastores.
 - **Cada persona puede eliminar su propia cuenta** desde su ficha en **Usuarios**.
 
-Cada persona puede cambiar **su propia foto**, y solo la suya: se toca la foto de arriba en el Panel de Gestión. Nadie puede cambiarse su propio rol.
+Cada persona puede cambiar **su propia foto**, y solo la suya: en **Usuarios**, toca el lápiz junto a tu nombre y, en tu ficha, toca la foto (la del icono de cámara). Nadie puede cambiarse su propio rol.
 
 ---
 
@@ -167,11 +171,27 @@ Los cambios se ven en la vista previa mientras los haces, pero **solo llegan a l
 - **Sombra del texto**: es lo que permite leer sobre fondos claros. Si el texto se pierde, súbela.
 - **Margen de seguridad**: casi todos los proyectores recortan los bordes de la imagen. Si se te cortan las letras de las orillas, súbelo.
 
+### Cronograma
+
+Aquí el pastor o la pastora deciden **quién maneja la pantalla en cada servicio**, para que dos personas no se pisen enviando cosas a la vez.
+
+Cada servicio se arma como una alarma del celular: hora de inicio y de fin, los días en que se repite (`L M X J V S D`) y el operador asignado. Por ejemplo: domingo de 8:00 a 10:00, Carlos; de 10:00 a 12:00, Pedro. Si no marcas ningún día, el servicio es de una sola vez y eliges la fecha. Con el interruptor **Activo** puedes pausar un servicio sin borrarlo.
+
+Quién puede proyectar en cada momento:
+
+- **Durante un servicio**: el operador asignado. Si dos servicios se cruzan, manda el que empezó más tarde.
+- **El pastor y la pastora**: siempre, en cualquier momento.
+- **Fuera de los servicios**: quien tenga el **ensayo**. Un operador lo inicia con el botón **Iniciar ensayo** (y desde el Cronograma se le puede dar a otro). El ensayo termina cuando lo cierran, cuando empieza un servicio o a las 3 horas. Si quien lo tenía ya se fue, otro operador puede **tomarlo**.
+
+Arriba de cada sección de proyección, una franja dice de quién es el turno: **verde** si puedes proyectar y **roja** si no. Fuera de tu turno puedes seguir preparando cosas (escribir mensajes, guardar favoritos, armar la lista de canciones, subir imágenes); lo único que no puedes es enviarlas a la pantalla. **Estilos y colores** queda libre.
+
+Los operadores ven el cronograma, pero no lo pueden cambiar.
+
 ### Usuarios
 
 Entra todo el equipo, pero solo el pastor y la pastora crean y eliminan cuentas. Un operador ve la lista del equipo y nada más; en su propia ficha tiene el botón **Eliminar mi cuenta**.
 
-Crea las cuentas de tu equipo con nombre, correo y contraseña. El rol solo se pregunta mientras falte tu pareja pastoral; después, todas las cuentas nuevas son de **Operador** y la pantalla te lo indica.
+Crea las cuentas de tu equipo con nombre, correo y contraseña. El rol solo se pregunta mientras falte tu pareja pastoral; después, todas las cuentas nuevas son de **Operador**.
 
 En la pestaña del equipo ves a todos los tuyos. Al tocar el lápiz junto a un nombre se abre su ficha, y desde ahí puedes eliminar la cuenta si tienes permiso para hacerlo (mira la tabla de *Quién puede hacer qué*). Al eliminar se borra todo: su acceso, su ficha y su foto. En tu propia ficha el botón dice **Eliminar mi cuenta** y te pide la contraseña para confirmar.
 
@@ -229,6 +249,19 @@ Entra a **Usuarios**, toca el lápiz junto a tu nombre y pulsa **Eliminar mi cue
 ## Novedades
 
 Aquí queda anotado lo que va cambiando en la aplicación, para que siempre sepas qué es nuevo.
+
+### 23 de octubre de 2026
+
+- **Nuevo: Cronograma.** El pastor o la pastora asignan qué operador maneja la pantalla en cada servicio, y solo esa persona (además de los pastores) puede enviar cosas a la pantalla durante ese horario. Fuera de los servicios, los operadores usan el **modo ensayo**. Arriba de cada sección, una franja verde o roja te dice si te toca. Todo está explicado en la sección *Cronograma* de este manual.
+- **Ya puedes ver la contraseña mientras la escribes.** Todos los campos de contraseña (inicio de sesión, registro, crear usuarios y eliminar cuenta) tienen al lado un botón con forma de ojo: mientras lo mantienes pulsado ves la contraseña y, al soltarlo, se oculta otra vez. Así compruebas que la escribiste bien sin que quede a la vista por olvido. Va fuera del campo para que el icono de tu gestor de contraseñas no lo tape.
+- **La foto de perfil se cambia desde tu ficha.** Ya no se cambia tocando la foto de arriba en el Panel de Gestión, donde ahora solo se muestra. Entra a **Usuarios**, toca el lápiz junto a tu nombre y toca tu foto: lleva un icono de cámara para que se note que se puede cambiar.
+- **El navegador ya no rellena una contraseña equivocada.** Al crear una cuenta para alguien del equipo, el navegador podía poner sola tu propia contraseña guardada. Ahora cada campo le indica si es para escribir tu contraseña o para elegir una nueva.
+- **Contraseñas mucho más seguras.** Las contraseñas nuevas piden al menos 12 caracteres, con una mayúscula, una minúscula, un número y un símbolo. Debajo del campo aparece la lista de requisitos y cada uno se marca en verde cuando lo cumples. La Ñ y las letras con tilde se pueden usar, pero no cuentan como mayúscula ni minúscula.
+- **Todo el equipo verifica su correo.** Antes solo lo hacía quien registraba la iglesia; ahora también los operadores y la pareja pastoral. La primera vez que entren verán la pantalla **Verifica tu correo** con el botón **Enviarme el enlace**. Así, si el pastor escribe mal un correo, se nota enseguida y nadie más puede tomar esa cuenta.
+- **Las imágenes suben y aparecen más rápido.** Antes de subir una imagen o una foto de perfil, la app la achica al tamaño que de verdad se ve en la pantalla. Una foto del celular de varios megas queda en unos cientos de kilobytes, sin que se note la diferencia en el proyector.
+- **Crear un usuario ya no deja cuentas a medias.** Si algo fallaba a mitad de la creación, quedaba una cuenta que no aparecía en la lista y cuyo correo ya no se podía volver a usar. Ahora, si algo falla, no queda nada y basta con intentarlo otra vez. Y si el correo ya está registrado, el aviso sale en español.
+- **Las preguntas de confirmación ya no se quedan colgadas.** Si mientras la app te preguntaba «¿Seguro?» aparecía otro aviso, la pregunta desaparecía y el botón podía quedarse esperando. Ahora esa pregunta cuenta como «No»: nada se borra sin que lo confirmes.
+- **Pantalla de crear usuarios más limpia.** Ya no aparece el texto que explicaba que la cuenta se crearía como Operador.
 
 ### 15 de octubre de 2026
 

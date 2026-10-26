@@ -9,8 +9,14 @@ import { useNavigate } from "react-router-dom";
 import { UserPlusIcon, UserIcon } from "@heroicons/react/24/solid";
 import Footer from "../../Components/Footer/Footer.jsx";
 import {
-  AVISO_CLAVE_CORTA,
-  LARGO_MINIMO_CLAVE,
+  LADO_PERFIL,
+  comprimirImagen,
+} from "../../Components/ComprimirImagen/ComprimirImagen.js";
+import CampoClave from "../../Components/CampoClave/CampoClave.jsx";
+import RequisitosClave from "../../Components/RequisitosClave/RequisitosClave.jsx";
+import {
+  AVISO_CLAVE_DEBIL,
+  claveValida,
 } from "../../Components/Validaciones/Validaciones.js";
 
 export default function ViewRegister() {
@@ -110,8 +116,8 @@ export default function ViewRegister() {
       return;
     }
 
-    if (form.password.length < LARGO_MINIMO_CLAVE) {
-      showNotif("error", AVISO_CLAVE_CORTA);
+    if (!claveValida(form.password)) {
+      showNotif("error", AVISO_CLAVE_DEBIL);
       return;
     }
 
@@ -129,7 +135,10 @@ export default function ViewRegister() {
 
       // Subir la imagen a Firebase Storage
       const imageRef = ref(storage, `users/${uid}/profile.jpg`);
-      await uploadBytes(imageRef, form.photo);
+      await uploadBytes(
+        imageRef,
+        await comprimirImagen(form.photo, LADO_PERFIL)
+      );
 
       // Obtener URL de la imagen
       const photoURL = await getDownloadURL(imageRef);
@@ -170,7 +179,8 @@ export default function ViewRegister() {
     } catch (err) {
       const errors = {
         "auth/email-already-in-use": "El correo ya está registrado.",
-        "auth/weak-password": AVISO_CLAVE_CORTA,
+        "auth/weak-password": AVISO_CLAVE_DEBIL,
+        "auth/password-does-not-meet-requirements": AVISO_CLAVE_DEBIL,
         "auth/invalid-email": "Correo inválido.",
         "auth/network-request-failed":
           "Error de red. Revisa tu conexión e inténtalo de nuevo.",
@@ -297,14 +307,15 @@ export default function ViewRegister() {
               />
 
               {/* Password */}
-              <input
-                type="password"
+              <CampoClave
                 name="password"
-                placeholder={`Contraseña (mínimo ${LARGO_MINIMO_CLAVE} caracteres)`}
+                autoComplete="new-password"
+                placeholder="Contraseña"
                 value={form.password}
                 onChange={handleChange}
                 className="p-2 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
               />
+              <RequisitosClave clave={form.password} />
 
               {/* Botón de envío */}
               <button

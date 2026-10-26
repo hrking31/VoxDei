@@ -22,6 +22,8 @@ import { colIglesia, docIglesia, VIDEOS } from "../Firebase/RutasIglesia";
 import { idDeYouTube, miniaturaDe } from "../Video/YouTube";
 import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext";
+import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
+import { useTurno } from "../Hooks/useTurno.js";
 
 // Convierte segundos a m:ss
 const enMinutos = (segundos) => {
@@ -44,6 +46,10 @@ export default function ControlVideo() {
     showNotif,
     confirmAction,
   } = useAppContext();
+
+  // Solo quien tiene el turno del cronograma (o un pastor) envía a la pantalla.
+  // Guardar y borrar enlaces sí se puede siempre: es preparar, no proyectar.
+  const { exigirTurno } = useTurno();
 
   const [videos, setVideos] = useState([]);
   const [titulo, setTitulo] = useState("");
@@ -87,6 +93,7 @@ export default function ControlVideo() {
   );
 
   const encenderVideo = (estado) => {
+    if (!exigirTurno()) return;
     const nuevoEstado = estado ?? !visibleVideo;
     setVisibleVideo(nuevoEstado);
 
@@ -148,6 +155,7 @@ export default function ControlVideo() {
 
   // Mandar el video a la pantalla y arrancarlo
   const proyectar = (video) => {
+    if (!exigirTurno()) return;
     setEnPantalla(video);
     setPosicion(0);
     setReproduciendo(true);
@@ -164,7 +172,7 @@ export default function ControlVideo() {
   };
 
   const alternarReproduccion = () => {
-    if (!enPantalla) return;
+    if (!enPantalla || !exigirTurno()) return;
 
     const nuevoEstado = !reproduciendo;
     setReproduciendo(nuevoEstado);
@@ -178,7 +186,7 @@ export default function ControlVideo() {
   };
 
   const moverA = (segundos) => {
-    if (!enPantalla) return;
+    if (!enPantalla || !exigirTurno()) return;
 
     setPosicion(segundos);
 
@@ -192,6 +200,7 @@ export default function ControlVideo() {
 
   // Visibilidad del título y del ticker, por si se quieren dejar encima
   const toggleVisibleTitulo = () => {
+    if (!exigirTurno()) return;
     const nuevoEstado = !visibleTitulo;
     setVisibleTitulo(nuevoEstado);
 
@@ -202,6 +211,7 @@ export default function ControlVideo() {
   };
 
   const toggleVisibleTicker = () => {
+    if (!exigirTurno()) return;
     const nuevoEstado = !visibleTicker;
     setVisibleTicker(nuevoEstado);
 
@@ -215,6 +225,9 @@ export default function ControlVideo() {
     <div className="min-h-svh bg-linear-to-b from-app-dark/50 to-app-light/50">
       {/* ENCABEZADO */}
       <div className="sticky top-0 border-b border-app-main bg-app-light z-10 px-2">
+        <div className="-mx-2">
+          <FranjaTurno />
+        </div>
         <div className="flex items-center justify-between gap-2 py-2">
           <h1 className="font-bold text-app-main flex items-center gap-1 truncate">
             <VideoCameraIcon className="w-5 h-5 shrink-0" />

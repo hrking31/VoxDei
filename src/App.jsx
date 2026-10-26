@@ -19,6 +19,8 @@ import {
   VistaNoAutorizada,
   ViewRegister,
   ViewEliminarCuenta,
+  ViewCronograma,
+  ViewServicioEditar,
 } from "./Views/index";
 import { ProtectedRoutes } from "./Components/ProtectedRoutes/ProtectedRoutes.jsx";
 import { ROLES_PASTORES, ROLES_PROYECCION } from "./Components/Roles/Roles.js";
@@ -174,6 +176,35 @@ export default function App() {
           element={
             <ProtectedRoutes rolesPermitidos={ROLES_PROYECCION}>
               <ViewVideo />
+            </ProtectedRoutes>
+          }
+        />
+
+        {/* Cronograma: lo ve todo el equipo; los servicios solo los crean y
+            editan pastor y pastora */}
+        <Route
+          path="/ViewCronograma"
+          element={
+            <ProtectedRoutes rolesPermitidos={ROLES_PROYECCION}>
+              <ViewCronograma />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/ViewServicioEditar"
+          element={
+            <ProtectedRoutes rolesPermitidos={ROLES_PASTORES}>
+              <ViewServicioEditar />
+            </ProtectedRoutes>
+          }
+        />
+
+        <Route
+          path="/ViewServicioEditar/:id"
+          element={
+            <ProtectedRoutes rolesPermitidos={ROLES_PASTORES}>
+              <ViewServicioEditar />
             </ProtectedRoutes>
           }
         />

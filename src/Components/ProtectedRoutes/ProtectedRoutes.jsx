@@ -22,9 +22,11 @@ export function ProtectedRoutes({ children, rolesPermitidos = [] }) {
   // salida, en vez de una carga eterna o un "no autorizado" que no lo es.
   if (!userData) return <PerfilNoDisponible />;
 
-  // Quien registró la iglesia no la usa hasta verificar su correo. Solo el
-  // dueño: a los demás los da de alta un pastor ya verificado.
-  if (user.uid === userData.groupId && !correoVerificado) {
+  // Nadie usa la app hasta verificar su correo: el dueño y también el equipo
+  // que él da de alta. Si el pastor escribe mal un correo, la persona no puede
+  // entrar y el error salta a la vista, en vez de quedar una cuenta cuyo
+  // «¿Olvidaste tu contraseña?» llega a un buzón ajeno.
+  if (!correoVerificado) {
     return <VerificarCorreo />;
   }
 

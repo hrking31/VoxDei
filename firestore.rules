@@ -44,10 +44,17 @@ service cloud.firestore {
     }
 
     // ---- Contenido de cada iglesia ----
-    // predicas, tickers y messages viven aquí dentro.
-
-    match /iglesias/{groupId}/{documento=**} {
-      allow read, write: if esMiIglesia(groupId);
+    // predicas, tickers, messages, cronograma... viven aquí dentro.
+    //
+    // El cronograma (quién proyecta en cada servicio) lo lee toda la iglesia
+    // pero solo lo escriben pastor y pastora. Va como condición dentro de esta
+    // misma regla y no como un match aparte: en Firestore basta con que UNA
+    // regla permita, así que un match propio más estricto no le quitaría al
+    // operador el permiso que ya le da este.
+    match /iglesias/{groupId}/{coleccion}/{documento=**} {
+      allow read: if esMiIglesia(groupId);
+      allow write: if esMiIglesia(groupId) &&
+        (coleccion != 'cronograma' || soyPastor());
     }
 
     // ---- Usuarios ----

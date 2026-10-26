@@ -17,6 +17,8 @@ import ViewUsers from "./ViewUsers/ViewUsers.jsx";
 import ViewRegister from "./ViewRegister/ViewRegister.jsx";
 import VistaNoAutorizada from "./VistaNoAutorizada/VistaNoAutorizada.jsx";
 import ViewEliminarCuenta from "./ViewEliminarCuenta/ViewEliminarCuenta.jsx";
+import ViewCronograma from "./ViewCronograma/ViewCronograma.jsx";
+import ViewServicioEditar from "./ViewServicioEditar/ViewServicioEditar.jsx";
 
 export {
   ViewLogin,
@@ -38,4 +40,6 @@ export {
   ViewRegister,
   VistaNoAutorizada,
   ViewEliminarCuenta,
+  ViewCronograma,
+  ViewServicioEditar,
 };

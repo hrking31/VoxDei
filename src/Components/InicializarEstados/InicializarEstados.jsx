@@ -9,6 +9,7 @@ import {
   MESSAGES,
   CONFIGURACION,
   ESTILOS,
+  CRONOGRAMA,
 } from "../../Components/Firebase/RutasIglesia";
 import { combinarEstilos } from "../../Components/Estilos/EstilosProyeccion";
 import { ref, onValue } from "firebase/database";
@@ -29,6 +30,9 @@ export default function InicializarEstados() {
     setVisibleVideo,
     setVelocidadTicker,
     setEstilos,
+    setServicios,
+    setEnsayo,
+    setDesfaseReloj,
     showNotif,
   } = useAppContext();
 
@@ -163,9 +167,37 @@ export default function InicializarEstados() {
       }
     );
 
+    // Cronograma: servicios, ensayo en curso y la hora del servidor. Con los
+    // tres, useTurno decide quién puede proyectar en cada momento.
+    const cronograma = onSnapshot(
+      colIglesia(groupId, CRONOGRAMA),
+      (snapshot) => {
+        setServicios(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+      },
+      (error) => {
+        console.error("Error al cargar el cronograma:", error);
+      }
+    );
+
+    const turnoEnsayo = onValue(
+      ref(database, `turnoEnsayo/${groupId}`),
+      (snapshot) => setEnsayo(snapshot.val())
+    );
+
+    // Diferencia entre el reloj de este dispositivo y el del servidor: así
+    // todos cambian de turno a la vez aunque un celular esté adelantado.
+    const desfase = onValue(ref(database, ".info/serverTimeOffset"), (snap) =>
+      setDesfaseReloj(snap.val() || 0)
+    );
+
     loadSlots();
 
     return () => {
+      cronograma();
+      turnoEnsayo();
+      desfase();
+      setServicios([]);
+      setEnsayo(null);
       loadTickers();
       loadMessage();
       visibleTitulo();

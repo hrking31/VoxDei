@@ -24,9 +24,23 @@ setGlobalOptions({ maxInstances: 10 });
 
 const db = getFirestore();
 
-// Largo mínimo de una contraseña nueva. Espejo de LARGO_MINIMO_CLAVE en
-// src/Components/Validaciones/Validaciones.js: si cambia uno, cambia el otro.
-const LARGO_MINIMO_CLAVE = 8;
+// Requisitos de una contraseña nueva. Espejo de src/Components/Validaciones/
+// Validaciones.js y de la política de Firebase Auth: si cambia uno, cambian
+// los tres. Hacen falta aquí porque el SDK de administrador se salta esa
+// política, y una cuenta creada con una contraseña que no la cumple quedaría
+// bloqueada en su primer inicio de sesión (actualización forzada).
+const LARGO_MINIMO_CLAVE = 12;
+const SIMBOLOS_CLAVE = "^$*.[]{}()?\"!@#%&/\\,><':;|_~`-";
+
+function claveValida(clave) {
+  return (
+    clave.length >= LARGO_MINIMO_CLAVE &&
+    /[A-Z]/.test(clave) &&
+    /[a-z]/.test(clave) &&
+    /[0-9]/.test(clave) &&
+    [...clave].some((c) => SIMBOLOS_CLAVE.includes(c))
+  );
+}
 
 // Comprueba que quien llama es pastor o pastora de su iglesia.
 //
@@ -98,27 +112,25 @@ exports.crearUsuarioAdmin = onCall(async (request) => {
     ? normalizarRol(request.data.role)
     : ROL_POR_DEFECTO;
 
-  if (!email || !password || !name) {
+  // El género también: Firestore rechaza un campo `undefined`, y sin esta
+  // comprobación el fallo llegaba después de crear la cuenta.
+  if (!email || !password || !name || !gender) {
     throw new HttpsError(
       "invalid-argument",
-      "Faltan datos: nombre, correo y contraseña son obligatorios.",
+      "Faltan datos: nombre, género, correo y contraseña son obligatorios.",
     );
   }
 
-  if (String(password).length < LARGO_MINIMO_CLAVE) {
+  if (!claveValida(String(password))) {
     throw new HttpsError(
       "invalid-argument",
-      `La contraseña debe tener al menos ${LARGO_MINIMO_CLAVE} caracteres.`,
+      `La contraseña debe tener al menos ${LARGO_MINIMO_CLAVE} caracteres, con mayúscula, minúscula, número y símbolo.`,
     );
   }
 
-  // Quien registró la iglesia debe haber verificado su correo antes de dar de
-  // alta a nadie: frena iglesias de correo inventado que crean cuentas en
-  // serie. La pareja pastoral no lo necesita: la dio de alta el dueño.
-  if (
-    solicitante.uid === solicitante.groupId &&
-    !request.auth.token.email_verified
-  ) {
+  // Todo el equipo verifica su correo, así que quien da de alta a otros
+  // también: frena iglesias de correo inventado que crean cuentas en serie.
+  if (!request.auth.token.email_verified) {
     throw new HttpsError(
       "failed-precondition",
       "Verifica tu correo antes de crear usuarios.",
@@ -158,14 +170,30 @@ exports.crearUsuarioAdmin = onCall(async (request) => {
     }
   }
 
+  // Crear el usuario en Firebase Authentication
+  let userRecord;
   try {
-    // Crear el usuario en Firebase Authentication
-    const userRecord = await getAuth().createUser({
+    userRecord = await getAuth().createUser({
       email: email,
       password: password,
       displayName: name,
     });
+  } catch (error) {
+    // Sin traducir, el pastor veía el mensaje de Firebase en inglés.
+    if (error.code === "auth/email-already-exists") {
+      throw new HttpsError("already-exists", "El correo ya está registrado.");
+    }
+    if (error.code === "auth/invalid-email") {
+      throw new HttpsError("invalid-argument", "Correo inválido.");
+    }
+    throw new HttpsError("internal", error.message);
+  }
 
+  // Ficha y permisos. Si cualquiera de los dos falla, se borra la cuenta recién
+  // creada: sin ficha no aparece en la lista del pastor (que no podría
+  // borrarla) y su correo quedaría ocupado para siempre; sin el permiso de la
+  // iglesia, las reglas no la dejarían proyectar.
+  try {
     // Guardar sus datos y permisos en Firestore.
     // La iglesia se hereda de quien crea, nunca se acepta del cliente: así
     // nadie puede colar un usuario en la iglesia de otro pastor.
@@ -188,8 +216,21 @@ exports.crearUsuarioAdmin = onCall(async (request) => {
 
     return { success: true, message: `Usuario ${name} creado con éxito.` };
   } catch (error) {
-    if (error instanceof HttpsError) throw error;
-    throw new HttpsError("internal", error.message);
+    console.error("Alta incompleta, se deshace:", userRecord.uid, error);
+    await db
+      .collection("users")
+      .doc(userRecord.uid)
+      .delete()
+      .catch(() => {});
+    await getAuth()
+      .deleteUser(userRecord.uid)
+      .catch((errorAlBorrar) =>
+        console.error("No se pudo deshacer la cuenta:", errorAlBorrar),
+      );
+    throw new HttpsError(
+      "internal",
+      "No se pudo crear el usuario. Inténtalo de nuevo.",
+    );
   }
 });
 
@@ -272,6 +313,7 @@ const NODOS_PROYECCION = [
   "displayVisibleImagen",
   "displayVisibleVideo",
   "speedTicker",
+  "turnoEnsayo",
 ];
 
 // Minutos que pueden pasar desde que la persona escribió su contraseña.

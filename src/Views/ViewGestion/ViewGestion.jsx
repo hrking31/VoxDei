@@ -10,9 +10,9 @@ import {
   PaintBrushIcon,
   UserGroupIcon,
   XMarkIcon,
+  CalendarDaysIcon,
 } from "@heroicons/react/24/solid";
 import Footer from "../../Components/Footer/Footer.jsx";
-import MiFoto from "../../Components/MiFoto/MiFoto.jsx";
 import { useAuth } from "../../Components/Context/AuthContext";
 import { esPastor } from "../../Components/Roles/Roles.js";
 
@@ -31,7 +31,16 @@ export default function ViewSelector() {
       <div className="flex flex-col items-center justify-items-start w-full flex-1 px-2">
         {userData && (
           <div className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-2 py-2 mt-4 mb-3 hover:shadow-inner hover:shadow-app-muted transition-shadow duration-300">
-            <MiFoto />
+            {/* Solo se muestra: la foto se cambia en la ficha propia de
+                Usuarios, no aquí. */}
+            <img
+              src={
+                userData.photo ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name || "Usuario")}`
+              }
+              alt=""
+              className="w-10 h-10 rounded-full object-cover shrink-0"
+            />
             <div className="flex flex-col flex-1 leading-tight">
               <span className="text-sm font-medium text-app-main">
                 {userData.name || "Usuario"}
@@ -126,6 +135,14 @@ export default function ViewSelector() {
             }
             label="Canciones"
             onClick={() => navigate("/ViewCanciones")}
+          />
+
+          <OptionButton
+            icon={
+              <CalendarDaysIcon className="w-10 h-10 text-app-muted mb-2" />
+            }
+            label="Cronograma"
+            onClick={() => navigate("/ViewCronograma")}
           />
         </div>
       </div>

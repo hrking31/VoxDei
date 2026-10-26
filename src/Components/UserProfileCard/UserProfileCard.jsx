@@ -1,12 +1,14 @@
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import MiFoto from "../MiFoto/MiFoto.jsx";
 
 // Ficha de un miembro del equipo.
 //
-// Es solo de consulta. Lo único que se puede hacer desde aquí es eliminar:
-// a otro, si quien mira es pastor y le corresponde (`puedeEliminar`), o la
-// propia cuenta, en la ficha de uno mismo (`esMiCuenta`). Antes había
-// también un botón "Cerrar sesión" que cerraba la sesión de QUIEN MIRABA, no la
-// del usuario de la ficha; se quitó porque inducía a error.
+// Es de consulta, salvo dos cosas. Se puede eliminar: a otro, si quien mira es
+// pastor y le corresponde (`puedeEliminar`), o la propia cuenta, en la ficha de
+// uno mismo (`esMiCuenta`). Y en la ficha propia la foto se cambia tocándola
+// (MiFoto): es el único lugar de la app donde se hace. Antes había también un
+// botón "Cerrar sesión" que cerraba la sesión de QUIEN MIRABA, no la del
+// usuario de la ficha; se quitó porque inducía a error.
 export default function UserProfileCard({
   isModalOpen,
   setIsModalOpen,
@@ -15,6 +17,7 @@ export default function UserProfileCard({
   puedeEliminar = false,
   esMiCuenta = false,
   onEliminarMiCuenta,
+  alCambiarFoto,
 }) {
   if (!user) return null;
 
@@ -40,13 +43,21 @@ export default function UserProfileCard({
               </button>
             </div>
 
-            {/* Avatar grande centrado arriba del contenido */}
-            <div className="relative -mt-16 px-8 text-center">
-              <img
-                src={user.photo || "https://ui-avatars.com/api/?name=User"}
-                alt="user"
-                className="w-32 h-32 rounded-full object-cover border-4 border-gray-900 shadow-xl mx-auto"
-              />
+            {/* Avatar grande centrado arriba del contenido. En la ficha propia
+                se toca para cambiar la foto. */}
+            <div className="relative -mt-16 px-8 flex justify-center">
+              {esMiCuenta ? (
+                <MiFoto
+                  tamano="w-32 h-32 border-4 border-gray-900 shadow-xl"
+                  alCambiar={alCambiarFoto}
+                />
+              ) : (
+                <img
+                  src={user.photo || "https://ui-avatars.com/api/?name=User"}
+                  alt="user"
+                  className="w-32 h-32 rounded-full object-cover border-4 border-gray-900 shadow-xl"
+                />
+              )}
             </div>
 
             {/* Contenido del modal */}
