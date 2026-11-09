@@ -14,6 +14,7 @@ import {
 } from "../../Components/ComprimirImagen/ComprimirImagen.js";
 import CampoClave from "../../Components/CampoClave/CampoClave.jsx";
 import RequisitosClave from "../../Components/RequisitosClave/RequisitosClave.jsx";
+import { LogoHorizontal } from "../../Components/Logo/Logo.jsx";
 import {
   AVISO_CLAVE_DEBIL,
   claveValida,
@@ -205,8 +206,11 @@ export default function ViewRegister() {
         <div className="w-full max-w-md space-y-4">
           {/* Encabezado */}
           <div className="text-center mb-4">
+            {/* Horizontal y pequeño: el formulario es largo y la página no
+                se desplaza, así que el vertical lo empujaría fuera. */}
+            <LogoHorizontal className="mx-auto mb-3 h-10 sm:h-12 w-auto" />
             <h1 className="text-3xl sm:text-4xl font-extrabold text-app-main drop-shadow-md">
-              Regístrar Iglesia
+              Registrar Iglesia
             </h1>
             <p className="text-app-muted text-base sm:text-lg mt-2">
               Completa la información para iniciar.

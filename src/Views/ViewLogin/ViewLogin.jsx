@@ -5,6 +5,7 @@ import { useAuth } from "../../Components/Context/AuthContext";
 import { useAppContext } from "../../Components/Context/AppContext";
 import Footer from "../../Components/Footer/Footer.jsx";
 import CampoClave from "../../Components/CampoClave/CampoClave.jsx";
+import { LogoVertical } from "../../Components/Logo/Logo.jsx";
 
 export default function ViewLogin() {
   const navigate = useNavigate();
@@ -68,6 +69,7 @@ export default function ViewLogin() {
         <div className="w-full max-w-md space-y-4">
           {/* Encabezado */}
           <div className="text-center mb-6">
+            <LogoVertical className="mx-auto mb-4 h-28 sm:h-36 w-auto" />
             <h1 className="text-3xl sm:text-4xl font-extrabold text-app-main drop-shadow-md">
               Iniciar Sesión
             </h1>
@@ -78,7 +80,6 @@ export default function ViewLogin() {
 
           {/* Formulario */}
           <div className="w-full max-w-md bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-3 sm:p-5">
-            {/* <div className="w-full max-w-sm bg-white rounded-2xl shadow-md p-8 border border-gray-100"> */}
             <form
               onSubmit={handleSubmit}
               noValidate

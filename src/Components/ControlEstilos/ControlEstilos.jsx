@@ -1,5 +1,4 @@
 import { useState, useEffect, useId } from "react";
-import { useNavigate } from "react-router-dom";
 import { HexColorPicker } from "react-colorful";
 import { setDoc, serverTimestamp } from "firebase/firestore";
 import {
@@ -24,6 +23,7 @@ import {
   fondoDe,
   sombraDe,
 } from "../Estilos/EstilosProyeccion";
+import BotonSalida from "../Navegacion/BotonSalida.jsx";
 
 // Contenido de muestra para la vista previa
 const EJEMPLOS = {
@@ -44,7 +44,6 @@ const EJEMPLOS = {
 };
 
 export default function ControlEstilos() {
-  const navigate = useNavigate();
   const { userData } = useAuth();
   const {
     estilos: estilosGuardados,
@@ -157,12 +156,7 @@ export default function ControlEstilos() {
               {guardando ? "Guardando..." : "Guardar"}
             </button>
 
-            <button
-              onClick={() => navigate("/ViewGestion")}
-              className="px-3 py-1.5 boton-salida"
-            >
-              Salida
-            </button>
+            <BotonSalida className="px-3 py-1.5" />
           </div>
         </div>
       </div>

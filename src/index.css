@@ -10,6 +10,26 @@
   --color-app-border: #444749; /* ➖ Líneas divisorias, bordes suaves */
   --color-app-success: #4ade80; /* ✅ Verde para mensajes de éxito */
   --color-app-error: #ef4444; /* ❌ Rojo para errores */
+  --color-app-texto: #f3f4f6; /* Texto principal claro sobre los fondos oscuros */
+  --color-app-velo: rgb(0 0 0 / 0.45); /* Oscurece el fondo detrás de un panel abierto */
+
+  /* Barra lateral del panel (solo computador) */
+  --spacing-barra: 4rem; /* encogida: solo íconos */
+  --spacing-barra-abierta: 15rem; /* abierta: íconos y nombres */
+  --spacing-barra-etiqueta: 4.25rem; /* nombre flotante, justo al lado de la barra encogida */
+  --shadow-barra: 12px 0 30px rgb(0 0 0 / 0.45);
+
+  /* El símbolo se enciende y se apaga como un proyector que calienta */
+  --animate-enciende: enciende 2.4s ease-in-out infinite;
+  @keyframes enciende {
+    0%,
+    100% {
+      filter: brightness(0.55) saturate(0.6);
+    }
+    50% {
+      filter: brightness(1.1) saturate(1);
+    }
+  }
 }
 
 /* Estilos base */

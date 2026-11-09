@@ -16,6 +16,7 @@ import {
   textoDias,
   textoHora,
 } from "../../Components/Cronograma/UtilesCronograma.js";
+import BotonSalida from "../../Components/Navegacion/BotonSalida.jsx";
 
 // Cronograma de la iglesia: qué operador proyecta en cada servicio.
 //
@@ -140,12 +141,7 @@ export default function ViewCronograma() {
               </button>
             )}
 
-            <button
-              onClick={() => navigate("/ViewGestion")}
-              className="px-3 py-1.5 boton-salida"
-            >
-              Salida
-            </button>
+            <BotonSalida className="px-3 py-1.5" />
           </div>
         </div>
       </div>

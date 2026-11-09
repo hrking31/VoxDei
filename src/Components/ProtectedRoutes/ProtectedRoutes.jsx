@@ -10,7 +10,7 @@ export function ProtectedRoutes({ children, rolesPermitidos = [] }) {
   const location = useLocation(); // Ruta actual
 
   // Mostrar un indicador de carga mientras se verifica el estado de autenticación
-  if (loading) return <Loading text="Procesando usuario..." />;
+  if (loading) return <Loading text="Encendiendo el proyector..." />;
 
   // Si no está logueado → enviar al login, recordando adónde iba: así la
   // ventana del proyector vuelve sola a /VOXDEI cuando se inicia sesión.

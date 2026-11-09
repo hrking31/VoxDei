@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { ref, set, update } from "firebase/database";
 import { database } from "../Firebase/Firebase";
 import { setDoc, deleteDoc } from "firebase/firestore";
@@ -18,12 +17,12 @@ import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
 import FavoritosTexto from "../Favoritos/FavoritosTexto.jsx";
 import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
 import { useTurno } from "../Hooks/useTurno.js";
+import BotonSalida from "../Navegacion/BotonSalida.jsx";
 
 // Cuántos mensajes caben en favoritos. Los documentos son message1..message6.
 const TOPE_FAVORITOS = 6;
 
 export default function ControlMenssage() {
-  const navigate = useNavigate();
   const { userData } = useAuth();
   // Solo quien tiene el turno del cronograma (o un pastor) envía a la pantalla.
   // Escribir y guardar favoritos sí se puede siempre.
@@ -294,13 +293,7 @@ export default function ControlMenssage() {
               Cancelar
             </button>
 
-            <button
-              type="button"
-              onClick={() => navigate("/ViewGestion")}
-              className="w-full py-1.5 boton-salida"
-            >
-              Salida
-            </button>
+            <BotonSalida className="w-full py-1.5" />
 
             {/* Boton visibilidad ticker, titulo, texto */}
             {isDesktop ? (

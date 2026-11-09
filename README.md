@@ -250,6 +250,15 @@ Entra a **Usuarios**, toca el lápiz junto a tu nombre y pulsa **Eliminar mi cue
 
 Aquí queda anotado lo que va cambiando en la aplicación, para que siempre sepas qué es nuevo.
 
+### 9 de noviembre de 2026
+
+- **VOXDEI ya tiene logo.** La pestaña del navegador y los accesos directos muestran el símbolo de VOXDEI: una pantalla iluminada por un haz de luz con una cruz al centro. En el celular, la barra de arriba del navegador toma el gris de la app.
+- **El logo te recibe.** Aparece al iniciar sesión, al registrar tu iglesia, al recuperar la contraseña, en la pantalla de entrada y en la página para eliminar la cuenta.
+- **Nueva barra lateral en el computador.** A la izquierda del panel tienes siempre los íconos de todas las secciones: con un clic pasas de Canciones a Biblia sin volver a la cuadrícula. Toca el símbolo de VOXDEI para ver los nombres; al elegir una sección, la barra se vuelve a recoger. Abajo están **Abrir pantalla del templo** y **Cerrar sesión**, que ahora pide confirmación para que nadie salga por un toque accidental en pleno culto. Por eso, en el computador ya no aparecen los botones «Salida». En el celular todo sigue igual.
+- **Mientras carga, el proyector se enciende.** En lugar de la rueda que giraba, el símbolo de VOXDEI se ilumina poco a poco con el mensaje «Encendiendo el proyector...».
+- **Si algo falla, lo dice con calma.** Si una pantalla tiene un problema, aparece el símbolo apagado con «La pantalla se apagó un momento» y los botones para recargar o volver al inicio. Lo que estaba en la proyección no se pierde.
+- **La cuadrícula del panel está ordenada por uso.** Primero lo que se proyecta (Biblia, Canciones, Mensajes, Ticker, Imágenes, Video, Prédica) y después lo que se organiza (Cronograma, Usuarios, Estilos y colores).
+
 ### 23 de octubre de 2026
 
 - **Nuevo: Cronograma.** El pastor o la pastora asignan qué operador maneja la pantalla en cada servicio, y solo esa persona (además de los pastores) puede enviar cosas a la pantalla durante ese horario. Fuera de los servicios, los operadores usan el **modo ensayo**. Arriba de cada sección, una franja verde o roja te dice si te toca. Todo está explicado en la sección *Cronograma* de este manual.

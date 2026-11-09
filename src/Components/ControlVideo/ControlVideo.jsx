@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { ref, set, update } from "firebase/database";
 import {
   addDoc,
@@ -24,6 +23,7 @@ import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext";
 import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
 import { useTurno } from "../Hooks/useTurno.js";
+import BotonSalida from "../Navegacion/BotonSalida.jsx";
 
 // Convierte segundos a m:ss
 const enMinutos = (segundos) => {
@@ -34,7 +34,6 @@ const enMinutos = (segundos) => {
 };
 
 export default function ControlVideo() {
-  const navigate = useNavigate();
   const { userData } = useAuth();
   const {
     visibleVideo,
@@ -237,12 +236,7 @@ export default function ControlVideo() {
           </h1>
 
           <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => navigate("/ViewGestion")}
-              className="px-3 py-1.5 boton-salida"
-            >
-              Salida
-            </button>
+            <BotonSalida className="px-3 py-1.5" />
 
             <button onClick={toggleVisibleTicker} title="Ticker">
               <TagIcon

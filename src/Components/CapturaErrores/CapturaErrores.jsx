@@ -1,5 +1,6 @@
 import { Component } from "react";
-import { ArrowPathIcon, ExclamationTriangleIcon } from "@heroicons/react/24/solid";
+import { ArrowPathIcon } from "@heroicons/react/24/solid";
+import { Simbolo } from "../Logo/Logo.jsx";
 
 // Red de seguridad de toda la aplicación.
 //
@@ -27,9 +28,12 @@ export default class CapturaErrores extends Component {
     return (
       <div className="min-h-svh flex items-center justify-center px-4 bg-linear-to-b from-gray-900 to-gray-800">
         <div className="w-full max-w-md bg-gray-900/40 border border-gray-700 shadow-xl p-6 text-center space-y-4">
-          <ExclamationTriangleIcon className="w-12 h-12 text-app-main mx-auto" />
+          {/* El símbolo apagado: «se fue la luz», sin asustar a nadie */}
+          <Simbolo alt="" className="mx-auto h-16 w-16 grayscale brightness-75 opacity-60" />
 
-          <h1 className="text-2xl font-bold text-app-main">Algo salió mal</h1>
+          <h1 className="text-2xl font-bold text-app-main">
+            La pantalla se apagó un momento
+          </h1>
 
           <p className="text-app-muted">
             La pantalla tuvo un problema. Lo que estaba en la proyección no se

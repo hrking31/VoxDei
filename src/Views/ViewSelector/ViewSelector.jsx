@@ -8,6 +8,8 @@ import {
 import Footer from "../../Components/Footer/Footer.jsx";
 import { useAuth } from "../../Components/Context/AuthContext";
 import Loading from "../../Components/Loading/Loading.jsx";
+import { LogoHorizontal } from "../../Components/Logo/Logo.jsx";
+import { abrirProyector } from "../../Components/Navegacion/abrirProyector.js";
 
 export default function ViewSelector() {
   const navigate = useNavigate();
@@ -21,29 +23,7 @@ export default function ViewSelector() {
     return <Loading text="Preparando la pantalla de adoración..." />;
   }
 
-  // Abrir ventana a proyectar
-  const abrirVisor = () => {
-    const ancho = 900;
-    const alto = 600;
-
-    window.open(
-      "/VOXDEI",
-      "VisorProyector",
-      `
-      width=${ancho},
-      height=${alto},
-      menubar=no,
-      toolbar=no,
-      location=no,
-      status=no,
-      scrollbars=no,
-      resizable=no
-    `
-    );
-  };
-
   return (
-    // <div className="relative flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-b from-app-light/50 to-white">
     <div className="min-h-svh flex flex-col items-center justify-between bg-linear-to-b from-app-dark/50 to-app-light/50">
       <div className="flex flex-col items-center justify-items-start w-full flex-1 px-2">
         {userData && (
@@ -84,8 +64,9 @@ export default function ViewSelector() {
 
       {/* Encabezado */}
       <div className="text-center mb-2 sm:mb-6">
-        <h1 className="text-3xl sm:text-4xl font-bold text-app-main tracking-tight">
-          Bienvenidos a VOXDEI
+        <h1>
+          <span className="sr-only">Bienvenidos a VOXDEI</span>
+          <LogoHorizontal alt="" className="mx-auto h-16 sm:h-24 w-auto" />
         </h1>
         <p className="text-app-muted text-base sm:text-lg mt-2">
           ¿Cómo quieres usar este dispositivo?
@@ -97,7 +78,7 @@ export default function ViewSelector() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full max-w-3xl">
           {/* Botón Presentación */}
           <button
-            onClick={abrirVisor}
+            onClick={abrirProyector}
             className="group flex flex-col items-center justify-center p-8 sm:p-10 h-50 sm:h-full bg-linear-to-b from-app-main/40 to-app-light rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 border border-app-border"
           >
             <PlayCircleIcon className="w-14 h-14 text-app-main mb-3 transform transition-all duration-300 group-hover:scale-125 group-hover:-translate-y-1" />

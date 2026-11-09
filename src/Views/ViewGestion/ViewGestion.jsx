@@ -1,30 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import {
-  TagIcon,
-  ChatBubbleLeftRightIcon,
-  PhotoIcon,
-  VideoCameraIcon,
-  MicrophoneIcon,
-  BookOpenIcon,
-  MusicalNoteIcon,
-  PaintBrushIcon,
-  UserGroupIcon,
-  XMarkIcon,
-  CalendarDaysIcon,
-} from "@heroicons/react/24/solid";
+import { XMarkIcon } from "@heroicons/react/24/solid";
 import Footer from "../../Components/Footer/Footer.jsx";
 import { useAuth } from "../../Components/Context/AuthContext";
-import { esPastor } from "../../Components/Roles/Roles.js";
+import { seccionesPara } from "../../Components/Navegacion/Secciones.js";
 
-export default function ViewSelector() {
+export default function ViewGestion() {
   const { userData } = useAuth();
   const navigate = useNavigate();
-
-  // Gestión de prédicas es solo del pastor o la pastora. Se oculta en vez de
-  // dejar que el operador entre y choque con la pantalla de acceso denegado.
-  // Usuarios sí la ven todos: el operador la usa para ver al equipo y eliminar
-  // su propia cuenta.
-  const mando = esPastor(userData);
 
   return (
     <div className="min-h-svh flex flex-col items-center justify-center bg-linear-to-b from-app-dark/50 to-app-light/50 ">
@@ -77,73 +59,16 @@ export default function ViewSelector() {
       {/* Cuadrícula de botones */}
       <div className="flex-1 flex items-center justify-center w-full px-6 py-2">
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-2 sm:gap-6 w-full max-w-3xl">
-          <OptionButton
-            icon={<PaintBrushIcon className="w-10 h-10 text-app-muted mb-2" />}
-            label="Estilos y colores"
-            onClick={() => navigate("/ViewStylos")}
-          />
-
-          <OptionButton
-            icon={<UserGroupIcon className="w-10 h-10 text-app-muted mb-2" />}
-            label="Usuarios"
-            onClick={() => navigate("/ViewUsers")}
-          />
-
-          <OptionButton
-            icon={<TagIcon className="w-10 h-10 text-app-muted mb-2" />}
-            label="Ticker"
-            onClick={() => navigate("/ViewTicker")}
-          />
-
-          <OptionButton
-            icon={
-              <ChatBubbleLeftRightIcon className="w-10 h-10 text-app-muted mb-2" />
-            }
-            label="Mensajes"
-            onClick={() => navigate("/ViewMessage")}
-          />
-
-          <OptionButton
-            icon={<PhotoIcon className="w-10 h-10 text-app-muted mb-2" />}
-            label="Imágenes"
-            onClick={() => navigate("/ViewImagenes")}
-          />
-
-          <OptionButton
-            icon={<VideoCameraIcon className="w-10 h-10 text-app-muted mb-2" />}
-            label="Video"
-            onClick={() => navigate("/ViewVideo")}
-          />
-
-          {mando && (
+          {/* La lista es la misma de la barra lateral, con el mismo filtro
+              de roles: Prédica solo aparece a pastor y pastora. */}
+          {seccionesPara(userData).map(({ ruta, nombre, Icono }) => (
             <OptionButton
-              icon={<MicrophoneIcon className="w-10 h-10 text-app-muted mb-2" />}
-              label="Prédica"
-              onClick={() => navigate("/ViewPredica")}
+              key={ruta}
+              icon={<Icono className="w-10 h-10 text-app-muted mb-2" />}
+              label={nombre}
+              onClick={() => navigate(ruta)}
             />
-          )}
-
-          <OptionButton
-            icon={<BookOpenIcon className="w-10 h-10 text-app-muted mb-2 " />}
-            label="Biblia"
-            onClick={() => navigate("/ViewVersiculo")}
-          />
-
-          <OptionButton
-            icon={
-              <MusicalNoteIcon className="w-10 h-10 text-app-muted mb-2" />
-            }
-            label="Canciones"
-            onClick={() => navigate("/ViewCanciones")}
-          />
-
-          <OptionButton
-            icon={
-              <CalendarDaysIcon className="w-10 h-10 text-app-muted mb-2" />
-            }
-            label="Cronograma"
-            onClick={() => navigate("/ViewCronograma")}
-          />
+          ))}
         </div>
       </div>
 
@@ -153,32 +78,20 @@ export default function ViewSelector() {
 }
 
 /* Componente reutilizable */
-function OptionButton({ icon, label, onClick, disponible = true }) {
+function OptionButton({ icon, label, onClick }) {
   return (
     <button
-      onClick={disponible ? onClick : undefined}
-      disabled={!disponible}
-      className={`group flex flex-col items-center justify-center p-3 sm:p-6 bg-linear-to-b from-app-muted/40 to-app-dark rounded-2xl shadow-md border border-app-border sm:aspect-square transition-all duration-300 ${
-        disponible
-          ? "hover:shadow-xl transform hover:scale-105"
-          : "opacity-40 cursor-not-allowed"
-      }`}
+      type="button"
+      onClick={onClick}
+      className="group flex flex-col items-center justify-center p-3 sm:p-6 bg-linear-to-b from-app-muted/40 to-app-dark rounded-2xl shadow-md border border-app-border sm:aspect-square transition-all duration-300 hover:shadow-xl transform hover:scale-105"
     >
-      <span
-        className={`text-app-main transform transition-all duration-300 ${
-          disponible ? "group-hover:scale-125 group-hover:-translate-y-1" : ""
-        }`}
-      >
+      <span className="text-app-main transform transition-all duration-300 group-hover:scale-125 group-hover:-translate-y-1">
         {icon}
       </span>
 
       <span className="text-sm sm:text-base font-medium text-app-main text-center mt-2">
         {label}
       </span>
-
-      {!disponible && (
-        <span className="text-[10px] text-app-muted mt-1">Próximamente</span>
-      )}
     </button>
   );
 }

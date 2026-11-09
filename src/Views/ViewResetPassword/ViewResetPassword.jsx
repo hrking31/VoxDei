@@ -4,6 +4,7 @@ import { auth } from "../../Components/Firebase/Firebase";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../../Components/Context/AppContext";
 import Footer from "../../Components/Footer/Footer.jsx";
+import { LogoVertical } from "../../Components/Logo/Logo.jsx";
 
 export default function ViewResetPassword() {
   const [email, setEmail] = useState("");
@@ -41,6 +42,7 @@ export default function ViewResetPassword() {
         <div className="w-full max-w-md space-y-4">
           {/* Encabezado */}
           <div className="text-center mb-6">
+            <LogoVertical className="mx-auto mb-4 h-28 sm:h-36 w-auto" />
             <h1 className="text-3xl sm:text-4xl font-extrabold text-app-main tracking-tight">
               Recuperar Contraseña
             </h1>

@@ -28,6 +28,7 @@ import {
 import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext";
 import { normalizar } from "../Canciones/UtilesCanciones";
+import BotonSalida from "../Navegacion/BotonSalida.jsx";
 
 // Cuántas favoritas se muestran: las mismas en ambos casos, pero en el celular
 // van en una columna y en el computador en dos, más grandes.
@@ -302,12 +303,7 @@ export default function ControlCanciones() {
               Canciones
             </button>
 
-            <button
-              onClick={() => navigate("/ViewGestion")}
-              className="px-3 py-1.5 boton-salida"
-            >
-              Salida
-            </button>
+            <BotonSalida className="px-3 py-1.5" />
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import { Simbolo } from "../../Components/Logo/Logo.jsx";
 
 export default function VistaNoAutorizada() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function VistaNoAutorizada() {
 
   return (
     <div className="max-w-md mx-auto text-center mt-28 p-4">
+      <Simbolo alt="" className="mx-auto mb-6 h-16 w-16 grayscale brightness-75 opacity-60" />
       <h1 className="text-4xl font-bold text-app-error mb-6">
         Acceso denegado
       </h1>

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { database } from "../Firebase/Firebase";
 import { ref, set, update } from "firebase/database";
 import { setDoc, deleteDoc } from "firebase/firestore";
@@ -18,12 +17,12 @@ import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
 import FavoritosTexto from "../Favoritos/FavoritosTexto.jsx";
 import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
 import { useTurno } from "../Hooks/useTurno.js";
+import BotonSalida from "../Navegacion/BotonSalida.jsx";
 
 // Cuántos tickers caben en favoritos. Los documentos son ticker1..ticker6.
 const TOPE_FAVORITOS = 6;
 
 export default function ControlTicker() {
-  const navigate = useNavigate();
   const { userData } = useAuth();
   // Solo quien tiene el turno del cronograma (o un pastor) envía a la pantalla.
   // Escribir y guardar favoritos sí se puede siempre.
@@ -314,14 +313,7 @@ export default function ControlTicker() {
               Cancelar
             </button>
 
-            {/* Boton salir */}
-            <button
-              type="button"
-              onClick={() => navigate("/ViewGestion")}
-              className="w-full py-1.5 boton-salida"
-            >
-              Salida
-            </button>
+            <BotonSalida className="w-full py-1.5" />
 
             {/* Boton visibilidad ticker, titulo, texto */}
             {isDesktop ? (

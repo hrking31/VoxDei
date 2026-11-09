@@ -1,5 +1,4 @@
 import { useState, useRef, useLayoutEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { database } from "../Firebase/Firebase";
 import { ref, set, update } from "firebase/database";
 import parse from "html-react-parser";
@@ -19,9 +18,9 @@ import { useAuth } from "../../Components/Context/AuthContext";
 import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
 import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
 import { useTurno } from "../Hooks/useTurno.js";
+import BotonSalida from "../Navegacion/BotonSalida.jsx";
 
 export default function ControlVersiculos() {
-  const navigate = useNavigate();
   const { userData } = useAuth();
   // Solo quien tiene el turno del cronograma (o un pastor) envía a la pantalla.
   // Buscar y leer versículos sí se puede siempre.
@@ -357,13 +356,7 @@ export default function ControlVersiculos() {
             Nuevo
           </button>
 
-          <button
-            type="button"
-            onClick={() => navigate("/ViewGestion")}
-            className="w-full py-2 boton-salida"
-          >
-            Salida
-          </button>
+          <BotonSalida className="w-full py-2" />
 
           {isDesktop ? (
             <div className="flex items-center gap-4">

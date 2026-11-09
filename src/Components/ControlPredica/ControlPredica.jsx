@@ -46,6 +46,7 @@ export default function Predica() {
     slots,
     setSlots,
     showNotif,
+    isDesktop,
   } = useAppContext();
   const [tipoLibros, setTipoLibros] = useState("antiguo");
   const [modalActivo, setModalActivo] = useState(null);
@@ -264,31 +265,26 @@ export default function Predica() {
                     <ChatBubbleLeftRightIcon className="w-6 h-6" />
                   )}
                 </button>
-
-                {/* Boton salida */}
-                <button
-                  onClick={() => navigate("/ViewGestion")}
-                  className="p-2 rounded-full hover:bg-app-main transition active:bg-app-error active:text-app-muted"
-                  aria-label="Cerrar"
-                >
-                  <ArrowLeftEndOnRectangleIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
-                </button>
               </div>
             ) : (
               <div className="flex items-center justify-center mr-2 gap-6">
                 {predicaItems?.length > 0 && (
                   <WhatsAppButton message={predicaItems} />
                 )}
-
-                {/* Boton salida */}
-                <button
-                  onClick={() => navigate("/ViewGestion")}
-                  className="p-2 rounded-full hover:bg-app-main transition active:bg-app-error active:text-app-muted"
-                  aria-label="Cerrar"
-                >
-                  <ArrowLeftEndOnRectangleIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
-                </button>
               </div>
+            )}
+
+            {/* Salida, la misma en los dos modos. En el computador no hace
+                falta: la barra lateral lleva a cualquier sección. */}
+            {!isDesktop && (
+              <button
+                type="button"
+                onClick={() => navigate("/ViewGestion")}
+                className="p-2 rounded-full hover:bg-app-main transition active:bg-app-error active:text-app-muted"
+                aria-label="Salida"
+              >
+                <ArrowLeftEndOnRectangleIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
+              </button>
             )}
           </div>
         </div>

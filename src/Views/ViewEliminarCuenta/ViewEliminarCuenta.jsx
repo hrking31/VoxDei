@@ -9,6 +9,7 @@ import { useAppContext } from "../../Components/Context/AppContext";
 import Loading from "../../Components/Loading/Loading.jsx";
 import Footer from "../../Components/Footer/Footer.jsx";
 import CampoClave from "../../Components/CampoClave/CampoClave.jsx";
+import { LogoHorizontal } from "../../Components/Logo/Logo.jsx";
 
 // Borrado de la propia cuenta, exigido por Google Play desde la app y desde
 // una web. Por eso la ruta es pública: sin sesión explica cómo hacerlo (es la
@@ -75,12 +76,12 @@ export default function ViewEliminarCuenta() {
       <div className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
         <div className="w-full max-w-md space-y-4">
           <div className="text-center mb-6">
+            {/* Página pública que se declara en Google Play: el logo deja
+                claro de qué app es la cuenta. */}
+            <LogoHorizontal className="mx-auto mb-4 h-12 w-auto" />
             <h1 className="text-3xl sm:text-4xl font-extrabold text-app-main tracking-tight">
               Eliminar cuenta
             </h1>
-            <p className="text-app-muted text-base sm:text-lg mt-2">
-              VOXDEI
-            </p>
           </div>
 
           <div className="w-full bg-gray-900/40 backdrop-blur-sm border border-gray-700 shadow-xl p-6 space-y-4 text-sm text-gray-300">

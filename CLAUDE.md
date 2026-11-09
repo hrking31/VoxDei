@@ -9,6 +9,7 @@ npm run dev          # Vite en modo desarrollo (host 0.0.0.0, accesible desde la
 npm run build        # Build de producción a dist/
 npm run preview      # Sirve el build de dist/
 npm run lint         # ESLint sobre src/ y functions/ (dist/ ignorado)
+npm test             # Vitest, una pasada, con 2 procesos como máximo
 
 # Cloud Functions (desde functions/)
 npm run serve        # Emulador solo de functions
@@ -19,7 +20,15 @@ npm run deploy       # firebase deploy --only functions
 npm run build && firebase deploy --only hosting
 ```
 
-No hay suite de tests ni runner configurado en el proyecto.
+### Pruebas (desde el 9 de noviembre de 2026)
+
+**Vitest** + **Testing Library** + **jsdom**, configurados en la sección `test` de `vite.config.js`. El usuario pidió (9 de noviembre de 2026) que **todo lo que se haga lleve su prueba**: cada componente o función nueva o tocada se prueba antes de darla por terminada.
+
+- **Nunca más de 3 procesos**: este PC se apagó con pantalla azul el 22 de octubre de 2026 por unas pruebas sin límite. Está en **2** (`maxWorkers: 2`, `pool: "threads"`): con 3, cargar jsdom en paralelo saturaba el PC, los hilos no alcanzaban a arrancar y tardaba 98 s; con 2, unos 15 s y sin fallos. No corras `vitest` a pelo sin `--maxWorkers`; usa `npm test`.
+- Los archivos van junto al código: `Nombre.test.js(x)`. Sin `globals`: cada prueba importa `describe`, `it`, `expect`, `vi` de `vitest`.
+- Para montar componentes con sesión, contexto y enrutador falsos está `montar()` en `Components/Navegacion/pruebas.utils.jsx` (por defecto: pastor con sesión lista, en computador, que confirma todo). También registra el `cleanup` de Testing Library, que sin `globals` no corre solo.
+- Vite **incrusta como `data:`** los SVG de menos de 4 KB (el símbolo): para comprobar una imagen, compárala con el `import` del archivo, no con su nombre.
+- Los 18 casos del cronograma que se probaron a mano el 23 de octubre **aún no están en Vitest**.
 
 **Antes de correr `npm run dev` en un clon nuevo**: `src/Components/Firebase/FirebaseConfig.js` está en `.gitignore` y no se versiona. Debe existir exportando por defecto el objeto de configuración de Firebase (`apiKey`, `authDomain`, `databaseURL`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`); sin él la app no arranca.
 
@@ -107,6 +116,28 @@ Excepción deliberada: los scripts de carga masiva `Upload/CargarBiblia` y `Uplo
 Las dos pantallas comparten **`src/Components/Favoritos/FavoritosTexto.jsx`**: el recuadro y las tarjetas. Cada tarjeta lleva los tres botones (proyectar, editar, eliminar) **arriba a la derecha**, junto al rótulo, y el texto debajo recortado a tres renglones (`line-clamp-3`), para que quepan varias sin alargar la página. Hubo una versión con un visor modal para leer el texto completo; se quitó el mismo día por innecesaria. El componente recibe `etiqueta` ("Mensaje" / "Ticker") y los manejadores; no toca Firestore ni RTDB por su cuenta, todo lo decide el panel que lo monta. El favorito que está en pantalla se marca con `border-app-success bg-app-success/10` y el rótulo «· en pantalla», igual que la lámina activa de `ControlCancionProyectar`.
 
 `numProyectado` es estado local del panel, no un nodo de RTDB: marca cuál de los seis se envió desde esta sesión. Al proyectar el texto del área de escritura se pone en `null`, porque lo que hay en pantalla ya no es ninguno de los favoritos. Una recarga lo pierde, y es deliberado: no vale la pena un nodo nuevo para una marca visual.
+
+### Navegación del panel (9 de noviembre de 2026)
+
+En el **computador** hay una **barra lateral**; en el **celular** sigue la cuadrícula de `ViewGestion` (su rediseño —barra inferior y Orden del culto— está aprobado pero sin hacer). Todo vive en `src/Components/Navegacion/`:
+
+| Archivo | Qué hace |
+| --- | --- |
+| `Secciones.js` | **La lista única** de secciones (`SECCIONES`, `GRUPOS` «Proyectar»/«Organizar», `INICIO`). La usan la cuadrícula y la barra. `seccionesPara(userData)` aplica el filtro de roles (Prédica solo pastores); `estaActiva(seccion, pathname)` decide qué ícono se enciende, sin distinguir mayúsculas y con los prefijos de `tambien` (`/ViewCancion/` enciende Canciones, `/ViewServicioEditar` enciende Cronograma). |
+| `MarcoPanel.jsx` | Ruta **sin `path`** en `App.jsx` que agrupa las pantallas del panel y pinta la barra junto al `<Outlet />`. Solo con `isDesktop` y la sesión lista (`user`, `userData`, `correoVerificado`). |
+| `BarraLateral.jsx` | Encogida (`w-barra`, solo íconos) o abierta por encima del contenido (`w-barra-abierta`) al pulsar el símbolo; al elegir algo, con Escape o tocando el velo se encoge. Abajo: abrir la pantalla del templo, la persona y cerrar sesión (con `confirmAction`). |
+| `BotonSalida.jsx` | El único botón «Salida» de los paneles. **En el computador no se pinta**: la barra lo reemplaza. |
+| `abrirProyector.js` | Abre `/VOXDEI` en la ventana `VisorProyector`. La usan `ViewSelector` y la barra. |
+
+Reglas:
+
+- **Una sección nueva se agrega en `SECCIONES`** y su ruta va **dentro** de `<Route element={<MarcoPanel />}>` en `App.jsx`. Fuera del marco quedan a propósito `/VOXDEI`, `/ViewSelector`, login, registro, `/ResetPassword`, `/EliminarCuenta` y `/VistaNoAutorizada`.
+- Las direcciones **no cambiaron**: la barra solo navega a las mismas rutas, así que «atrás», recargar y los favoritos siguen funcionando.
+- Un botón nuevo de «volver a Gestión» en un panel debe ser `BotonSalida` u ocultarse con `isDesktop`.
+- `isDesktop` (`AppProvider`) se calcula una vez al cargar (`innerWidth >= 1024`) y no escucha `resize`.
+- El prototipo aprobado está en https://claude.ai/artifact/Jaqpt5fwZnHjaaHLzqugne y el del celular en https://claude.ai/artifact/AMSoJ9VXpBRLE5zwJS3kuQ.
+
+**Logo en pantallas** (ideas 1–3 del 9 de noviembre de 2026): `Components/Logo/Logo.jsx` exporta `Simbolo`, `LogoHorizontal` y `LogoVertical` (versiones de fondo oscuro). Vertical en login y recuperar contraseña; horizontal pequeño en registro (la página no se desplaza), en la entrada (`ViewSelector`, en vez del título) y en `/EliminarCuenta`. `Loading` muestra el símbolo con `motion-safe:animate-enciende` y `ProtectedRoutes` dice «Encendiendo el proyector...». `CapturaErrores` y `VistaNoAutorizada` muestran el símbolo **apagado** (`grayscale brightness-75 opacity-60`).
 
 ### Roles y rutas protegidas
 
@@ -318,7 +349,7 @@ Decide quién puede escribir en la pantalla en cada momento. Reglas acordadas co
 | --- | --- |
 | Servicios | Firestore `iglesias/{groupId}/cronograma/{id}`: `{ nombre, inicio, fin, dias[], fecha, operadorUid, operadorNombre, activo }`. `dias` usa `Date.getDay()` (0 = domingo); vacío = una sola vez en `fecha` (`AAAA-MM-DD`). Sin cruces de medianoche: `fin > inicio`. |
 | Ensayo | RTDB `turnoEnsayo/{groupId}`: `{ uid, nombre, inicio (serverTimestamp), iniciadoPor }`. Termina con «Terminar», al empezar cualquier servicio (`empezoAlgunServicio`: no «revive» cuando ese servicio acaba) o a las `HORAS_ENSAYO` (3). Está en `database.rules.json` y en `NODOS_PROYECCION`. |
-| Lógica | `Components/Cronograma/UtilesCronograma.js`, funciones puras (`turnoActual`, `puedeProyectar`…). Se probaron 18 casos con Node desde una carpeta temporal; no hay suite en el proyecto. |
+| Lógica | `Components/Cronograma/UtilesCronograma.js`, funciones puras (`turnoActual`, `puedeProyectar`…). Se probaron 18 casos con Node desde una carpeta temporal; falta pasarlos a Vitest. |
 | Hora | La del **servidor**: `InicializarEstados` escucha `.info/serverTimeOffset` (`desfaseReloj` en `AppContext`) y `useTurno` suma ese desfase a `Date.now()`, recalculando cada 30 s. Así un celular con el reloj adelantado no cambia de turno antes que los demás. Día y hora se leen en la zona horaria del dispositivo. |
 | Hook | `Components/Hooks/useTurno.js` → `{ turno, puedoProyectar, exigirTurno }`. |
 | Pantallas | `/ViewCronograma` (todos; ahí se puede dar el ensayo a otro operador) y `/ViewServicioEditar[/:id]` (ruta con `ROLES_PASTORES`). `useOperadores` (`Cronograma/useEquipo.js`) lee una vez los operadores de la iglesia. |
@@ -349,6 +380,8 @@ La CSP es una lista blanca. **Todo dominio nuevo que cargue la app debe sumarse 
 
 Tailwind v4 mediante `@tailwindcss/vite`; **no hay `tailwind.config.js`**. El tema vive en `src/index.css` con `@theme` y tokens `--color-app-*` (`app-dark`, `app-light`, `app-main`, `app-accent`, `app-muted`, `app-border`, `app-success`, `app-error`). Usa siempre esas clases (`text-app-muted`, `bg-app-light`) en vez de colores crudos de Tailwind. También hay utilidades propias: `scrollbar-custom`, `boton-salida`, `form-dark` / `form-light` / `form-dark2` (arreglos de autofill), `animate-menu-open`.
 
+**Logo** (9 de noviembre de 2026). Los SVG viven en **`src/assets/`**, junto al resto de imágenes (el usuario no quiere carpetas aparte como `public/logo`). El símbolo de la app es **`voxdei-simbolo.svg`**, el morado de cinco rayos, extraído del logo horizontal; `index.html` lo usa como ícono con `href="/src/assets/voxdei-simbolo.svg"` y Vite lo procesa en el build. Hubo un ícono azul de un solo haz (`voxdei-1-proyector.svg`) que no coincidía con los logos: el usuario lo descartó y se borró. Dentro de la app (fondo gris) van las versiones `fondo-oscuro`; las `fondo-claro` son para el README, la tienda y lo impreso. Las ideas aprobadas para usarlos y la navegación nueva (barra lateral en PC, barra inferior y Orden del culto en el celular) están en la memoria del proyecto, con sus prototipos.
+
 `useScreenType()` clasifica la pantalla en `proyector` | `desktop` | `movil`; `ControlDisplay` usa esa clave para elegir tamaños tipográficos y velocidad del ticker. En los paneles, `isDesktop` (de `AppContext`) decide entre botones de visibilidad en línea o el `ModalVisibilidad`.
 
 **`ModalVisibilidad` se ancla al botón con `fixed`** (22 de agosto de 2026). Antes su menú era `absolute` y el componente **no envolvía botón y menú en un contenedor `relative` propio**, así que se anclaba al ancestro posicionado de cada vista —el encabezado `sticky`— y en `ControlCanciones`, `ControlTicker` y `Controlmessage` salía fuera de la pantalla; solo en `ControlVersiculo` caía donde debía. **El menú va sin fondo y sin borde a propósito**: solo `rounded-xl` y una sombra corta, `shadow-[0_2px_6px_rgba(0,0,0,0.45)]`. Lo que lo separa del contenido de atrás es **únicamente esa sombra**, así que no la quites: se probó sin ella y el recuadro deja de distinguirse. Tampoco vuelvas a `shadow-xl`: con 25 px de desenfoque y sin fondo detrás, se ve como un halo grande alrededor del menú. Al corregir la posición se le añadieron fondo y borde y el usuario pidió retirarlos; no los repongas creyendo que faltan. Ahora calcula su sitio con `getBoundingClientRect()`. **Tres reglas fijas, pedidas expresamente por el usuario; no las cambies por lo que parezca más bonito:**
@@ -365,8 +398,11 @@ El encabezado se localiza subiendo desde el botón hasta el primer ancestro con 
 
 - Código, comentarios y nombres de componentes en español. Mantener ese estilo.
 - Las vistas viven en `src/Views/<Nombre>/<Nombre>.jsx` y deben reexportarse en `src/Views/index.js` para poder usarse en `App.jsx`.
-- Las rutas distinguen mayúsculas y se escriben tal cual (`/ViewGestion`, `/ViewSelector`, `/VOXDEI`). Ya hay al menos un `navigate("/Viewgestion")` mal escrito en `ViewUsers` que no coincide con ninguna ruta; conviene verificar el destino al copiar navegaciones.
-- `ViewGestion.jsx` exporta una función llamada internamente `ViewSelector`, distinta de la vista `ViewSelector`. No confundirlas: `ViewSelector` es la pantalla de entrada (abre el visor y cierra sesión), `ViewGestion` es la cuadrícula de opciones.
+- Las rutas se escriben tal cual (`/ViewGestion`, `/ViewSelector`, `/VOXDEI`). React Router **no distingue mayúsculas** (por eso `/viewTicker` en `App.jsx` funciona con `navigate("/ViewTicker")`), pero escríbelas igual que en `App.jsx`. El `navigate("/Viewgestion")` mal escrito de `ViewUsers` se corrigió el 9 de noviembre de 2026.
+- `ViewSelector` es la pantalla de entrada (abre el visor y cierra sesión); `ViewGestion` es la cuadrícula de opciones. Hasta el 9 de noviembre de 2026 la función de `ViewGestion.jsx` se llamaba por dentro `ViewSelector`; ya se renombró.
+- **Código heredado**: el usuario pidió (9 de noviembre de 2026) borrar el código viejo al reemplazarlo, no dejarlo comentado ni sin usar. Ese día se borraron la versión antigua de `ViewUsers` (428 líneas comentadas), la opción «Próximamente» de los botones de Gestión y las once copias del botón «Salida».
+- **Estilos solo desde el tema**: colores, medidas, sombras y animaciones se definen como variables en el `@theme` de `src/index.css` y los componentes los usan por su nombre (`bg-app-velo`, `w-barra`, `animate-enciende`). Nada de valores sueltos (`bg-[#…]`, `text-gray-100`, `left-[calc(…)]`): si falta uno, se agrega al tema. **No se crea otro archivo de tema** (decisión del usuario). Para algo que se repite, un componente de React, no una clase con `@apply`. Lo antiguo todavía tiene colores crudos (`from-gray-900` en las pantallas de entrada, `bg-green-500`…); se limpia al tocarlo.
+- **Lenguaje**: JavaScript. El 9 de noviembre de 2026 se habló de TypeScript y se decidió seguir en JS por ahora; si se migra, que sea gradual y empezando por la lógica pura.
 - Regla de ESLint activa: `no-unused-vars` con `varsIgnorePattern: '^[A-Z_]'`. De `eslint-plugin-react` solo está activada `react/jsx-uses-vars` (para que `no-unused-vars` no dé por muertas las variables usadas en el JSX, como `motion`); el preset completo del plugin está deliberadamente apagado.
 - `vite.config.js` fuerza un chunk manual llamado `firebase` para todo el SDK; el hosting sirve `dist/` con rewrite SPA a `index.html`.
 

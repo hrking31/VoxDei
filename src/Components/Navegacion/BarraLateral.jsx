@@ -1,0 +1,189 @@
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import {
+  ArrowLeftStartOnRectangleIcon,
+  ComputerDesktopIcon,
+  UserIcon,
+} from "@heroicons/react/24/solid";
+import { useAuth } from "../Context/AuthContext";
+import { useAppContext } from "../Context/AppContext";
+import { LogoHorizontal, Simbolo } from "../Logo/Logo.jsx";
+import { GRUPOS, INICIO, estaActiva, seccionesPara } from "./Secciones.js";
+import { abrirProyector } from "./abrirProyector.js";
+
+// Barra lateral del panel en el computador. Encogida muestra solo íconos;
+// al pulsar el símbolo se abre por encima del contenido con los nombres y,
+// al elegir algo, se vuelve a encoger. No se esconde del todo: cambiar de
+// sección queda siempre a un clic.
+//
+// Ocupa su sitio con un hueco del ancho encogido y se pinta `fixed`, para
+// que al abrirse tape el contenido en vez de empujarlo.
+export default function BarraLateral() {
+  const [abierta, setAbierta] = useState(false);
+  const { userData, logout } = useAuth();
+  const { confirmAction } = useAppContext();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!abierta) return;
+    const alPulsarTecla = (e) => {
+      if (e.key === "Escape") setAbierta(false);
+    };
+    document.addEventListener("keydown", alPulsarTecla);
+    return () => document.removeEventListener("keydown", alPulsarTecla);
+  }, [abierta]);
+
+  const ir = (ruta) => {
+    setAbierta(false);
+    navigate(ruta);
+  };
+
+  const abrirPantalla = () => {
+    setAbierta(false);
+    abrirProyector();
+  };
+
+  // Un clic suelto en pleno culto no debe sacar a nadie: se confirma.
+  const cerrarSesion = async () => {
+    setAbierta(false);
+    if (await confirmAction("¿Cerrar sesión?")) await logout();
+  };
+
+  const secciones = seccionesPara(userData);
+
+  return (
+    <>
+      <div className="w-barra shrink-0" aria-hidden="true" />
+
+      {abierta && (
+        <div
+          data-testid="velo-barra"
+          className="fixed inset-0 z-30 bg-app-velo"
+          onClick={() => setAbierta(false)}
+        />
+      )}
+
+      <nav
+        aria-label="Secciones del panel"
+        className={`fixed inset-y-0 left-0 z-40 flex flex-col gap-1 overflow-y-auto border-r border-app-border bg-app-light p-2 transition-[width] duration-200 ${
+          abierta ? "w-barra-abierta shadow-barra" : "w-barra"
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => setAbierta(!abierta)}
+          aria-expanded={abierta}
+          aria-label={abierta ? "Encoger la barra" : "Mostrar los nombres de las secciones"}
+          className="flex h-12 shrink-0 items-center rounded-lg px-1.5 hover:bg-app-dark"
+        >
+          {abierta ? (
+            // El archivo trae margen vacío alrededor: a la altura completa del
+            // botón el texto se lee bien.
+            <LogoHorizontal className="h-12 w-auto" alt="" />
+          ) : (
+            <Simbolo className="h-9 w-9" alt="" />
+          )}
+        </button>
+
+        <Opcion
+          seccion={INICIO}
+          activa={estaActiva(INICIO, pathname)}
+          abierta={abierta}
+          onClick={() => ir(INICIO.ruta)}
+        />
+
+        {GRUPOS.map((grupo) => {
+          const delGrupo = secciones.filter((s) => s.grupo === grupo.id);
+          if (delGrupo.length === 0) return null;
+          return (
+            <div key={grupo.id} role="group" aria-label={grupo.nombre} className="flex flex-col gap-1">
+              <span className="flex h-6 shrink-0 items-center px-3 text-xs uppercase tracking-widest text-app-muted">
+                {abierta ? grupo.nombre : <span className="h-px w-6 bg-app-border" />}
+              </span>
+              {delGrupo.map((s) => (
+                <Opcion
+                  key={s.ruta}
+                  seccion={s}
+                  activa={estaActiva(s, pathname)}
+                  abierta={abierta}
+                  onClick={() => ir(s.ruta)}
+                />
+              ))}
+            </div>
+          );
+        })}
+
+        <div className="min-h-2 flex-1" />
+
+        <Opcion
+          seccion={{ nombre: "Abrir pantalla del templo", Icono: ComputerDesktopIcon }}
+          abierta={abierta}
+          onClick={abrirPantalla}
+        />
+        <Persona userData={userData} abierta={abierta} />
+        <Opcion
+          seccion={{ nombre: "Cerrar sesión", Icono: ArrowLeftStartOnRectangleIcon }}
+          abierta={abierta}
+          onClick={cerrarSesion}
+        />
+      </nav>
+    </>
+  );
+}
+
+// Encogida, el nombre va en `aria-label` y en una etiqueta que aparece al
+// pasar el ratón; abierta, el nombre se lee del propio texto.
+function Opcion({ seccion, activa = false, abierta, onClick }) {
+  const { Icono, nombre } = seccion;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-current={activa ? "page" : undefined}
+      aria-label={abierta ? undefined : nombre}
+      className={`group relative flex h-10 w-full shrink-0 items-center gap-3 whitespace-nowrap rounded-lg px-3 text-left transition-colors ${
+        activa
+          ? "bg-app-main/15 text-app-main"
+          : "text-app-muted hover:bg-app-dark hover:text-app-texto"
+      }`}
+    >
+      {activa && (
+        <span className="absolute -left-2 inset-y-2 w-1 rounded-r bg-app-main" aria-hidden="true" />
+      )}
+      <Icono className="h-6 w-6 shrink-0" aria-hidden="true" />
+      {abierta ? (
+        <span className="text-sm">{nombre}</span>
+      ) : (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none fixed left-barra-etiqueta z-50 rounded bg-app-dark px-2 py-1 text-xs text-app-texto opacity-0 shadow-barra transition-opacity group-hover:opacity-100"
+        >
+          {nombre}
+        </span>
+      )}
+    </button>
+  );
+}
+
+function Persona({ userData, abierta }) {
+  return (
+    <div className="flex shrink-0 items-center gap-2 overflow-hidden rounded-lg px-1.5 py-1">
+      {userData?.photo ? (
+        <img src={userData.photo} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
+      ) : (
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-app-border">
+          <UserIcon className="h-5 w-5 text-app-muted" aria-hidden="true" />
+        </span>
+      )}
+      {abierta && (
+        <span className="flex min-w-0 flex-col leading-tight">
+          <span className="truncate text-sm font-medium text-app-main">
+            {userData?.name || "Usuario"}
+          </span>
+          <span className="truncate text-xs text-app-muted">{userData?.role}</span>
+        </span>
+      )}
+    </div>
+  );
+}

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { ref as dbRef, set as dbSet } from "firebase/database";
 import {
   ref as storageRef,
@@ -24,9 +23,9 @@ import { useAppContext } from "../../Components/Context/AppContext";
 import { comprimirImagen } from "../ComprimirImagen/ComprimirImagen.js";
 import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
 import { useTurno } from "../Hooks/useTurno.js";
+import BotonSalida from "../Navegacion/BotonSalida.jsx";
 
 export default function ControlImagenes() {
-  const navigate = useNavigate();
   const { userData } = useAuth();
   const { visibleImagen, setVisibleImagen, showNotif, confirmAction } =
     useAppContext();
@@ -386,12 +385,7 @@ export default function ControlImagenes() {
             Proyectar selección
           </button>
 
-          <button
-            onClick={() => navigate("/ViewGestion")}
-            className="w-full py-2 boton-salida"
-          >
-            Salida
-          </button>
+          <BotonSalida className="w-full py-2" />
 
           {/* Encender / apagar la imagen en la pantalla */}
           <button
