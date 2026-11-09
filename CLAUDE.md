@@ -298,6 +298,15 @@ Nunca describas en el manual una función que no esté terminada sin marcarla co
 
 **Registro de cambios**: el usuario pidió expresamente (22 de agosto de 2026) que **todo cambio se anote en `README.md`** sin esperar a que lo recuerde, porque es la vista del proyecto en GitHub.
 
+### App instalable y archivos de la tienda (9 de noviembre de 2026, ideas 9–11)
+
+- `public/manifest.webmanifest`: nombre, `start_url: /ViewSelector`, `display: standalone`, `background_color: #0D0B26` (con el ícono, Android arma la pantalla de arranque: idea 10) y `theme_color: #323437`. Enlazado en `index.html` junto a `apple-touch-icon.png`. La CSP lo permite por `default-src 'self'`.
+- Íconos en `public/` (necesitan dirección fija): `icono-192/512.png` (el símbolo con esquinas, `purpose: any`) e `icono-maskable-192/512.png` (`purpose: maskable`). La fuente del maskable es `src/assets/voxdei-icono-android.svg`: fondo cuadrado sin esquinas y el dibujo al 78 %, dentro de la zona segura del 80 %.
+- Para Play Console, en `docs/`: `grafico-destacado-play-store.jpg` (1024 × 500) e `icono-play-store-512.png`.
+- Los PNG se generaron con **Chrome sin ventana** (`chrome.exe --headless=new --screenshot --window-size=… --default-background-color=00000000` sobre una página HTML con el SVG) y los JPEG con `System.Drawing` de PowerShell; no hace falta instalar nada. Si cambia el logo, hay que regenerarlos.
+- `src/Metadatos.test.js` comprueba enlaces, rutas, medidas de cada ícono y de los archivos de la tienda.
+- **Aún no es una app de Play Store**: falta el service worker, `assetlinks.json` y empaquetarla con Bubblewrap (punto 1 de la lista).
+
 ### Pantalla de espera y marca de agua (9 de noviembre de 2026, ideas 6 y 7)
 
 **Pantalla de espera.** Nodo RTDB `displayEspera/{groupId}` = `{ activa }`; `InicializarEstados` lo vuelca en `visibleEspera` (sin nodo, apagada). Se enciende y apaga **solo desde `ViewCronograma`** (tarjeta «Pantalla de espera»), con `exigirTurno` porque escribe en la pantalla. En `ControlDisplay`, mientras está activa **manda sobre todo el centro** (video, imagen, texto) y oculta el título; el ticker sigue. El reproductor de YouTube no se desmonta: si había un video sonando, sigue sonando oculto, así que conviene apagarlo antes.

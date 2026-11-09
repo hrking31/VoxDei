@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Ícono «maskable» para Android (idea 9 del logo, 09-11-2026): el mismo
+       símbolo morado, pero con el fondo cuadrado y sin esquinas, y el dibujo
+       al 78 % para que quede dentro de la zona segura (el círculo central del
+       80 %) que ningún teléfono recorta, sea cual sea la forma que le ponga. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2A1B5E"/><stop offset="1" stop-color="#0D0B26"/></linearGradient>
+    <linearGradient id="ray" gradientUnits="userSpaceOnUse" x1="0" y1="800" x2="0" y2="230"><stop offset="0" stop-color="#FFD978" stop-opacity=".95"/><stop offset="1" stop-color="#F0A93A" stop-opacity=".18"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE29A"/><stop offset="1" stop-color="#E9A93A"/></linearGradient>
+    <radialGradient id="glow"><stop offset="0" stop-color="#FFF8E0"/><stop offset=".35" stop-color="#FFD978" stop-opacity=".85"/><stop offset="1" stop-color="#F0A93A" stop-opacity="0"/></radialGradient>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="16"/></filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <g transform="translate(512 512) scale(.78) translate(-512 -512)">
+    <g fill="url(#ray)">
+      <path d="M512 790 L420 236 H604 Z"/>
+      <path d="M512 790 L300 236 H384 Z" opacity=".75"/>
+      <path d="M512 790 L724 236 H640 Z" opacity=".75"/>
+      <path d="M512 790 L196 236 H256 Z" opacity=".45"/>
+      <path d="M512 790 L828 236 H768 Z" opacity=".45"/>
+    </g>
+    <rect x="186" y="176" width="652" height="64" rx="22" fill="url(#gold)"/>
+    <g filter="url(#soft)" opacity=".85" fill="#FFE9B0"><rect x="484" y="300" width="56" height="330" rx="28"/><rect x="400" y="378" width="224" height="54" rx="27"/></g>
+    <g fill="#FFF8E6"><rect x="491" y="300" width="42" height="330" rx="21"/><rect x="407" y="384" width="210" height="42" rx="21"/></g>
+    <circle cx="512" cy="790" r="150" fill="url(#glow)"/>
+    <circle cx="512" cy="790" r="30" fill="#FFF8E6"/>
+  </g>
+</svg>

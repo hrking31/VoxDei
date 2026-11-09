@@ -27,6 +27,58 @@ function medidasJpeg(ruta) {
   return null;
 }
 
+// Ancho y alto de un PNG: bytes 16 a 24, en el bloque IHDR.
+function medidasPng(ruta) {
+  const b = readFileSync(ruta);
+  return { ancho: b.readUInt32BE(16), alto: b.readUInt32BE(20) };
+}
+
+describe("app instalable: manifiesto e íconos (ideas 9 y 10)", () => {
+  const manifiesto = JSON.parse(readFileSync(resolve(raiz, "public", "manifest.webmanifest"), "utf8"));
+
+  it("index.html enlaza el manifiesto y el ícono de Apple", () => {
+    expect(html).toContain('<link rel="manifest" href="/manifest.webmanifest" />');
+    expect(html).toContain('<link rel="apple-touch-icon" href="/apple-touch-icon.png" />');
+  });
+
+  it("tiene nombre, arranque en una ruta que existe y colores de la pantalla de arranque", () => {
+    expect(manifiesto.name).toBe("VOXDEI");
+    expect(manifiesto.display).toBe("standalone");
+    const app = readFileSync(resolve(raiz, "src", "App.jsx"), "utf8");
+    expect(app).toContain(`path="${manifiesto.start_url}"`);
+    expect(manifiesto.background_color).toMatch(/^#[0-9A-Fa-f]{6}$/);
+    expect(manifiesto.theme_color).toMatch(/^#[0-9A-Fa-f]{6}$/);
+  });
+
+  it("cada ícono existe en public/ y mide lo que dice", () => {
+    for (const icono of manifiesto.icons) {
+      const ruta = resolve(raiz, "public", icono.src.replace(/^\//, ""));
+      expect(existsSync(ruta), icono.src).toBe(true);
+      const [ancho, alto] = icono.sizes.split("x").map(Number);
+      expect(medidasPng(ruta), icono.src).toEqual({ ancho, alto });
+    }
+  });
+
+  it("trae íconos maskable de 192 y 512 para que Android no los recorte mal", () => {
+    const maskable = manifiesto.icons.filter((i) => i.purpose === "maskable").map((i) => i.sizes);
+    expect(maskable).toEqual(expect.arrayContaining(["192x192", "512x512"]));
+  });
+
+  it("el ícono de Apple mide 180 × 180", () => {
+    expect(medidasPng(resolve(raiz, "public", "apple-touch-icon.png"))).toEqual({ ancho: 180, alto: 180 });
+  });
+});
+
+describe("archivos para la ficha de Google Play (idea 11)", () => {
+  it("gráfico destacado de 1024 × 500 en JPEG", () => {
+    expect(medidasJpeg(resolve(raiz, "docs", "grafico-destacado-play-store.jpg"))).toEqual({ ancho: 1024, alto: 500 });
+  });
+
+  it("ícono de la tienda de 512 × 512", () => {
+    expect(medidasPng(resolve(raiz, "docs", "icono-play-store-512.png"))).toEqual({ ancho: 512, alto: 512 });
+  });
+});
+
 describe("tarjeta al compartir el enlace", () => {
   it("tiene título, descripción e imagen absoluta del hosting", () => {
     expect(meta("og:title")).toBe("VOXDEI");
