@@ -14,6 +14,9 @@ export function AppProvider({ children }) {
   const [visibleTicker, setVisibleTicker] = useState("");
   const [visibleImagen, setVisibleImagen] = useState(false);
   const [visibleVideo, setVisibleVideo] = useState(false);
+  // Pantalla de espera antes del servicio (logo + cuenta regresiva). Nodo
+  // displayEspera de RTDB; se enciende desde Cronograma.
+  const [visibleEspera, setVisibleEspera] = useState(false);
   // Apariencia de la pantalla de proyección
   const [estilos, setEstilos] = useState(ESTILOS_POR_DEFECTO);
   const [authUser, setAuthUser] = useState(null);
@@ -83,6 +86,8 @@ export function AppProvider({ children }) {
         setVisibleImagen,
         visibleVideo,
         setVisibleVideo,
+        visibleEspera,
+        setVisibleEspera,
         estilos,
         setEstilos,
         authUser,

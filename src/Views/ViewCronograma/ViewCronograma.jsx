@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ref, set } from "firebase/database";
 import { CalendarDaysIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { database } from "../../Components/Firebase/Firebase";
 import { useAuth } from "../../Components/Context/AuthContext";
 import { useAppContext } from "../../Components/Context/AppContext";
 import { esPastor } from "../../Components/Roles/Roles.js";
@@ -26,8 +28,9 @@ import BotonSalida from "../../Components/Navegacion/BotonSalida.jsx";
 export default function ViewCronograma() {
   const navigate = useNavigate();
   const { user, userData } = useAuth();
-  const { servicios, showNotif, confirmAction } = useAppContext();
-  const { turno } = useTurno();
+  const { servicios, showNotif, confirmAction, visibleEspera } =
+    useAppContext();
+  const { turno, exigirTurno } = useTurno();
   const operadores = useOperadores();
   const [paraEnsayo, setParaEnsayo] = useState("");
 
@@ -67,6 +70,20 @@ export default function ViewCronograma() {
     } catch (error) {
       console.error("Error al iniciar el ensayo:", error);
       showNotif("error", "No se pudo iniciar el ensayo. Revisa tu conexión.");
+    }
+  };
+
+  // Pantalla de espera del templo: logo, iglesia y cuenta regresiva al
+  // próximo servicio. Escribe en la pantalla, así que exige el turno.
+  const alternarEspera = async () => {
+    if (!exigirTurno()) return;
+    try {
+      await set(ref(database, `displayEspera/${userData.groupId}`), {
+        activa: !visibleEspera,
+      });
+    } catch (error) {
+      console.error("Error con la pantalla de espera:", error);
+      showNotif("error", "No se pudo cambiar la pantalla de espera. Revisa tu conexión.");
     }
   };
 
@@ -150,6 +167,36 @@ export default function ViewCronograma() {
 
       <div className="flex-1 min-h-0 overflow-y-auto scrollbar-custom p-2 sm:p-4">
         <div className="max-w-3xl mx-auto flex flex-col gap-4">
+          {/* PANTALLA DE ESPERA */}
+          <section
+            className={`p-3 rounded-lg border flex items-center gap-3 ${
+              visibleEspera
+                ? "border-app-success bg-app-success/10"
+                : "border-app-border bg-app-light/40"
+            }`}
+          >
+            <div className="flex-1 min-w-0">
+              <h2 className="text-sm font-bold text-app-main">
+                Pantalla de espera
+                {visibleEspera && (
+                  <span className="text-app-success"> · en pantalla</span>
+                )}
+              </h2>
+              <p className="text-xs text-app-muted">
+                Antes del servicio, el templo ve el logo, el nombre de la
+                iglesia y cuánto falta para el próximo servicio.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={alternarEspera}
+              aria-pressed={Boolean(visibleEspera)}
+              className="shrink-0 px-3 py-1.5 text-xs sm:text-sm font-bold text-app-main rounded inset-shadow-sm inset-shadow-app-main hover:bg-app-main hover:text-app-dark transition"
+            >
+              {visibleEspera ? "Quitar" : "Mostrar"}
+            </button>
+          </section>
+
           {/* ENSAYO PARA OTRO OPERADOR */}
           {turno.tipo !== "servicio" && operadores.length > 0 && (
             <section className="p-3 rounded-lg border border-app-border bg-app-light/40">

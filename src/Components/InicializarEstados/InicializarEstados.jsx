@@ -28,6 +28,7 @@ export default function InicializarEstados() {
     setVisibleTicker,
     setVisibleImagen,
     setVisibleVideo,
+    setVisibleEspera,
     setVelocidadTicker,
     setEstilos,
     setServicios,
@@ -156,6 +157,12 @@ export default function InicializarEstados() {
       }
     );
 
+    // Pantalla de espera antes del servicio. Sin nodo, apagada.
+    const visibleEspera = onValue(
+      ref(database, `displayEspera/${userData.groupId}`),
+      (snapshot) => setVisibleEspera(snapshot.val()?.activa === true)
+    );
+
     // Speed Ticker
     const speedTicker = onValue(
       ref(database, `speedTicker/${userData.groupId}`),
@@ -205,6 +212,7 @@ export default function InicializarEstados() {
       visibleTicker();
       visibleImagen();
       visibleVideo();
+      visibleEspera();
       estilosIglesia();
       speedTicker();
     };

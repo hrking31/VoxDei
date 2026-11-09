@@ -17,13 +17,16 @@ import {
   ESTILOS,
 } from "../Firebase/RutasIglesia";
 import {
+  ESQUINAS_MARCA_AGUA,
   ESTILOS_POR_DEFECTO,
   TEMAS,
   combinarEstilos,
+  estiloMarcaAgua,
   fondoDe,
   sombraDe,
 } from "../Estilos/EstilosProyeccion";
 import BotonSalida from "../Navegacion/BotonSalida.jsx";
+import { Simbolo } from "../Logo/Logo.jsx";
 
 // Contenido de muestra para la vista previa
 const EJEMPLOS = {
@@ -277,6 +280,18 @@ export default function ControlEstilos() {
                 )}
               </div>
             </div>
+
+            {/* Marca de agua: la misma función que la pantalla real */}
+            {estilos.marcaAgua.visible && (
+              <Simbolo
+                alt=""
+                className="h-auto"
+                style={estiloMarcaAgua(
+                  estilos,
+                  `${estilos.ticker.altura * escala * 0.16}px`
+                )}
+              />
+            )}
 
             {/* Ticker */}
             <div
@@ -614,6 +629,51 @@ export default function ControlEstilos() {
               />
             )}
           </Seccion>
+
+          {/* MARCA DE AGUA */}
+          <Seccion
+            titulo="Marca de agua"
+            descripcion="El símbolo de VOXDEI en una esquina, para las transmisiones por internet"
+            abierta={seccionAbierta === "marcaAgua"}
+            onToggle={() =>
+              setSeccionAbierta(
+                seccionAbierta === "marcaAgua" ? null : "marcaAgua"
+              )
+            }
+          >
+            <Interruptor
+              etiqueta="Mostrar la marca de agua"
+              valor={estilos.marcaAgua.visible}
+              onChange={(v) => cambiar("marcaAgua", "visible", v)}
+            />
+            {estilos.marcaAgua.visible && (
+              <>
+                <Opciones
+                  etiqueta="Esquina"
+                  valor={estilos.marcaAgua.esquina}
+                  opciones={ESQUINAS_MARCA_AGUA}
+                  onChange={(v) => cambiar("marcaAgua", "esquina", v)}
+                />
+                <Rango
+                  etiqueta="Tamaño"
+                  valor={estilos.marcaAgua.tamano}
+                  min={4}
+                  max={15}
+                  sufijo="%"
+                  onChange={(v) => cambiar("marcaAgua", "tamano", v)}
+                />
+                <Rango
+                  etiqueta="Opacidad"
+                  ayuda="Más baja, más discreta"
+                  valor={estilos.marcaAgua.opacidad}
+                  min={10}
+                  max={80}
+                  sufijo="%"
+                  onChange={(v) => cambiar("marcaAgua", "opacidad", v)}
+                />
+              </>
+            )}
+          </Seccion>
         </div>
       </div>
     </div>
@@ -804,7 +864,12 @@ function Opciones({ etiqueta, valor, opciones, onChange }) {
         {opciones.map((opcion) => (
           <button
             key={opcion.valor}
+            type="button"
             onClick={() => onChange(opcion.valor)}
+            // Si el texto es un símbolo, `nombre` dice qué es.
+            aria-label={opcion.nombre}
+            title={opcion.nombre}
+            aria-pressed={valor === opcion.valor}
             className={`px-2 py-1 text-xs rounded border transition ${
               valor === opcion.valor
                 ? "bg-app-main text-app-dark border-app-main font-semibold"

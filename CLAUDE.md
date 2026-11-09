@@ -44,7 +44,7 @@ La distinción más importante del proyecto:
 - **Realtime Database (`database`)** guarda el **estado efímero de proyección**: qué se está mostrando ahora mismo y qué secciones están visibles.
 
 Todos los nodos de RTDB se escriben bajo `<nodo>/${userData.groupId}`:
-`displayTitulo`, `displayMessage`, `displayVersiculo`, `displayTicker`, `displayVisibleTitulo`, `displayVisibleTexto`, `displayVisibleTicker`, `speedTicker`. Cualquier nodo nuevo debe seguir el mismo patrón o romperá el aislamiento entre iglesias.
+`displayTitulo`, `displayMessage`, `displayVersiculo`, `displayTicker`, `displayImage`, `displayVideo`, `displayVisible*`, `displayEspera`, `speedTicker`, `turnoEnsayo`. Cualquier nodo nuevo debe seguir el mismo patrón o romperá el aislamiento entre iglesias, y tiene que sumarse **a la vez** a la expresión de `database.rules.json` y a `NODOS_PROYECCION` de `functions/index.js`. **`src/NodosProyeccion.test.js` lo vigila**: busca en `src/` cada `ref(database, \`<nodo>/${…}\`)` y falla si el nodo falta en cualquiera de las dos listas, o si las listas no coinciden.
 
 ### Aislamiento multi-iglesia: `groupId`
 
@@ -135,7 +135,7 @@ Reglas:
 - **Una sección nueva se agrega en `SECCIONES`** y su ruta va **dentro** de `<Route element={<MarcoPanel />}>` en `App.jsx`. Fuera del marco quedan a propósito `/VOXDEI`, `/ViewSelector`, login, registro, `/ResetPassword`, `/EliminarCuenta` y `/VistaNoAutorizada`.
 - Las direcciones **no cambiaron**: la barra solo navega a las mismas rutas, así que «atrás», recargar y los favoritos siguen funcionando.
 - Un botón nuevo de «volver a Gestión» en un panel debe ser `BotonSalida` u ocultarse con `isDesktop`.
-- `isDesktop` (`AppProvider`) se calcula una vez al cargar (`innerWidth >= 1024`) y no escucha `resize`.
+- `isDesktop` (`AppProvider`) es `innerWidth >= 1024`; `InicializarEstados` lo recalcula en cada `resize`, así que la barra aparece o desaparece al cambiar el tamaño de la ventana.
 - El prototipo aprobado está en https://claude.ai/artifact/Jaqpt5fwZnHjaaHLzqugne y el del celular en https://claude.ai/artifact/AMSoJ9VXpBRLE5zwJS3kuQ.
 
 **Logo en pantallas** (ideas 1–3 del 9 de noviembre de 2026): `Components/Logo/Logo.jsx` exporta `Simbolo`, `LogoHorizontal` y `LogoVertical` (versiones de fondo oscuro). Vertical en login y recuperar contraseña; horizontal pequeño en registro (la página no se desplaza), en la entrada (`ViewSelector`, en vez del título) y en `/EliminarCuenta`. `Loading` muestra el símbolo con `motion-safe:animate-enciende` y `ProtectedRoutes` dice «Encendiendo el proyector...». `CapturaErrores` y `VistaNoAutorizada` muestran el símbolo **apagado** (`grayscale brightness-75 opacity-60`).
@@ -297,6 +297,14 @@ Al terminar cualquier cambio que el usuario final pueda notar, añade una entrad
 Nunca describas en el manual una función que no esté terminada sin marcarla como *en preparación*. El caso que citaba este párrafo —**Gestión Video** apuntando a `/ViewPanel`, una ruta inexistente— quedó resuelto: hoy navega a `/ViewVideo`, registrada en `App.jsx`.
 
 **Registro de cambios**: el usuario pidió expresamente (22 de agosto de 2026) que **todo cambio se anote en `README.md`** sin esperar a que lo recuerde, porque es la vista del proyecto en GitHub.
+
+### Pantalla de espera y marca de agua (9 de noviembre de 2026, ideas 6 y 7)
+
+**Pantalla de espera.** Nodo RTDB `displayEspera/{groupId}` = `{ activa }`; `InicializarEstados` lo vuelca en `visibleEspera` (sin nodo, apagada). Se enciende y apaga **solo desde `ViewCronograma`** (tarjeta «Pantalla de espera»), con `exigirTurno` porque escribe en la pantalla. En `ControlDisplay`, mientras está activa **manda sobre todo el centro** (video, imagen, texto) y oculta el título; el ticker sigue. El reproductor de YouTube no se desmonta: si había un video sonando, sigue sonando oculto, así que conviene apagarlo antes.
+
+`PantallaEspera` (logo vertical, `userData.churchName` y cuenta regresiva) recalcula cada segundo con la hora del servidor (`desfaseReloj`) y decide qué decir con `contenidoEspera` (`PantallaEspera/utilesEspera.js`): `enCurso` si un servicio ya empezó (si se cruzan, el que empezó más tarde), `cuenta` si faltan hasta `HORAS_CUENTA_REGRESIVA` (6), `fecha` («Próximo servicio: …, Lunes · 10:00») si falta más, o `nada`. El próximo servicio sale de `proximoServicio(servicios, ahoraMs)` y el texto de `textoCuentaRegresiva(ms)`, ambos en `UtilesCronograma.js`. Colores y tamaños, los de *Estilos y colores* (texto, título, cita).
+
+**Marca de agua.** No es un nodo de RTDB: es el grupo `marcaAgua` de los estilos (`{ visible, esquina, tamano, opacidad }`), guardado con el resto en Firestore, apagado de fábrica. Se configura en la sección «Marca de agua» de `ControlEstilos`, que también la dibuja en la vista previa. La posición la calcula `estiloMarcaAgua(estilos, alturaTicker)` en `EstilosProyeccion.js`, la misma función para la vista previa y para el templo: respeta el margen de seguridad (mínimo 2 %), y abajo con el ticker encendido sube por encima de él. No se muestra en la pantalla de espera. Las esquinas se eligen con triángulos (◤◥◣◢): las flechas ↖↘ salen como emoji en Windows.
 
 ### Proyección de imágenes y canciones
 

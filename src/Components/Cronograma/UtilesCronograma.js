@@ -157,3 +157,33 @@ export function textoHora(hora) {
   const d = new Date(2000, 0, 1, Math.floor(minutos / 60), minutos % 60);
   return d.toLocaleTimeString("es", { hour: "numeric", minute: "2-digit" });
 }
+
+// Próximo servicio que todavía no ha empezado, desde hoy hasta
+// `diasAdelante` días. Devuelve { servicio, inicio } (inicio en ms) o null.
+// Lo usa la pantalla de espera del templo para la cuenta regresiva.
+export function proximoServicio(servicios, ahoraMs, diasAdelante = 7) {
+  for (let d = 0; d <= diasAdelante; d++) {
+    const fecha = new Date(ahoraMs);
+    fecha.setDate(fecha.getDate() + d);
+    let mejor = null;
+    for (const servicio of servicios || []) {
+      if (!ocurreEl(servicio, fecha)) continue;
+      const inicio = inicioEnMs(servicio, fecha);
+      if (inicio <= ahoraMs) continue;
+      if (!mejor || inicio < mejor.inicio) mejor = { servicio, inicio };
+    }
+    if (mejor) return mejor;
+  }
+  return null;
+}
+
+// Tiempo que falta, para la cuenta regresiva: 754000 → "12:34";
+// 3754000 → "1:02:34". Nunca negativo.
+export function textoCuentaRegresiva(ms) {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const dos = (n) => String(n).padStart(2, "0");
+  return h > 0 ? `${h}:${dos(m)}:${dos(s)}` : `${dos(m)}:${dos(s)}`;
+}

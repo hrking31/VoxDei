@@ -5,9 +5,16 @@ import { useAppContext } from "../Context/AppContext";
 import TickerAnimacion from "../TickerAnimacion/TickerAnimacion";
 import { useAuth } from "../../Components/Context/AuthContext";
 import useScreenType from "../../Components/Hooks/useScreenType.js";
-import { fondoDe, sombraDe, escalar } from "../Estilos/EstilosProyeccion";
+import {
+  fondoDe,
+  sombraDe,
+  escalar,
+  estiloMarcaAgua,
+} from "../Estilos/EstilosProyeccion";
 import { cargarApiYouTube, TOLERANCIA_SEGUNDOS } from "../Video/YouTube";
 import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
+import { Simbolo } from "../Logo/Logo.jsx";
+import PantallaEspera from "../PantallaEspera/PantallaEspera.jsx";
 
 export default function DisplayView() {
   const [visible, setVisible] = useState(true);
@@ -39,6 +46,7 @@ export default function DisplayView() {
     visibleTicker,
     visibleImagen,
     visibleVideo,
+    visibleEspera,
     velocidadTicker,
     estilos,
   } = useAppContext();
@@ -354,7 +362,10 @@ export default function DisplayView() {
   }, [visibleImagen, imagenes, intervaloImagen]);
 
   const imagenActual = imagenes[indiceImagen];
-  const hayVideo = Boolean(visibleVideo && video?.videoId);
+  // La pantalla de espera manda sobre todo lo del centro (video, imagen,
+  // texto) y sobre el título; el ticker sigue a su aire.
+  const enEspera = Boolean(visibleEspera);
+  const hayVideo = Boolean(visibleVideo && video?.videoId) && !enEspera;
 
   // Apariencia configurada desde el panel de estilos
   const sombra = sombraDe(estilos);
@@ -401,8 +412,15 @@ export default function DisplayView() {
         className="absolute inset-0 flex flex-col"
         style={{ padding: `${estilos.legibilidad.margen}%` }}
       >
+        {/* PANTALLA DE ESPERA: logo, iglesia y cuenta regresiva */}
+        {enEspera && (
+          <div className="flex-1 overflow-hidden">
+            <PantallaEspera tamanos={style} />
+          </div>
+        )}
+
         {/* TÍTULO ( si está visible) */}
-        {visibleTitulo && (
+        {visibleTitulo && !enEspera && (
           <div className="pb-1 px-6">
             <h1
               style={{
@@ -433,7 +451,7 @@ export default function DisplayView() {
         </div>
 
         {/* IMAGEN: ocupa el centro y reemplaza al texto mientras esté encendida */}
-        {!hayVideo && visibleImagen && imagenActual && (
+        {!enEspera && !hayVideo && visibleImagen && imagenActual && (
           <div className="flex-1 flex items-center justify-center overflow-hidden px-4">
             <img
               key={imagenActual}
@@ -446,7 +464,7 @@ export default function DisplayView() {
         )}
 
         {/* MENSAJE / PREDICA / VERSÍCULO */}
-        {visibleTexto && !hayVideo && !(visibleImagen && imagenActual) && (
+        {visibleTexto && !enEspera && !hayVideo && !(visibleImagen && imagenActual) && (
           <div
             className="flex-1 flex items-center justify-center px-8"
             style={{ transition: transicion }}
@@ -512,6 +530,21 @@ export default function DisplayView() {
           />
         )}
       </div>
+
+      {/* MARCA DE AGUA: el símbolo tenue en una esquina, encima del ticker.
+          En la pantalla de espera sobra: el logo ya está en grande. */}
+      {estilos.marcaAgua.visible && !enEspera && (
+        <Simbolo
+          alt=""
+          className="h-auto"
+          style={estiloMarcaAgua(
+            estilos,
+            visibleTicker
+              ? escalar(style.tickerHeight, estilos.ticker.altura)
+              : null
+          )}
+        />
+      )}
 
       {/* TICKER */}
       {visibleTicker && (

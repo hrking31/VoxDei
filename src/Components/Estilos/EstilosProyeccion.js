@@ -49,7 +49,42 @@ export const ESTILOS_POR_DEFECTO = {
     fundido: true,
     duracion: 400,
   },
+  // Símbolo de VOXDEI pequeño y tenue en una esquina, para que la pantalla
+  // quede firmada en las transmisiones por internet. Apagado de fábrica.
+  marcaAgua: {
+    visible: false,
+    esquina: "abajoDerecha", // arribaIzquierda | arribaDerecha | abajoIzquierda | abajoDerecha
+    tamano: 7, // % del ancho de la pantalla
+    opacidad: 30, // %
+  },
 };
+
+// Triángulos y no flechas: Windows pinta ↖ y ↘ como emoji azules.
+export const ESQUINAS_MARCA_AGUA = [
+  { valor: "arribaIzquierda", texto: "◤", nombre: "Arriba a la izquierda" },
+  { valor: "arribaDerecha", texto: "◥", nombre: "Arriba a la derecha" },
+  { valor: "abajoIzquierda", texto: "◣", nombre: "Abajo a la izquierda" },
+  { valor: "abajoDerecha", texto: "◢", nombre: "Abajo a la derecha" },
+];
+
+// Posición de la marca de agua dentro de la pantalla. Respeta el margen de
+// seguridad (los proyectores recortan los bordes) y, si va abajo y el ticker
+// está encendido, sube por encima de él en vez de taparlo.
+export function estiloMarcaAgua(estilos, alturaTicker = null) {
+  const { esquina, tamano, opacidad } = estilos.marcaAgua;
+  const margen = `${Math.max(estilos.legibilidad.margen, 2)}%`;
+  const abajo = esquina.startsWith("abajo");
+  const vertical = abajo && alturaTicker ? `calc(${margen} + ${alturaTicker})` : margen;
+
+  return {
+    position: "absolute",
+    width: `${tamano}%`,
+    opacity: opacidad / 100,
+    pointerEvents: "none",
+    [abajo ? "bottom" : "top"]: vertical,
+    [esquina.endsWith("Derecha") ? "right" : "left"]: margen,
+  };
+}
 
 export const TEMAS = {
   Clásico: {

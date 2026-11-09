@@ -19,6 +19,10 @@
   --spacing-barra-etiqueta: 4.25rem; /* nombre flotante, justo al lado de la barra encogida */
   --shadow-barra: 12px 0 30px rgb(0 0 0 / 0.45);
 
+  /* Pantalla de espera del templo: relativas al alto de la pantalla */
+  --spacing-espera-logo: 30vh;
+  --spacing-espera-hueco: 2vh;
+
   /* El símbolo se enciende y se apaga como un proyector que calienta */
   --animate-enciende: enciende 2.4s ease-in-out infinite;
   @keyframes enciende {

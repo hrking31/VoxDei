@@ -314,6 +314,7 @@ const NODOS_PROYECCION = [
   "displayVisibleVideo",
   "speedTicker",
   "turnoEnsayo",
+  "displayEspera",
 ];
 
 // Minutos que pueden pasar desde que la persona escribió su contraseña.

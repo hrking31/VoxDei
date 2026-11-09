@@ -16,7 +16,7 @@
     "$nodo": {
       "$groupId": {
         ".read": "auth != null && (auth.uid === $groupId || auth.token.groupId === $groupId)",
-        ".write": "auth != null && (auth.uid === $groupId || auth.token.groupId === $groupId) && $nodo.matches(/^(displayTitulo|displayMessage|displayVersiculo|displayTicker|displayImage|displayVideo|displayVisibleTitulo|displayVisibleTexto|displayVisibleTicker|displayVisibleImagen|displayVisibleVideo|speedTicker|turnoEnsayo)$/)"
+        ".write": "auth != null && (auth.uid === $groupId || auth.token.groupId === $groupId) && $nodo.matches(/^(displayTitulo|displayMessage|displayVersiculo|displayTicker|displayImage|displayVideo|displayVisibleTitulo|displayVisibleTexto|displayVisibleTicker|displayVisibleImagen|displayVisibleVideo|speedTicker|turnoEnsayo|displayEspera)$/)"
       }
     }
   }
