@@ -3,7 +3,7 @@
 /* Colores personalizados */
 @theme {
   --color-app-dark: #323437; /* 🔲 Fondo principal de la app */
-  --color-app-main: #facc15; /* ⚠️ Amarillo para advertencias */
+  --color-app-main: #f2be55; /* Dorado del logo («Dei»). Hasta el 09-11-2026 era el amarillo #facc15 */
   --color-app-light: #2c2e30; /* 🔳 Variación un poco más clara, útil para cards o paneles */
   --color-app-accent: #ff6b6b; /* ❤️ Color de acento para botones principales o alertas */
   --color-app-muted: #9ca3af; /* ⚪ Texto secundario / descripciones */

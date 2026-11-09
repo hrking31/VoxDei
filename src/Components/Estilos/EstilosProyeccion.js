@@ -30,7 +30,7 @@ export const ESTILOS_POR_DEFECTO = {
   },
   versiculo: {
     colorTitulo: "#9ca3af",
-    colorCita: "#facc15",
+    colorCita: "#f2be55", // dorado del logo (antes #facc15)
     tamanoCita: 100,
     mostrarCita: true,
   },
@@ -54,7 +54,7 @@ export const ESTILOS_POR_DEFECTO = {
 export const TEMAS = {
   Clásico: {
     fondo: { tipo: "solido", color: "#000000" },
-    titulo: { color: "#facc15" },
+    titulo: { color: "#f2be55" },
     texto: { color: "#ffffff" },
     ticker: { colorFondo: "#111827", colorTexto: "#ffffff" },
   },

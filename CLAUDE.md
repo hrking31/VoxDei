@@ -128,6 +128,7 @@ En el **computador** hay una **barra lateral**; en el **celular** sigue la cuadr
 | `BarraLateral.jsx` | Encogida (`w-barra`, solo íconos) o abierta por encima del contenido (`w-barra-abierta`) al pulsar el símbolo; al elegir algo, con Escape o tocando el velo se encoge. Abajo: abrir la pantalla del templo, la persona y cerrar sesión (con `confirmAction`). |
 | `BotonSalida.jsx` | El único botón «Salida» de los paneles. **En el computador no se pinta**: la barra lo reemplaza. |
 | `abrirProyector.js` | Abre `/VOXDEI` en la ventana `VisorProyector`. La usan `ViewSelector` y la barra. |
+| `IconoPestana.jsx` + `iconoPestana.js` | Sin pantalla, montado por `MarcoPanel` (celular y computador). Dibuja en el ícono de la pestaña un punto verde o rojo según `puedoProyectar` (idea 4) y pone `VOXDEI · <sección>` en el título. Lee el SVG del símbolo con `?raw` y los colores del tema con `getComputedStyle`; al salir del panel restaura ícono y título. |
 
 Reglas:
 
@@ -389,7 +390,7 @@ Tailwind v4 mediante `@tailwindcss/vite`; **no hay `tailwind.config.js`**. El te
 1. **A 2 px del borde derecho de la pantalla** (`BORDE_DERECHO`), anclado con `right`. Nada de centrarlo bajo el botón. **El menú no lleva ancho**: mide lo que midan sus iconos, que son los mismos en las cuatro vistas. Hubo un intento de anclarlo con `left` restando un ancho estimado de 60 px, y ese número —que no coincidía con el contenido más el relleno— comprimía los iconos. No vuelvas a fijar un ancho.
 
    Ojo con el botón del ojo, que es otra cosa: declara `w-full h-full`, así que su tamaño lo decide la barra de cada vista y **sí** varía entre pantallas. Está así a propósito, para alinearse con los botones de texto vecinos.
-2. **Siempre por debajo de la línea divisoria amarilla**, el `border-b border-app-main` (`#facc15`) del encabezado que llevan las cuatro vistas. El `top` es `Math.max(botón.bottom, encabezado.bottom) + MARGEN`: manda el que quede más abajo, porque el botón puede estar en una fila superior del encabezado.
+2. **Siempre por debajo de la línea divisoria dorada**, el `border-b border-app-main` (`#f2be55`; amarilla `#facc15` hasta el 9 de noviembre de 2026) del encabezado que llevan las cuatro vistas. El `top` es `Math.max(botón.bottom, encabezado.bottom) + MARGEN`: manda el que quede más abajo, porque el botón puede estar en una fila superior del encabezado.
 3. **Nunca se abre hacia arriba**, que taparía ese encabezado. Si lo que queda de pantalla no alcanza, el menú se desplaza por dentro (`maxHeight` + `overflow-y-auto`).
 
 El encabezado se localiza subiendo desde el botón hasta el primer ancestro con `position: sticky` (`finDelEncabezado`); si una vista nueva no lo tuviera, la función devuelve `0` y manda el botón. Se recoloca en `scroll` (con captura, porque el contenedor que se desplaza no es `window`) y en `resize`, y cierra con Escape. Es el mismo remedio que ya se aplicó a los selectores de color de `ControlEstilos`: cuando un panel flotante depende del contenedor de cada vista, tarde o temprano queda recortado o fuera de pantalla.

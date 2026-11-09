@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import BarraLateral from "./BarraLateral.jsx";
+import IconoPestana from "./IconoPestana.jsx";
 
 // Marco de las pantallas del panel. En App.jsx es una ruta sin dirección
 // propia que agrupa a las demás: cada una conserva su URL y su protección por
@@ -15,10 +16,20 @@ export default function MarcoPanel() {
   const { isDesktop } = useAppContext();
   const { user, userData, correoVerificado } = useAuth();
 
-  if (!isDesktop || !user || !userData || !correoVerificado) return <Outlet />;
+  if (!user || !userData || !correoVerificado) return <Outlet />;
+
+  if (!isDesktop) {
+    return (
+      <>
+        <IconoPestana />
+        <Outlet />
+      </>
+    );
+  }
 
   return (
     <div className="flex min-h-svh">
+      <IconoPestana />
       <BarraLateral />
       <div className="min-w-0 flex-1">
         <Outlet />

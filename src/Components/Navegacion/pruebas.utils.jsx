@@ -27,6 +27,11 @@ export function montar(ui, { ruta = "/ViewGestion", auth = {}, app = {} } = {}) 
   const valorApp = {
     isDesktop: true,
     confirmAction: vi.fn().mockResolvedValue(true),
+    showNotif: vi.fn(),
+    // Cronograma vacío: sin servicio ni ensayo, solo los pastores proyectan.
+    servicios: [],
+    ensayo: null,
+    desfaseReloj: 0,
     ...app,
   };
   const resultado = render(
