@@ -1,0 +1,97 @@
+<!doctype html>
+<!--
+  Kit de bienvenida de VOXDEI (idea 14 del logo, 09-11-2026). Hoja A4 para
+  imprimir y dejar junto a la consola de sonido. Para regenerar el PDF:
+    chrome.exe --headless=new --no-pdf-header-footer
+               --print-to-pdf=docs/kit-bienvenida.pdf docs/kit-bienvenida.html
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Kit de bienvenida · VOXDEI</title>
+<style>
+  @page { size: A4; margin: 12mm 15mm; }
+  :root {
+    --tinta: #1E1650;      /* el morado oscuro del logo claro */
+    --tenue: #5B5488;
+    --dorado: #D9962B;     /* el «Dei» del logo claro */
+    --linea: #DCD6F0;
+    --fondo-paso: #F6F4FD;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: var(--tinta); font: 11pt/1.45 "Segoe UI", system-ui, sans-serif; }
+  header { text-align: center; padding-bottom: 4mm; border-bottom: 1.5pt solid var(--dorado); }
+  header img { height: 32mm; }
+  header p { margin: 2mm 0 0; color: var(--tenue); font-size: 12.5pt; }
+  h1 { font-size: 18pt; margin: 5mm 0 3mm; }
+  ol.pasos { list-style: none; margin: 0; padding: 0; display: grid; gap: 4mm; counter-reset: paso; }
+  ol.pasos > li { counter-increment: paso; display: grid; grid-template-columns: 11mm 1fr; gap: 4mm;
+    background: var(--fondo-paso); border: 0.75pt solid var(--linea); border-radius: 3mm; padding: 3mm 4.5mm; break-inside: avoid; }
+  ol.pasos > li::before { content: counter(paso); width: 10mm; height: 10mm; border-radius: 50%;
+    background: var(--dorado); color: #fff; font-weight: 700; font-size: 14pt; display: grid; place-items: center; }
+  h2 { font-size: 13pt; margin: 0 0 1mm; }
+  li p { margin: 0 0 1.5mm; }
+  b.boton { border: 0.75pt solid var(--tinta); border-radius: 1.5mm; padding: 0 1.5mm; font-weight: 600; white-space: nowrap; }
+  .dos { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; margin-top: 4mm; }
+  .dos section { border-top: 0.75pt solid var(--linea); padding-top: 3mm; break-inside: avoid; }
+  .dos h3 { font-size: 11.5pt; margin: 0 0 1.5mm; color: var(--dorado); }
+  .dos ul { margin: 0; padding-left: 4.5mm; }
+  .dos li { margin-bottom: 1mm; }
+  footer { margin-top: 5mm; text-align: center; color: var(--tenue); font-size: 10pt; }
+  footer strong { color: var(--tinta); font-size: 12pt; letter-spacing: 0.2pt; }
+</style>
+</head>
+<body>
+  <header>
+    <img src="../src/assets/voxdei-logo-vertical-fondo-claro.svg" alt="VOXDEI">
+    <p>La pantalla de tu iglesia, controlada desde tu celular.</p>
+  </header>
+
+  <h1>Así se prepara la pantalla para el servicio</h1>
+
+  <ol class="pasos">
+    <li>
+      <div>
+        <h2>Conecta el computador al proyector</h2>
+        <p>Usa el cable HDMI. En Windows, pulsa las teclas <b class="boton">Windows</b> + <b class="boton">P</b> y elige <b>Duplicar</b> (en las dos pantallas se ve lo mismo) o <b>Extender</b> (el proyector es una pantalla aparte).</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <h2>Abre la pantalla del templo en el computador</h2>
+        <p>Entra a la dirección de abajo, inicia sesión y pulsa <b class="boton">Presentación</b>. Se abre una ventana nueva: si elegiste <b>Extender</b>, arrástrala hasta el proyector.</p>
+        <p>Toca el botón grande del centro para ponerla en <b>pantalla completa</b>. Ese toque también deja que los videos suenen.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <h2>Maneja todo desde tu celular</h2>
+        <p>En el celular entra a la misma dirección con tu cuenta y pulsa <b class="boton">Administrador</b>. Lo que envíes —versículos, canciones, anuncios, imágenes— aparece al instante en el templo.</p>
+      </div>
+    </li>
+  </ol>
+
+  <div class="dos">
+    <section>
+      <h3>Antes de empezar</h3>
+      <ul>
+        <li>En <b>Cronograma</b> mira quién maneja la pantalla en este servicio. Arriba de cada sección, una franja <b>verde</b> te dice que puedes proyectar; <b>roja</b>, que no es tu turno.</li>
+        <li>Mientras llega la gente, pulsa <b>Mostrar</b> en <b>Pantalla de espera</b>: el templo verá el logo y cuánto falta para empezar.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Si algo no funciona</h3>
+      <ul>
+        <li>¿La pantalla no cambia? Revisa que el computador y el celular tengan internet, y recarga la ventana del templo con <b class="boton">F5</b>.</li>
+        <li>¿Un botón dice que no es tu turno? Pídele al pastor el ensayo o el turno en <b>Cronograma</b>.</li>
+        <li>¿No se ve el texto? Enciende <b>Texto</b>: en el celular, en el botón del ojo; en el computador, el ícono del globo de diálogo.</li>
+      </ul>
+    </section>
+  </div>
+
+  <footer>
+    <strong>voxdei-ec499.web.app</strong><br>
+    Cada iglesia tiene su propio espacio: lo que proyectas solo lo ve tu templo.
+  </footer>
+</body>
+</html>

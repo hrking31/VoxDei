@@ -79,6 +79,20 @@ describe("archivos para la ficha de Google Play (idea 11)", () => {
   });
 });
 
+describe("kit de bienvenida para imprimir (idea 14)", () => {
+  it("el PDF existe y cabe en una sola hoja", () => {
+    const pdf = readFileSync(resolve(raiz, "docs", "kit-bienvenida.pdf"), "latin1");
+    expect(pdf.match(/\/Count (\d+)/)?.[1]).toBe("1");
+  });
+
+  it("su fuente usa el logo claro, que existe", () => {
+    const fuente = readFileSync(resolve(raiz, "docs", "kit-bienvenida.html"), "utf8");
+    const logo = fuente.match(/<img src="([^"]+)"/)[1];
+    expect(logo).toContain("fondo-claro");
+    expect(existsSync(resolve(raiz, "docs", logo))).toBe(true);
+  });
+});
+
 describe("tarjeta al compartir el enlace", () => {
   it("tiene título, descripción e imagen absoluta del hosting", () => {
     expect(meta("og:title")).toBe("VOXDEI");
