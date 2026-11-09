@@ -1,6 +1,11 @@
-# VOXDEI
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="src/assets/voxdei-logo-horizontal-fondo-oscuro.svg">
+    <img alt="VOXDEI" src="src/assets/voxdei-logo-horizontal-fondo-claro.svg" width="420">
+  </picture>
+</h1>
 
-**La pantalla de tu iglesia, controlada desde tu celular.**
+<p align="center"><strong>La pantalla de tu iglesia, controlada desde tu celular.</strong></p>
 
 VOXDEI proyecta en la pantalla grande del templo lo que necesites durante el servicio: versículos, anuncios, el título de la prédica o mensajes que se desplazan por abajo. Todo se maneja desde un celular, una tablet o un computador, y lo que escribes aparece al instante en la proyección.
 
@@ -259,6 +264,7 @@ Aquí queda anotado lo que va cambiando en la aplicación, para que siempre sepa
 - **Si algo falla, lo dice con calma.** Si una pantalla tiene un problema, aparece el símbolo apagado con «La pantalla se apagó un momento» y los botones para recargar o volver al inicio. Lo que estaba en la proyección no se pierde.
 - **La pestaña te dice si te toca.** Mientras usas el panel, el ícono de VOXDEI en la pestaña del navegador lleva un punto **verde** si puedes proyectar y **rojo** si no, igual que la franja del cronograma. La pestaña también dice en qué sección estás («VOXDEI · Canciones»).
 - **Del amarillo al dorado.** Botones, títulos y líneas de la app pasan del amarillo al dorado del logo. Las iglesias nuevas arrancan también con la cita bíblica en dorado; si ya guardaste tus colores en *Estilos y colores*, se quedan como los dejaste.
+- **El enlace se ve bonito al compartirlo.** Cuando pasas la dirección de VOXDEI por WhatsApp, Facebook o correo, aparece una tarjeta con el logo y la frase «La pantalla de tu iglesia, controlada desde tu celular», en lugar de un enlace suelto.
 - **La cuadrícula del panel está ordenada por uso.** Primero lo que se proyecta (Biblia, Canciones, Mensajes, Ticker, Imágenes, Video, Prédica) y después lo que se organiza (Cronograma, Usuarios, Estilos y colores).
 
 ### 23 de octubre de 2026
@@ -364,3 +370,21 @@ Además:
 - **Se corrigió un hueco de seguridad en el ingreso.** En ciertos casos, una cuenta podía entrar a secciones que no le correspondían. Ya no ocurre.
 
 > Ten en cuenta: como las prédicas, anuncios y mensajes se guardan ahora en el espacio privado de tu iglesia, los que tenías guardados antes de esta fecha hay que volver a crearlos desde la aplicación.
+
+---
+
+<p align="center">
+  <a href="https://hernandorey-31.web.app/">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/firma-es-oscuro.svg">
+      <img alt="Hernando Rey, Desarrollador Full Stack e Ingeniero Electrónico" src="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/firma-es-claro.svg" width="100%">
+    </picture>
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://hernandorey-31.web.app/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/boton-portafolio-oscuro.svg"><img alt="Portafolio" src="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/boton-portafolio-claro.svg" height="41"></picture></a>
+  <a href="https://www.linkedin.com/in/hernandorey/"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/boton-linkedin-oscuro.svg"><img alt="LinkedIn" src="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/boton-linkedin-claro.svg" height="41"></picture></a>
+  <a href="https://github.com/hrking31"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/boton-github-oscuro.svg"><img alt="GitHub" src="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/boton-github-claro.svg" height="41"></picture></a>
+  <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=hrking31@gmail.com"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/boton-correo-oscuro.svg"><img alt="hrking31@gmail.com" src="https://raw.githubusercontent.com/hrking31/hrking31/main/firma/boton-correo-claro.svg" height="41"></picture></a>
+</p>
