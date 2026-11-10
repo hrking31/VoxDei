@@ -16,17 +16,20 @@ import {
 } from "@heroicons/react/24/solid";
 import { esPastor } from "../Roles/Roles.js";
 
-// Lista única de las secciones del panel. La usan la cuadrícula de Gestión
-// (celular) y la barra lateral (computador): una sección nueva se agrega aquí
-// y aparece en los dos sitios, con el mismo filtro de roles.
+// Lista única de las secciones del panel. La usan la barra lateral
+// (computador) y la barra inferior con «Más» (celular): una sección nueva se
+// agrega aquí y aparece en los dos sitios, con el mismo filtro de roles.
 //
 // `tambien`: prefijos de otras rutas que pertenecen a la sección y deben dejar
 // su ícono encendido. Dentro de una canción la dirección es /ViewCancion/…, no
 // /ViewCanciones.
 
+// Orden pedido por el usuario (9 de noviembre de 2026): primero se organiza
+// el culto, luego se proyecta y al final se administra la iglesia.
 export const GRUPOS = [
-  { id: "proyectar", nombre: "Proyectar" },
   { id: "organizar", nombre: "Organizar" },
+  { id: "proyectar", nombre: "Proyectar" },
+  { id: "administrar", nombre: "Administrar" },
 ];
 
 export const INICIO = {
@@ -51,6 +54,7 @@ export const AYUDA = {
   Icono: QuestionMarkCircleIcon,
 };
 
+// En el orden en que se muestran, grupo por grupo.
 // `corto`: nombre para la barra inferior del celular, donde no cabe el largo.
 export const SECCIONES = [
   {
@@ -58,7 +62,14 @@ export const SECCIONES = [
     nombre: "Orden del culto",
     corto: "Culto",
     Icono: QueueListIcon,
-    grupo: "proyectar",
+    grupo: "organizar",
+  },
+  {
+    ruta: "/ViewCronograma",
+    nombre: "Cronograma",
+    Icono: CalendarDaysIcon,
+    grupo: "organizar",
+    tambien: ["/ViewServicioEditar"],
   },
   { ruta: "/ViewVersiculo", nombre: "Biblia", Icono: BookOpenIcon, grupo: "proyectar" },
   {
@@ -79,15 +90,8 @@ export const SECCIONES = [
     grupo: "proyectar",
     soloPastores: true,
   },
-  {
-    ruta: "/ViewCronograma",
-    nombre: "Cronograma",
-    Icono: CalendarDaysIcon,
-    grupo: "organizar",
-    tambien: ["/ViewServicioEditar"],
-  },
-  { ruta: "/ViewUsers", nombre: "Usuarios", Icono: UserGroupIcon, grupo: "organizar" },
-  { ruta: "/ViewStylos", nombre: "Estilos y colores", Icono: PaintBrushIcon, grupo: "organizar" },
+  { ruta: "/ViewUsers", nombre: "Usuarios", Icono: UserGroupIcon, grupo: "administrar" },
+  { ruta: "/ViewStylos", nombre: "Estilos y colores", Icono: PaintBrushIcon, grupo: "administrar" },
 ];
 
 // Barra inferior del celular: estas cuatro, en este orden, con el Orden del

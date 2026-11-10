@@ -114,8 +114,8 @@ export default function BarraLateral() {
         <div className="min-h-2 flex-1" />
 
         {/* Abajo, de arriba hacia abajo (orden pedido por el usuario):
-            la persona, Ayuda, Cerrar sesión y, al final, la flecha que abre
-            o encoge la barra. */}
+            la persona, Ayuda, una línea, Cerrar sesión y, al final, la
+            flecha que abre o encoge la barra. */}
         <Persona userData={userData} abierta={abierta} />
         <Opcion
           seccion={AYUDA}
@@ -123,6 +123,7 @@ export default function BarraLateral() {
           abierta={abierta}
           onClick={() => ir(AYUDA.ruta)}
         />
+        <hr data-divisoria className="mx-2 my-1 shrink-0 border-app-border" />
         <Opcion
           seccion={{ nombre: "Cerrar sesión", Icono: ArrowLeftStartOnRectangleIcon }}
           abierta={abierta}

@@ -12,13 +12,16 @@ const ruta = () => screen.getByTestId("ruta").textContent;
 describe("BarraLateral", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it("muestra Inicio, las secciones de proyectar y las de organizar", () => {
+  it("muestra Inicio y los grupos Organizar, Proyectar y Administrar, en ese orden y con sus secciones", () => {
     montar(<BarraLateral />);
-    for (const nombre of ["Inicio", "Biblia", "Canciones", "Mensajes", "Ticker", "Imágenes", "Video", "Prédica", "Cronograma", "Usuarios", "Estilos y colores"]) {
-      expect(boton(nombre)).toBeTruthy();
-    }
-    expect(within(barra()).getByRole("group", { name: "Proyectar" })).toBeTruthy();
-    expect(within(barra()).getByRole("group", { name: "Organizar" })).toBeTruthy();
+    expect(boton("Inicio")).toBeTruthy();
+    const grupos = within(barra()).getAllByRole("group");
+    expect(grupos.map((g) => g.getAttribute("aria-label"))).toEqual(["Organizar", "Proyectar", "Administrar"]);
+    const nombresDe = (grupo) =>
+      within(grupo).getAllByRole("button").map((b) => b.getAttribute("aria-label") || b.textContent.trim());
+    expect(nombresDe(grupos[0])).toEqual(["Orden del culto", "Cronograma"]);
+    expect(nombresDe(grupos[1])).toEqual(["Biblia", "Canciones", "Mensajes", "Ticker", "Imágenes", "Video", "Prédica"]);
+    expect(nombresDe(grupos[2])).toEqual(["Usuarios", "Estilos y colores"]);
   });
 
   it("lleva a la Ayuda desde abajo, y la marca cuando se está en ella", () => {
@@ -40,17 +43,20 @@ describe("BarraLateral", () => {
     expect(boton("Biblia").getAttribute("aria-current")).toBeNull();
   });
 
-  it("abajo, en orden: la persona, Ayuda, Cerrar sesión y la flecha al final", () => {
+  it("abajo, en orden: la persona, Ayuda, una línea, Cerrar sesión y la flecha al final", () => {
     montar(<BarraLateral />);
     const nav = barra();
     const ayuda = boton("Ayuda");
     const salir = boton("Cerrar sesión");
     const flecha = interruptor();
     const persona = nav.querySelector("[data-persona]");
+    const linea = nav.querySelector("[data-divisoria]");
     expect(persona).toBeTruthy();
+    expect(linea).toBeTruthy();
     const orden = (x, y) => x.compareDocumentPosition(y) & Node.DOCUMENT_POSITION_FOLLOWING;
     expect(orden(persona, ayuda)).toBeTruthy();
-    expect(orden(ayuda, salir)).toBeTruthy();
+    expect(orden(ayuda, linea)).toBeTruthy();
+    expect(orden(linea, salir)).toBeTruthy();
     expect(orden(salir, flecha)).toBeTruthy();
     expect(nav.lastElementChild).toBe(flecha);
   });
