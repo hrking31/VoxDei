@@ -29,6 +29,7 @@ npm run build && firebase deploy --only hosting
 - Para montar componentes con sesión, contexto y enrutador falsos está `montar()` en `Components/Navegacion/pruebas.utils.jsx` (por defecto: pastor con sesión lista, en computador, que confirma todo). También registra el `cleanup` de Testing Library, que sin `globals` no corre solo.
 - Vite **incrusta como `data:`** los SVG de menos de 4 KB (el símbolo): para comprobar una imagen, compárala con el `import` del archivo, no con su nombre.
 - Los 18 casos del cronograma que se probaron a mano el 23 de octubre **aún no están en Vitest**.
+- Los espejos del servidor tienen guardia: `Roles.test.js` compara `functions/roles.js` con `Roles.js`, y `Validaciones.test.js` compara `LARGO_MINIMO_CLAVE` y `SIMBOLOS_CLAVE` de `functions/index.js` con los de la app. Si cambias uno y no el otro, fallan.
 
 **Antes de correr `npm run dev` en un clon nuevo**: `src/Components/Firebase/FirebaseConfig.js` está en `.gitignore` y no se versiona. Debe existir exportando por defecto el objeto de configuración de Firebase (`apiKey`, `authDomain`, `databaseURL`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`); sin él la app no arranca.
 
@@ -431,7 +432,7 @@ La CSP es una lista blanca. **Todo dominio nuevo que cargue la app debe sumarse 
 
 ### Estilos
 
-Tailwind v4 mediante `@tailwindcss/vite`; **no hay `tailwind.config.js`**. El tema vive en `src/index.css` con `@theme` y tokens `--color-app-*` (`app-dark`, `app-light`, `app-main`, `app-accent`, `app-muted`, `app-border`, `app-success`, `app-error`). Usa siempre esas clases (`text-app-muted`, `bg-app-light`) en vez de colores crudos de Tailwind. También hay utilidades propias: `scrollbar-custom`, `boton-salida`, `form-dark` / `form-light` / `form-dark2` (arreglos de autofill), `animate-menu-open`.
+Tailwind v4 mediante `@tailwindcss/vite`; **no hay `tailwind.config.js`**. El tema vive en `src/index.css` con `@theme` y tokens `--color-app-*` (`app-dark`, `app-light`, `app-main`, `app-accent`, `app-muted`, `app-border`, `app-success`, `app-error`). Usa siempre esas clases (`text-app-muted`, `bg-app-light`) en vez de colores crudos de Tailwind. También hay utilidades propias: `scrollbar-custom`, `boton-salida`, `form-dark` / `form-dark2` (arreglos de autofill; `form-light` se borró el 9 de noviembre de 2026 por no usarse), `animate-menu-open`.
 
 **Logo** (9 de noviembre de 2026). Los SVG viven en **`src/assets/`**, junto al resto de imágenes (el usuario no quiere carpetas aparte como `public/logo`). El símbolo de la app es **`voxdei-simbolo.svg`**, el morado de cinco rayos, extraído del logo horizontal; `index.html` lo usa como ícono con `href="/src/assets/voxdei-simbolo.svg"` y Vite lo procesa en el build. Hubo un ícono azul de un solo haz (`voxdei-1-proyector.svg`) que no coincidía con los logos: el usuario lo descartó y se borró. Dentro de la app (fondo gris) van las versiones `fondo-oscuro`; las `fondo-claro` son para el README, la tienda y lo impreso. Las ideas aprobadas para usarlos y la navegación nueva (barra lateral en PC, barra inferior y Orden del culto en el celular) están en la memoria del proyecto, con sus prototipos.
 

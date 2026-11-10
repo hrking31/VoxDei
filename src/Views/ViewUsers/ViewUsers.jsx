@@ -178,61 +178,6 @@ export default function ViewUsers() {
     }
   };
 
-  // Eliminar usuario Auth y Firestore
-  // const handleDelete = async (e) => {
-  //   e.preventDefault();
-  //   setError("");
-
-  //   if (!deleteData.email || !deleteData.password) {
-  //     setError("Debes ingresar el correo y contraseña del usuario a eliminar.");
-  //     return;
-  //   }
-
-  //   // Espera respuesta del usuario
-  //   const accepted = await confirmAction(
-  //     `¿Seguro que deseas eliminar la cuenta de ${deleteData.email}?`
-  //   );
-  //   if (!accepted) return;
-
-  //   setLoading(true);
-
-  //   try {
-  //     const userCredential = await login(deleteData.email, deleteData.password);
-  //     const userToDelete = userCredential.user;
-
-  //     // Obtiene datos del usuario desde Firestore
-  //     const userRef = doc(db, "users", userToDelete.uid);
-  //     const userSnap = await getDoc(userRef);
-
-  //     // Eliminar imagen del STORAGE
-  //     if (userSnap.exists() && userSnap.data().photo) {
-  //       const imageUrl = userSnap.data().photo;
-  //       try {
-  //         const imageRef = ref(storage, imageUrl);
-  //         await deleteObject(imageRef);
-  //       } catch (error) {}
-  //     }
-
-  //     await deleteDoc(userRef); // Eliminar documento de Firestore
-  //     await deleteUser(userToDelete); // Eliminar usuario de Authentication
-
-  //     showNotif("success", "Usuario eliminados con éxito");
-  //     setDeleteData({ email: "", password: "" });
-  //   } catch (err) {
-  //     const errorMessages = {
-  //       "auth/user-not-found": "No se encontró una cuenta con ese correo.",
-  //       "auth/wrong-password": "Contraseña incorrecta.",
-  //       "auth/invalid-email": "Correo inválido.",
-  //       "auth/too-many-requests":
-  //         "Demasiados intentos fallidos. Intenta de nuevo más tarde.",
-  //     };
-
-  //     setError(errorMessages[err.code] || "Error al eliminar el usuario.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   // Eliminar usuario a través del servidor: borra la cuenta de acceso, su
   // ficha y su foto. Hacerlo desde el navegador dejaba viva la cuenta.
   const handleDelete = async () => {
