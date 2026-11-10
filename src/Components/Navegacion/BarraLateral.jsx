@@ -130,7 +130,7 @@ export default function BarraLateral() {
           aria-expanded={abierta}
           aria-label={abierta ? "Encoger la barra" : "Mostrar los nombres de las secciones"}
           title={abierta ? "Encoger la barra" : "Mostrar los nombres"}
-          className={`flex h-8 shrink-0 items-center px-3.5 text-app-muted transition-colors hover:text-app-main ${
+          className={`flex h-8 shrink-0 items-center rounded-lg px-3.5 text-app-muted hover:bg-app-dark hover:text-app-texto ${
             abierta ? "justify-end" : "justify-start"
           }`}
         >

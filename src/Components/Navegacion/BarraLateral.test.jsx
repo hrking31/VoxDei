@@ -93,11 +93,6 @@ describe("BarraLateral", () => {
     expect(icono().getAttribute("class")).not.toContain("-scale-x-100");
   });
 
-  it("la flecha va sin fondo, ni siquiera al pasar el mouse", () => {
-    montar(<BarraLateral />);
-    expect(interruptor().getAttribute("class")).not.toMatch(/(^|\s)(hover:)?bg-/);
-  });
-
   it("al elegir una sección navega a su dirección y se vuelve a encoger", () => {
     montar(<BarraLateral />);
     fireEvent.click(interruptor());
