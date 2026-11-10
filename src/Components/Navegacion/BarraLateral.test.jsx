@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import BarraLateral from "./BarraLateral.jsx";
 import { montar } from "./pruebas.utils.jsx";
+import simboloSinFondo from "../../assets/voxdei-simbolo-sin-fondo.svg";
+import horizontalSinFondo from "../../assets/voxdei-logo-horizontal-sin-fondo.svg";
 
 const barra = () => screen.getByRole("navigation", { name: "Secciones del panel" });
 const boton = (nombre) => within(barra()).getByRole("button", { name: nombre });
@@ -65,6 +67,16 @@ describe("BarraLateral", () => {
     montar(<BarraLateral />);
     fireEvent.click(boton("Menú inicial"));
     expect(ruta()).toBe("/ViewSelector");
+  });
+
+  it("el logo va sin su cuadro de fondo, encogida y abierta", () => {
+    montar(<BarraLateral />);
+    const logo = () => boton("Menú inicial").querySelector("img");
+    expect(logo().getAttribute("src")).toBe(simboloSinFondo);
+
+    fireEvent.click(interruptor());
+
+    expect(logo().getAttribute("src")).toBe(horizontalSinFondo);
   });
 
   it("empieza encogida y la flecha muestra los nombres", () => {
