@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/solid";
-import { abrirProyector } from "../Navegacion/abrirProyector.js";
 
 // Ayuda dentro de la app (9 de noviembre de 2026): cómo preparar la pantalla
 // para el servicio. Reemplaza a la hoja impresa que hubo un rato el mismo
@@ -8,32 +7,34 @@ import { abrirProyector } from "../Navegacion/abrirProyector.js";
 
 const PASOS = [
   {
-    titulo: "Conecta el computador al proyector",
+    titulo: "Conecta el dispositivo al proyector",
     texto: (
       <>
-        Usa el cable HDMI. En Windows pulsa <Tecla>Windows</Tecla> + <Tecla>P</Tecla> y elige{" "}
-        <b>Duplicar</b> (las dos pantallas muestran lo mismo) o <b>Extender</b> (el proyector es una
-        pantalla aparte).
+        Puede ser un computador, una tablet o un celular. En un computador con Windows, con el cable
+        HDMI puesto, pulsa <Tecla>Windows</Tecla> + <Tecla>P</Tecla> y elige <b>Duplicar</b> (las dos
+        pantallas muestran lo mismo) o <b>Extender</b> (el proyector es una pantalla aparte).
       </>
     ),
   },
   {
-    titulo: "Abre la pantalla del templo en el computador",
+    titulo: "Abre la pantalla del templo",
     texto: (
       <>
-        Inicia sesión en el computador y pulsa <b>Presentación</b>, o el botón de abajo. Se abre una
+        En ese mismo dispositivo, inicia sesión y en la entrada pulsa <b>Proyectar</b>. Se abre una
         ventana nueva: si elegiste <b>Extender</b>, arrástrala hasta el proyector. Toca el botón grande
-        del centro para ponerla en <b>pantalla completa</b>; ese toque también deja que los videos suenen.
+        del centro para ponerla en <b>pantalla completa</b>; ese toque también deja que los videos
+        suenen. Cuando está lista, el monitor junto al próximo servicio se pone en verde en todos los
+        equipos.
       </>
     ),
-    accion: { texto: "Abrir pantalla del templo", alPulsar: () => abrirProyector() },
   },
   {
-    titulo: "Maneja todo desde tu celular",
+    titulo: "Administra desde este dispositivo o desde otro",
     texto: (
       <>
-        En el celular entra con tu cuenta y pulsa <b>Administrador</b>. Lo que envíes —versículos,
-        canciones, anuncios, imágenes— aparece al instante en el templo.
+        Entra con tu cuenta y pulsa <b>Administrar</b>: puede ser en el mismo dispositivo del proyector
+        o en tu celular. Lo que envíes —versículos, canciones, anuncios, imágenes— aparece al instante
+        en el templo.
       </>
     ),
   },
@@ -68,6 +69,15 @@ const ANTES = [
 ];
 
 const PROBLEMAS = [
+  {
+    texto: (
+      <>
+        <b>¿El monitor junto al próximo servicio está gris?</b> La pantalla del templo se cerró. Vuelve
+        al dispositivo conectado al proyector y pulsa <b>Proyectar</b> en la entrada. Si está en ámbar,
+        falta tocar el centro para la pantalla completa.
+      </>
+    ),
+  },
   {
     texto: (
       <>
@@ -122,9 +132,6 @@ export default function Ayuda() {
                   <div className="flex min-w-0 flex-col gap-2">
                     <h3 className="font-semibold text-app-texto">{paso.titulo}</h3>
                     <p className="text-sm text-app-muted">{paso.texto}</p>
-                    {paso.accion && (
-                      <BotonAccion onClick={paso.accion.alPulsar}>{paso.accion.texto}</BotonAccion>
-                    )}
                   </div>
                 </li>
               ))}

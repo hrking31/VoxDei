@@ -29,7 +29,7 @@ export const GRUPOS = [
 ];
 
 export const INICIO = {
-  ruta: "/ViewGestion",
+  ruta: "/ViewInicio",
   nombre: "Inicio",
   Icono: Squares2X2Icon,
 };

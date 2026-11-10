@@ -26,6 +26,46 @@
   --spacing-espera-logo: 30vh;
   --spacing-espera-hueco: 2vh;
 
+  /* Colores del logo, para los dibujos de la pantalla de entrada */
+  --color-app-noche: #0d0b26; /* fondo del símbolo */
+  --color-app-haz: #ffd978; /* luz del proyector */
+
+  /* Animaciones de la pantalla de entrada (9 de noviembre de 2026) */
+  --animate-respira: respira 4s ease-in-out infinite; /* brillo del símbolo */
+  --animate-renglon: renglon 3.6s ease-in-out infinite; /* renglones que se proyectan */
+  --animate-haz: haz 2.4s ease-in-out infinite; /* el haz pulsa */
+  --animate-foco: foco 2.4s ease-in-out infinite; /* el foco brilla */
+  --animate-enviar: enviar 2.7s ease-out infinite; /* burbujas que salen del celular */
+  --animate-tecleo: tecleo 2.7s ease-in-out infinite; /* alguien escribe */
+  @keyframes respira {
+    0%, 100% { opacity: 0.55; transform: scale(0.94); }
+    50% { opacity: 1; transform: scale(1.04); }
+  }
+  @keyframes renglon {
+    0% { transform: scaleX(0); opacity: 0; }
+    12% { opacity: 1; }
+    30% { transform: scaleX(1); }
+    78% { transform: scaleX(1); opacity: 1; }
+    100% { transform: scaleX(1); opacity: 0; }
+  }
+  @keyframes haz {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.95; }
+  }
+  @keyframes foco {
+    0%, 100% { box-shadow: 0 0 8px 2px color-mix(in srgb, var(--color-app-haz) 45%, transparent); }
+    50% { box-shadow: 0 0 16px 6px color-mix(in srgb, var(--color-app-haz) 80%, transparent); }
+  }
+  @keyframes enviar {
+    0% { transform: translate(0, 4px) scale(0.5); opacity: 0; }
+    15% { opacity: 1; }
+    100% { transform: translate(48px, -30px) scale(1); opacity: 0; }
+  }
+  @keyframes tecleo {
+    0%, 100% { background-color: var(--color-app-border); }
+    40% { background-color: var(--color-app-muted); }
+  }
+
   /* El símbolo se enciende y se apaga como un proyector que calienta */
   --animate-enciende: enciende 2.4s ease-in-out infinite;
   @keyframes enciende {
@@ -72,6 +112,32 @@ body {
 @utility bottom-avisos {
   bottom: calc(1.5rem + var(--alto-barra) + var(--alto-flotante));
 }
+/* ---- Pantalla de entrada (/ViewSelector) ---- */
+/* Fondo con un resplandor dorado detrás del símbolo */
+@utility fondo-entrada {
+  background:
+    radial-gradient(60% 55% at 50% 22%, color-mix(in srgb, var(--color-app-main) 14%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-app-dark) 92%, white), var(--color-app-dark) 40%, color-mix(in srgb, var(--color-app-dark) 90%, black));
+}
+/* Resplandor redondo detrás del símbolo */
+@utility brillo-oro {
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-app-haz) 35%, transparent), transparent 65%);
+}
+/* Haz de luz del proyector, como en el logo */
+@utility haz-proyector {
+  clip-path: polygon(0 0, 100% 0, 52% 100%, 48% 100%);
+  background: linear-gradient(0deg, color-mix(in srgb, var(--color-app-haz) 85%, transparent), color-mix(in srgb, var(--color-app-main) 8%, transparent));
+}
+/* Burbuja de mensaje: esquina de abajo a la izquierda en punta */
+@utility burbuja-mensaje {
+  border-radius: 7px 7px 7px 2px;
+}
+/* Retrasos para que las animaciones no vayan todas a la vez */
+@utility retraso-1 { animation-delay: 0.25s; }
+@utility retraso-2 { animation-delay: 0.5s; }
+@utility retraso-3 { animation-delay: 0.9s; }
+@utility retraso-4 { animation-delay: 1.8s; }
+
 /* Botón flotante, justo encima de la barra inferior. */
 @utility bottom-flotante {
   bottom: calc(0.75rem + var(--alto-barra));

@@ -44,7 +44,7 @@ La distinción más importante del proyecto:
 - **Realtime Database (`database`)** guarda el **estado efímero de proyección**: qué se está mostrando ahora mismo y qué secciones están visibles.
 
 Todos los nodos de RTDB se escriben bajo `<nodo>/${userData.groupId}`:
-`displayTitulo`, `displayMessage`, `displayVersiculo`, `displayTicker`, `displayImage`, `displayVideo`, `displayVisible*`, `displayEspera`, `speedTicker`, `turnoEnsayo`. Cualquier nodo nuevo debe seguir el mismo patrón o romperá el aislamiento entre iglesias, y tiene que sumarse **a la vez** a la expresión de `database.rules.json` y a `NODOS_PROYECCION` de `functions/index.js`. **`src/NodosProyeccion.test.js` lo vigila**: busca en `src/` cada `ref(database, \`<nodo>/${…}\`)` y falla si el nodo falta en cualquiera de las dos listas, o si las listas no coinciden.
+`displayTitulo`, `displayMessage`, `displayVersiculo`, `displayTicker`, `displayImage`, `displayVideo`, `displayVisible*`, `displayEspera`, `pantallaTemplo` (presencia, con un hijo por ventana), `speedTicker`, `turnoEnsayo`. Cualquier nodo nuevo debe seguir el mismo patrón o romperá el aislamiento entre iglesias, y tiene que sumarse **a la vez** a la expresión de `database.rules.json` y a `NODOS_PROYECCION` de `functions/index.js`. **`src/NodosProyeccion.test.js` lo vigila**: busca en `src/` cada `ref(database, \`<nodo>/${…}\`)` y falla si el nodo falta en cualquiera de las dos listas, o si las listas no coinciden.
 
 ### Aislamiento multi-iglesia: `groupId`
 
@@ -92,7 +92,7 @@ Los imports de hooks van **sin extensión** (`from "../Context/AuthContext"`): a
 
 No se usa `alert` ni `confirm`. `AppContext` expone:
 
-- `showNotif(type, message)` — tipos `success` | `error` | `warning` | `info`; se cierra sola a los 4 s.
+- `showNotif(type, message, duracion = 4000)` — tipos `success` | `error` | `warning` | `info`; se cierra sola a los `duracion` ms (4 s de fábrica; los avisos de la pantalla del templo usan 2 s). Cada aviso nuevo reinicia la cuenta.
 - `confirmAction(message)` — devuelve una promesa que resuelve `true`/`false` según lo que pulse el usuario. Siempre con `await`. Como hay un solo recuadro, **si otro aviso u otra pregunta tapa una pregunta pendiente, esta se resuelve `false`** (`preguntaPendiente` en `AppProvider`, 23 de octubre de 2026). Antes la promesa quedaba sin resolver y la acción colgada.
 
 **`Notificaciones` es el único componente que puede pintar avisos** (unificado el 15 de agosto de 2026). Está montado una sola vez en `App.jsx`, dentro de `AppProvider`, así que cubre todas las rutas, incluidas login, registro y recuperación de contraseña. Se muestra **centrado en la parte inferior** (`bottom-6`, ancho `max-w-md`), con el mismo tamaño para todos los tipos.
@@ -119,21 +119,21 @@ Las dos pantallas comparten **`src/Components/Favoritos/FavoritosTexto.jsx`**: e
 
 ### Navegación del panel (9 de noviembre de 2026)
 
-En el **computador** hay una **barra lateral**; en el **celular**, una **barra inferior** con un botón flotante para volver a la sección anterior. La cuadrícula de `ViewGestion` sigue existiendo como **Inicio**. Todo vive en `src/Components/Navegacion/`:
+En el **computador** hay una **barra lateral**; en el **celular**, una **barra inferior** con un botón flotante para volver a la sección anterior. **Inicio** es `/ViewInicio`, el resumen del día (la antigua cuadrícula `/ViewGestion` se eliminó). Todo vive en `src/Components/Navegacion/`:
 
 | Archivo | Qué hace |
 | --- | --- |
-| `Secciones.js` | **La lista única** de secciones (`SECCIONES`, `GRUPOS` «Proyectar»/«Organizar», `INICIO`). La usan la cuadrícula y las dos barras. `seccionesPara(userData)` aplica el filtro de roles (Prédica solo pastores); `estaActiva(seccion, pathname)` decide qué ícono se enciende, sin distinguir mayúsculas y con los prefijos de `tambien` (`/ViewCancion/` enciende Canciones, `/ViewServicioEditar` enciende Cronograma). `corto` es el nombre para la barra inferior («Culto»). `EN_BARRA_INFERIOR` / `reparto(userData)` dicen qué cuatro van en la barra del celular (Biblia, Canciones, **Culto** al centro, Mensajes) y qué va en «Más». |
+| `Secciones.js` | **La lista única** de secciones (`SECCIONES`, `GRUPOS` «Proyectar»/«Organizar», `INICIO`). La usan las dos barras. `seccionesPara(userData)` aplica el filtro de roles (Prédica solo pastores); `estaActiva(seccion, pathname)` decide qué ícono se enciende, sin distinguir mayúsculas y con los prefijos de `tambien` (`/ViewCancion/` enciende Canciones, `/ViewServicioEditar` enciende Cronograma). `corto` es el nombre para la barra inferior («Culto»). `EN_BARRA_INFERIOR` / `reparto(userData)` dicen qué cuatro van en la barra del celular (Biblia, Canciones, **Culto** al centro, Mensajes) y qué va en «Más». |
 | `MarcoPanel.jsx` | Ruta **sin `path`** en `App.jsx` que agrupa las pantallas del panel y pinta la barra que toque junto al `<Outlet />`. Solo con la sesión lista (`user`, `userData`, `correoVerificado`). En el celular envuelve el contenido en `pb-barra-inferior`. |
-| `BarraLateral.jsx` | Computador. Encogida (`w-barra`, solo íconos) o abierta por encima del contenido (`w-barra-abierta`) al pulsar el símbolo; al elegir algo, con Escape o tocando el velo se encoge. Abajo: abrir la pantalla del templo, la persona y cerrar sesión (con `confirmAction`). |
-| `BarraInferior.jsx` | Celular. Cuatro secciones y «Más» (hoja con Inicio y el resto; Escape o tocar fuera la cierra). Lleva `data-barra-inferior`. Exporta también `BotonAnterior`, el botón flotante que usa `useSeccionAnterior.js`: recuerda la **última dirección** de la sección anterior (vuelve a la canción abierta, no a la lista); moverse dentro de una sección no la cambia. Lleva `data-boton-anterior`. |
+| `BarraLateral.jsx` | Computador. Encogida (`w-barra`, solo íconos) o abierta por encima del contenido (`w-barra-abierta`) al pulsar el símbolo; al elegir algo, con Escape o tocando el velo se encoge. Grupos «Proyectar» y «Organizar»; abajo, Ayuda, la persona y cerrar sesión (con `confirmAction`). **No** abre la pantalla del templo: eso se hace una sola vez, en la entrada. |
+| `BarraInferior.jsx` | Celular. Cuatro secciones y «Más» (hoja con Inicio, el resto, Ayuda y **Cerrar sesión** con confirmación; Escape o tocar fuera la cierra). Lleva `data-barra-inferior`. Exporta también `BotonAnterior`, el botón flotante que usa `useSeccionAnterior.js`: recuerda la **última dirección** de la sección anterior (vuelve a la canción abierta, no a la lista); moverse dentro de una sección no la cambia. Lleva `data-boton-anterior`. |
 
 **Altos en el celular** (`index.css`). `:root` define `--alto-barra: 0px` y `--alto-flotante: 0px`; con `:has([data-barra-inferior])` y `:has([data-boton-anterior])` toman su valor. Encima van tres utilidades: `h-pantalla` / `min-h-pantalla` (100svh menos la barra) **reemplazan a `h-svh` / `min-h-svh` en toda pantalla del panel**, y `bottom-avisos` sube las notificaciones por encima de la barra y del botón flotante. En el computador y en `/VOXDEI` las variables valen 0, así que todo mide como antes. Una pantalla nueva del panel con alto fijo debe usar `h-pantalla`, o quedará tapada por la barra.
 
 **Ayuda** (`/ViewAyuda`, `Components/Ayuda/Ayuda.jsx`): cómo preparar la pantalla del servicio, con botones a las secciones que menciona. No es una sección de `SECCIONES` sino la entrada aparte `AYUDA` (como `INICIO`): va abajo en la barra lateral y al final de «Más». `seccionDeRuta(pathname)` reconoce `INICIO`, las secciones y `AYUDA`; la usan el título de la pestaña y el botón de volver. Reemplazó, el mismo 9 de noviembre de 2026, a un kit de bienvenida en PDF (`docs/kit-bienvenida.pdf`) que el usuario pidió borrar: la ayuda va dentro de la app, no impresa.
 
 **Ya no hay botón «Salida»** (9 de noviembre de 2026): las barras lo reemplazan en los dos tamaños. Se borraron `BotonSalida.jsx`, sus usos, la salida de Prédica y los «¿Regresar al inicio?» de Usuarios. No vuelvas a ponerlo: para ir a la cuadrícula está Inicio.
-| `abrirProyector.js` | Abre `/VOXDEI` en la ventana `VisorProyector`. La usan `ViewSelector` y la barra. |
+| `abrirProyector.js` | Abre `/VOXDEI` en la ventana `VisorProyector`. Solo la usa la ficha **Proyectar** de `ViewSelector`. |
 | `IconoPestana.jsx` + `iconoPestana.js` | Sin pantalla, montado por `MarcoPanel` (celular y computador). Dibuja en el ícono de la pestaña un punto verde o rojo según `puedoProyectar` (idea 4) y pone `VOXDEI · <sección>` en el título. Lee el SVG del símbolo con `?raw` y los colores del tema con `getComputedStyle`; al salir del panel restaura ícono y título. |
 
 Reglas:
@@ -163,7 +163,7 @@ Reglas de la pareja pastoral, iguales en la pantalla y en el servidor:
 - Cuando la pareja ya existe, el selector de rol **desaparece** y todo lo que se cree en adelante nace como `Operador`.
 - **No hay cambio de rol posterior.** Se elige al crear y punto.
 
-Dos listas gobiernan el acceso: `ROLES_PASTORES` (`/ViewPredica`) y `ROLES_PROYECCION` (resto de rutas de contenido). `/ViewSelector` y `/ViewGestion` solo exigen sesión iniciada, pero `ViewGestion` oculta el botón de *Gestión Predica* a quien no sea pastor, en vez de dejar que choque con `/VistaNoAutorizada`.
+Dos listas gobiernan el acceso: `ROLES_PASTORES` (`/ViewPredica`) y `ROLES_PROYECCION` (resto de rutas de contenido). `/ViewSelector`, `/ViewInicio` y `/ViewAyuda` solo exigen sesión iniciada. Prédica se oculta de las barras a quien no sea pastor (`seccionesPara`), en vez de dejar que choque con `/VistaNoAutorizada`.
 
 **`/ViewUsers` está abierta a todos** (15 de octubre de 2026), porque es donde cada persona elimina su propia cuenta. Dentro, `soyPastor` decide: el operador entra directo a la lista (`mode` arranca en `"users"`), no ve la pestaña *Crear* y `puedeEliminarA` le devuelve siempre `false`. En la ficha propia (`esMiCuenta`), `UserProfileCard` muestra *Eliminar mi cuenta*, que navega a `/EliminarCuenta`. Ver el equipo no expone nada nuevo: la regla de `users` ya dejaba leer a toda la iglesia.
 
@@ -303,6 +303,23 @@ Nunca describas en el manual una función que no esté terminada sin marcarla co
 
 **Registro de cambios**: el usuario pidió expresamente (22 de agosto de 2026) que **todo cambio se anote en `README.md`** sin esperar a que lo recuerde, porque es la vista del proyecto en GitHub.
 
+### Pantalla de entrada y presencia de la pantalla del templo (9 de noviembre de 2026)
+
+Diseñada con el usuario sobre la maqueta https://claude.ai/artifact/7nxE97Kzk1vvkhbzXNf82p. El recorrido real es: en el **dispositivo conectado al proyector** (computador, tablet o celular) se pulsa **Proyectar**; después, en ese mismo o en otro, **Administrar**.
+
+- `ViewSelector`: `EncabezadoUsuario` (foto con anillo dorado o iniciales, nombre, rol como insignia, iglesia con su logo o un ícono, y «Cerrar sesión» con `confirmAction`; nombre e iglesia en una línea con `truncate` y el texto completo en `title`; en el celular, la sigla en vez del nombre de la iglesia si existe), saludo con `saludoSegunHora` + `primerNombre`, dos `FichaPaso` que se tocan enteras con los dibujos animados de `Ilustraciones.jsx`, y un pie con `EstadoPantalla` + `ProximoServicio` + «¿Primera vez? Ayuda». Todo en `Components/Entrada/`. **Textos acordados con el usuario, no cambiarlos sin preguntar**: «Proyectar» / «Si este dispositivo va al proyector»; «Administrar» / «Gestiona versículos, canciones, prédicas, mensajes, tickers, imágenes, videos, cronograma, usuarios y estilos» + «Desde este dispositivo o desde otro». Nada de «computador» en los textos: el que proyecta puede ser cualquier dispositivo.
+- **Presencia** (`Components/PantallaTemplo/`): `usePresenciaPantalla` (en `ControlDisplay`) escribe `pantallaTemplo/{groupId}/{idVentana}` = `{ completa, dispositivo, por, desde }` con `onDisconnect().remove()`, y lo reescribe cada vez que `.info/connected` vuelve a `true` (tras un corte, `onDisconnect` ya lo borró). `completa` es `!visible` del botón de pantalla completa. `InicializarEstados` lo resume con `estadoPantalla` en `pantallaTemplo` del contexto: `"apagada"` | `"sin-completa"` | `"encendida"` (o `null` mientras no se sabe) y, en cada cambio, lanza el aviso de `avisoDeCambio` durante `DURACION_AVISO` (2 s) en todos los equipos **salvo en la propia ventana `/VOXDEI`** y salvo al cargar. Si el corte es brusco, Firebase puede tardar hasta un minuto en borrar la presencia.
+- **Proyectar solo se oculta si se sabe que la pantalla está abierta** (`encendida` o `sin-completa`). Con `null` (cargando o sin permiso de leer) se ofrece: mejor de más que dejar a alguien sin poder abrir el proyector. En el celular también se ofrece.
+- `EstadoPantalla`: monitor gris «Apagada», flechas de pantalla completa en ámbar «Pantalla completa» (falta tocar pantalla completa; así lo pidió el usuario) y monitor verde «Encendida». Va en la entrada y en la tarjeta «Servicio» de Inicio. **La pantalla del templo no se abre desde el panel**: ni barra lateral, ni Inicio, ni Ayuda (decisión del usuario).
+
+### Datos de la iglesia: nombre, sigla y logo (9 de noviembre de 2026)
+
+Firestore `iglesias/{groupId}/perfil/datos` = `{ nombre, sigla, logo, actualizado }` (`PERFIL`, `PERFIL_DATOS`). **Solo pastor y pastora** lo escriben: en `firestore.rules`, `perfil` se sumó a `cronograma` en la condición `!(coleccion in [...]) || soyPastor()`. `InicializarEstados` lo pone en `iglesia` del contexto; `datosDeIglesia(iglesia, userData)` cae a `userData.churchName` para las iglesias registradas antes.
+
+- Se piden en el **registro** (`ViewRegister`, opcionales) y se corrigen en **Usuarios** (`DatosIglesia`, solo pastores). `guardarDatosIglesia` comprime el logo (`LADO_PERFIL`) y lo sube a `imagenes/{groupId}/logo-iglesia`, carpeta que `eliminarMiCuenta` ya borra. En el registro va **después** de crear la ficha (la regla pide ser pastor) y, si falla, no frena el registro.
+- `normalizarSigla`: solo letras (con Ñ y tildes) y números, en mayúsculas, hasta `LARGO_SIGLA` (8).
+- Hoy se usan en el encabezado de la entrada. `churchName` sigue en la ficha de cada usuario (lo copia `crearUsuarioAdmin`): cambiar el nombre en `perfil` no lo actualiza.
+
 ### Orden del culto (9 de noviembre de 2026)
 
 Ruta `/ViewCulto` (`ROLES_PROYECCION`) → `Components/OrdenCulto/OrdenCulto.jsx`. Es la primera sección de «Proyectar» y el botón central de la barra inferior. Dos pestañas:
@@ -434,8 +451,8 @@ El encabezado se localiza subiendo desde el botón hasta el primer ancestro con 
 
 - Código, comentarios y nombres de componentes en español. Mantener ese estilo.
 - Las vistas viven en `src/Views/<Nombre>/<Nombre>.jsx` y deben reexportarse en `src/Views/index.js` para poder usarse en `App.jsx`.
-- Las rutas se escriben tal cual (`/ViewGestion`, `/ViewSelector`, `/VOXDEI`). React Router **no distingue mayúsculas** (por eso `/viewTicker` en `App.jsx` funciona con `navigate("/ViewTicker")`), pero escríbelas igual que en `App.jsx`. El `navigate("/Viewgestion")` mal escrito de `ViewUsers` se corrigió el 9 de noviembre de 2026.
-- `ViewSelector` es la pantalla de entrada (abre el visor y cierra sesión); `ViewGestion` es la cuadrícula de opciones. Hasta el 9 de noviembre de 2026 la función de `ViewGestion.jsx` se llamaba por dentro `ViewSelector`; ya se renombró.
+- Las rutas se escriben tal cual (`/ViewInicio`, `/ViewSelector`, `/VOXDEI`). React Router **no distingue mayúsculas** (por eso `/viewTicker` en `App.jsx` funciona con `navigate("/ViewTicker")`), pero escríbelas igual que en `App.jsx`. El `navigate("/Viewgestion")` mal escrito de `ViewUsers` se corrigió el 9 de noviembre de 2026.
+- `ViewSelector` es la pantalla de entrada (Proyectar / Administrar). `/ViewGestion`, la antigua cuadrícula de opciones, **se eliminó el 9 de noviembre de 2026**: la reemplazó `/ViewInicio`, el resumen del día.
 - **Código heredado**: el usuario pidió (9 de noviembre de 2026) borrar el código viejo al reemplazarlo, no dejarlo comentado ni sin usar. Ese día se borraron la versión antigua de `ViewUsers` (428 líneas comentadas), la opción «Próximamente» de los botones de Gestión y las once copias del botón «Salida».
 - **Estilos solo desde el tema**: colores, medidas, sombras y animaciones se definen como variables en el `@theme` de `src/index.css` y los componentes los usan por su nombre (`bg-app-velo`, `w-barra`, `animate-enciende`). Nada de valores sueltos (`bg-[#…]`, `text-gray-100`, `left-[calc(…)]`): si falta uno, se agrega al tema. **No se crea otro archivo de tema** (decisión del usuario). Para algo que se repite, un componente de React, no una clase con `@apply`. Lo antiguo todavía tiene colores crudos (`from-gray-900` en las pantallas de entrada, `bg-green-500`…); se limpia al tocarlo.
 - **Lenguaje**: JavaScript. El 9 de noviembre de 2026 se habló de TypeScript y se decidió seguir en JS por ahora; si se migra, que sea gradual y empezando por la lógica pura.

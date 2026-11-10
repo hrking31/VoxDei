@@ -15,6 +15,7 @@ import { cargarApiYouTube, TOLERANCIA_SEGUNDOS } from "../Video/YouTube";
 import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
 import { Simbolo } from "../Logo/Logo.jsx";
 import PantallaEspera from "../PantallaEspera/PantallaEspera.jsx";
+import { usePresenciaPantalla } from "../PantallaTemplo/usePresenciaPantalla.js";
 
 export default function DisplayView() {
   const [visible, setVisible] = useState(true);
@@ -52,6 +53,10 @@ export default function DisplayView() {
   } = useAppContext();
   const { userData } = useAuth();
   const groupId = userData.groupId;
+
+  // Avisa a los demás equipos que esta pantalla está encendida y si está en
+  // pantalla completa (el botón del centro solo se ve cuando no lo está).
+  usePresenciaPantalla(groupId, !visible, userData.name);
 
   // Reconexión de las suscripciones en vivo.
   //

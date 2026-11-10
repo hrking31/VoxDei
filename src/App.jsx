@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import {
   ViewLogin,
   ViewSelector,
-  ViewGestion,
+  ViewInicio,
   ViewImagenes,
   ViewDisplay,
   ViewStylos,
@@ -67,10 +67,10 @@ export default function App() {
             Cada una conserva su dirección y su protección por rol. */}
         <Route element={<MarcoPanel />}>
           <Route
-            path="/ViewGestion"
+            path="/ViewInicio"
             element={
               <ProtectedRoutes>
-                <ViewGestion />
+                <ViewInicio />
               </ProtectedRoutes>
             }
           />

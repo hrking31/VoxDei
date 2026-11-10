@@ -1,111 +1,108 @@
 import { useNavigate } from "react-router-dom";
-import {
-  PlayCircleIcon,
-  Squares2X2Icon,
-  XMarkIcon,
-  UserIcon,
-} from "@heroicons/react/24/solid";
-import Footer from "../../Components/Footer/Footer.jsx";
+import { ArrowRightIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../../Components/Context/AuthContext";
+import { useAppContext } from "../../Components/Context/AppContext";
 import Loading from "../../Components/Loading/Loading.jsx";
-import { LogoHorizontal } from "../../Components/Logo/Logo.jsx";
+import Footer from "../../Components/Footer/Footer.jsx";
+import { Simbolo } from "../../Components/Logo/Logo.jsx";
 import { abrirProyector } from "../../Components/Navegacion/abrirProyector.js";
+import EncabezadoUsuario from "../../Components/Entrada/EncabezadoUsuario.jsx";
+import FichaPaso from "../../Components/Entrada/FichaPaso.jsx";
+import EstadoPantalla from "../../Components/Entrada/EstadoPantalla.jsx";
+import ProximoServicio from "../../Components/Entrada/ProximoServicio.jsx";
+import { IlustracionAdministrar, IlustracionProyectar } from "../../Components/Entrada/Ilustraciones.jsx";
+import { primerNombre, saludoSegunHora } from "../../Components/Entrada/utilesEntrada.js";
 
+// Pantalla de entrada (rediseñada el 9 de noviembre de 2026). Antes del culto
+// hay dos pasos: Proyectar, en el dispositivo conectado al proyector, y
+// Administrar, desde ese mismo dispositivo o desde otro.
+//
+// Proyectar solo aparece si la pantalla del templo está apagada (presencia en
+// RTDB, ver PantallaTemplo/): si ya se abrió en cualquier equipo, desaparece
+// en todos y queda solo Administrar. Para volver a abrirla se vuelve al
+// dispositivo del proyector.
 export default function ViewSelector() {
   const navigate = useNavigate();
-  const { logout, userData, loading } = useAuth();
-
-  const handlerLogout = async () => {
-    await logout();
-  };
+  const { userData, loading } = useAuth();
+  const { pantallaTemplo } = useAppContext();
 
   if (loading || !userData) {
     return <Loading text="Preparando la pantalla de adoración..." />;
   }
 
+  // Proyectar se oculta solo si se SABE que la pantalla está abierta. Si aún
+  // no se sabe (cargando, o sin permiso de leer la presencia), se ofrece: es
+  // mejor ofrecerlo de más que dejar a alguien sin poder abrir el proyector.
+  const lista = pantallaTemplo === "encendida" || pantallaTemplo === "sin-completa";
+  const conProyectar = !lista;
+
   return (
-    <div className="min-h-svh flex flex-col items-center justify-between bg-linear-to-b from-app-dark/50 to-app-light/50">
-      <div className="flex flex-col items-center justify-items-start w-full flex-1 px-2">
-        {userData && (
-          <div className="flex items-center gap-3 w-full max-w-3xl border border-app-border rounded-full px-2 py-2 mt-4 mb-4 sm:mb-8 hover:shadow-inner hover:shadow-app-muted transition-shadow duration-300">
-            {userData.photo ? (
-              <img
-                src={userData.photo}
-                alt="user"
-                className="w-10 h-10 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                <UserIcon className="w-5 h-5 text-gray-500" />
-              </div>
-            )}
-            <div className="flex flex-col flex-1 leading-tight">
-              <span className="text-sm font-medium text-app-main">
-                {userData.name || "Usuario"}
-              </span>
-              <span className="text-[11px] text-app-muted">
-                {userData.email || userData.role || ""}
-              </span>
-            </div>
+    <div className="min-h-svh flex flex-col fondo-entrada text-app-texto">
+      <EncabezadoUsuario />
 
-            <span className="text-[11px] bg-app-main/10 text-app-main px-3 py-1 rounded-full capitalize font-medium">
-              {userData.role || "Sin rol"}
-            </span>
-            <button
-              onClick={handlerLogout}
-              className="p-2 rounded-full hover:bg-app-main transition"
-              aria-label="Cerrar"
-            >
-              <XMarkIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Encabezado */}
-      <div className="text-center mb-2 sm:mb-6">
-        <h1>
-          <span className="sr-only">Bienvenidos a VOXDEI</span>
-          <LogoHorizontal alt="" className="mx-auto h-16 sm:h-24 w-auto" />
-        </h1>
-        <p className="text-app-muted text-base sm:text-lg mt-2">
-          ¿Cómo quieres usar este dispositivo?
-        </p>
-      </div>
-
-      {/* Contenedor de botones */}
-      <div className="flex-1 flex items-center justify-center w-full px-6 pb-2 sm:pb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 w-full max-w-3xl">
-          {/* Botón Presentación */}
-          <button
-            onClick={abrirProyector}
-            className="group flex flex-col items-center justify-center p-8 sm:p-10 h-50 sm:h-full bg-linear-to-b from-app-main/40 to-app-light rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 border border-app-border"
-          >
-            <PlayCircleIcon className="w-14 h-14 text-app-main mb-3 transform transition-all duration-300 group-hover:scale-125 group-hover:-translate-y-1" />
-            <span className="text-base sm:text-lg font-semibold text-app-main text-center">
-              Presentación
-            </span>
-            <p className="text-sm text-app-muted mt-1 text-center">
-              Muestra el contenido en la pantalla principal
-            </p>
-          </button>
-
-          {/* Botón Administrador */}
-          <button
-            onClick={() => navigate("/ViewGestion")}
-            className="group flex flex-col items-center justify-center p-8 sm:p-10 h-50 sm:h-full bg-linear-to-b from-app-main/40 to-app-light rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-1 hover:scale-105 transition-all duration-300 border border-app-border"
-          >
-            <Squares2X2Icon className="w-14 h-14 text-app-main mb-3 transform transition-all duration-300 group-hover:scale-125 group-hover:-translate-y-1" />
-            <span className="text-base sm:text-lg font-semibold text-app-main text-center">
-              Administrador
-            </span>
-            <p className="text-sm text-app-muted mt-1 text-center">
-              Gestiona tickers, mensajes, predicas, versiculos, usuarios y
-              estilos
-            </p>
-          </button>
+      <main className="flex flex-1 flex-col items-center gap-6 px-4 py-6 sm:py-10">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <span className="relative h-16 w-16">
+            <span aria-hidden="true" className="absolute -inset-5 rounded-full brillo-oro motion-safe:animate-respira" />
+            <Simbolo alt="" className="relative h-16 w-16" />
+          </span>
+          <h1 className="text-2xl font-bold">
+            {saludoSegunHora()}, {primerNombre(userData.name)}
+          </h1>
+          <p className="text-sm text-app-muted">
+            {lista ? "Todo listo para el culto" : "¿Qué hará este dispositivo hoy?"}
+          </p>
         </div>
-      </div>
+
+        <div
+          className={`flex w-full flex-col items-stretch gap-3 sm:flex-row ${
+            conProyectar ? "max-w-3xl" : "max-w-sm"
+          }`}
+        >
+          {conProyectar && (
+            <>
+              <FichaPaso
+                numero={1}
+                titulo="Proyectar"
+                lineas={["Si este dispositivo va al proyector"]}
+                principal
+                onClick={abrirProyector}
+              >
+                <IlustracionProyectar />
+              </FichaPaso>
+              <span aria-hidden="true" className="flex items-center justify-center text-app-muted">
+                <ArrowRightIcon className="h-4 w-4 rotate-90 sm:rotate-0" />
+              </span>
+            </>
+          )}
+          <FichaPaso
+            numero={conProyectar ? 2 : null}
+            titulo="Administrar"
+            lineas={[
+              "Gestiona versículos, canciones, prédicas, mensajes, tickers, imágenes, videos, cronograma, usuarios y estilos",
+              "Desde este dispositivo o desde otro",
+            ]}
+            principal={!conProyectar}
+            onClick={() => navigate("/ViewInicio")}
+          >
+            <IlustracionAdministrar />
+          </FichaPaso>
+        </div>
+      </main>
+
+      <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-app-border px-4 py-3 text-xs text-app-muted">
+        <span className="flex min-w-0 flex-wrap items-center gap-2">
+          <EstadoPantalla />
+          <ProximoServicio />
+        </span>
+        <button
+          type="button"
+          onClick={() => navigate("/ViewAyuda")}
+          className="text-app-main underline underline-offset-2"
+        >
+          ¿Primera vez? Ayuda
+        </button>
+      </footer>
       <Footer />
     </div>
   );

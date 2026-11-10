@@ -17,6 +17,11 @@ export function AppProvider({ children }) {
   // Pantalla de espera antes del servicio (logo + cuenta regresiva). Nodo
   // displayEspera de RTDB; se enciende desde Cronograma.
   const [visibleEspera, setVisibleEspera] = useState(false);
+  // Pantalla del templo: "apagada" | "sin-completa" | "encendida"; null
+  // mientras no se sabe. La llena InicializarEstados con la presencia.
+  const [pantallaTemplo, setPantallaTemplo] = useState(null);
+  // Datos de la iglesia: { nombre, sigla, logo } (iglesias/{g}/perfil/datos)
+  const [iglesia, setIglesia] = useState(null);
   // Apariencia de la pantalla de proyección
   const [estilos, setEstilos] = useState(ESTILOS_POR_DEFECTO);
   const [authUser, setAuthUser] = useState(null);
@@ -44,9 +49,10 @@ export function AppProvider({ children }) {
     preguntaPendiente.current = null;
   };
 
-  const showNotif = (type, message) => {
+  // `duracion` en milisegundos; los avisos de la pantalla del templo usan 2 s.
+  const showNotif = (type, message, duracion = 4000) => {
     responderPendiente(false);
-    setNotif({ open: true, type, message });
+    setNotif({ open: true, type, message, duracion });
   };
 
   const confirmAction = (message) => {
@@ -88,6 +94,10 @@ export function AppProvider({ children }) {
         setVisibleVideo,
         visibleEspera,
         setVisibleEspera,
+        pantallaTemplo,
+        setPantallaTemplo,
+        iglesia,
+        setIglesia,
         estilos,
         setEstilos,
         authUser,

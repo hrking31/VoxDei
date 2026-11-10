@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { fireEvent, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import BarraInferior, { BotonAnterior } from "./BarraInferior.jsx";
 import { montar } from "./pruebas.utils.jsx";
 
@@ -32,10 +32,18 @@ describe("BarraInferior", () => {
     fireEvent.click(enBarra("Más"));
     const hoja = screen.getByRole("dialog", { name: "Más secciones" });
     const nombres = within(hoja).getAllByRole("button").map((b) => b.textContent);
-    expect(nombres).toEqual(["Inicio", "Ticker", "Imágenes", "Video", "Prédica", "Cronograma", "Usuarios", "Estilos y colores", "Ayuda"]);
+    expect(nombres).toEqual(["Inicio", "Ticker", "Imágenes", "Video", "Prédica", "Cronograma", "Usuarios", "Estilos y colores", "Ayuda", "Cerrar sesión"]);
     fireEvent.click(within(hoja).getByRole("button", { name: "Ticker" }));
     expect(ruta()).toBe("/ViewTicker");
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("«Cerrar sesión» de «Más» pide confirmación antes de salir", async () => {
+    const { auth, app } = montar(<BarraInferior />, { ...celular, app: { isDesktop: false, confirmAction: vi.fn().mockResolvedValue(false) } });
+    fireEvent.click(enBarra("Más"));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Cerrar sesión" }));
+    await waitFor(() => expect(app.confirmAction).toHaveBeenCalledWith("¿Cerrar sesión?"));
+    expect(auth.logout).not.toHaveBeenCalled();
   });
 
   it("«Más» se ve encendido cuando la sección actual está dentro", () => {

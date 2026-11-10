@@ -1,19 +1,25 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowUturnLeftIcon, EllipsisHorizontalIcon } from "@heroicons/react/24/solid";
+import {
+  ArrowLeftStartOnRectangleIcon,
+  ArrowUturnLeftIcon,
+  EllipsisHorizontalIcon,
+} from "@heroicons/react/24/solid";
 import { useAuth } from "../Context/AuthContext";
+import { useAppContext } from "../Context/AppContext";
 import { AYUDA, CENTRO_BARRA_INFERIOR, INICIO, estaActiva, reparto } from "./Secciones.js";
 import { useSeccionAnterior } from "./useSeccionAnterior.js";
 
 // Navegación del panel en el celular (9 de noviembre de 2026): cuatro
 // secciones a un toque —con el Orden del culto en el centro, más grande— y
-// «Más» con el resto. Reemplaza el ir y volver por la cuadrícula de Gestión,
-// que sigue siendo Inicio.
+// «Más» con el resto, Ayuda y Cerrar sesión. Reemplazó el ir y volver por la
+// antigua cuadrícula de Gestión.
 //
 // Lleva `data-barra-inferior`: con eso index.css activa --alto-barra y las
 // pantallas (h-pantalla) y los avisos (bottom-avisos) le dejan sitio.
 export default function BarraInferior() {
-  const { userData } = useAuth();
+  const { userData, logout } = useAuth();
+  const { confirmAction } = useAppContext();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [masAbierto, setMasAbierto] = useState(false);
@@ -34,6 +40,12 @@ export default function BarraInferior() {
   const ir = (ruta) => {
     setMasAbierto(false);
     navigate(ruta);
+  };
+
+  // Un toque suelto en pleno culto no debe sacar a nadie: se confirma.
+  const cerrarSesion = async () => {
+    setMasAbierto(false);
+    if (await confirmAction("¿Cerrar sesión?")) await logout();
   };
 
   return (
@@ -63,6 +75,15 @@ export default function BarraInferior() {
                 {s.nombre}
               </button>
             ))}
+            {/* En el computador está en la barra lateral; aquí, al final de «Más» */}
+            <button
+              type="button"
+              onClick={cerrarSesion}
+              className="col-span-3 flex items-center justify-center gap-2 rounded-xl border border-app-border p-3 text-xs text-app-muted transition hover:border-app-error/60 hover:text-app-error"
+            >
+              <ArrowLeftStartOnRectangleIcon className="h-5 w-5" aria-hidden="true" />
+              Cerrar sesión
+            </button>
           </div>
         </>
       )}

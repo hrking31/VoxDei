@@ -7,7 +7,7 @@ import { montar } from "./pruebas.utils.jsx";
 const rutas = (
   <Routes>
     <Route element={<MarcoPanel />}>
-      <Route path="/ViewGestion" element={<p>Contenido de Gestión</p>} />
+      <Route path="/ViewInicio" element={<p>Contenido de Inicio</p>} />
     </Route>
   </Routes>
 );
@@ -22,14 +22,14 @@ describe("MarcoPanel", () => {
     montar(rutas);
     expect(hayLateral()).toBe(true);
     expect(hayInferior()).toBe(false);
-    expect(screen.getByText("Contenido de Gestión")).toBeTruthy();
+    expect(screen.getByText("Contenido de Inicio")).toBeTruthy();
   });
 
   it("en el celular pone la barra inferior y le deja sitio al contenido", () => {
     montar(rutas, { app: { isDesktop: false } });
     expect(hayInferior()).toBe(true);
     expect(hayLateral()).toBe(false);
-    const contenido = screen.getByText("Contenido de Gestión");
+    const contenido = screen.getByText("Contenido de Inicio");
     expect(contenido.parentElement.className).toContain("pb-barra-inferior");
   });
 

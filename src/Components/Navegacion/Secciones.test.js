@@ -43,8 +43,8 @@ describe("estaActiva", () => {
     expect(estaActiva(seccion("Cronograma"), "/ViewServicioEditar/x")).toBe(true);
   });
 
-  it("Inicio solo se enciende en Gestión", () => {
-    expect(estaActiva(INICIO, "/ViewGestion")).toBe(true);
+  it("Inicio solo se enciende en Inicio", () => {
+    expect(estaActiva(INICIO, "/ViewInicio")).toBe(true);
     expect(estaActiva(INICIO, "/ViewUsers")).toBe(false);
   });
 });
@@ -52,7 +52,7 @@ describe("estaActiva", () => {
 describe("seccionDeRuta", () => {
   it("reconoce secciones, Inicio y Ayuda", () => {
     expect(seccionDeRuta("/ViewCancion/abc")).toBe(seccion("Canciones"));
-    expect(seccionDeRuta("/ViewGestion")).toBe(INICIO);
+    expect(seccionDeRuta("/ViewInicio")).toBe(INICIO);
     expect(seccionDeRuta("/ViewAyuda")).toBe(AYUDA);
   });
 

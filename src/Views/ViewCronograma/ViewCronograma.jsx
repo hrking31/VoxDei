@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ref, set } from "firebase/database";
 import { CalendarDaysIcon, PlusIcon } from "@heroicons/react/24/solid";
-import { database } from "../../Components/Firebase/Firebase";
+import { cambiarEspera } from "../../Components/PantallaEspera/accionesEspera.js";
 import { useAuth } from "../../Components/Context/AuthContext";
 import { useAppContext } from "../../Components/Context/AppContext";
 import { esPastor } from "../../Components/Roles/Roles.js";
@@ -77,9 +76,7 @@ export default function ViewCronograma() {
   const alternarEspera = async () => {
     if (!exigirTurno()) return;
     try {
-      await set(ref(database, `displayEspera/${userData.groupId}`), {
-        activa: !visibleEspera,
-      });
+      await cambiarEspera(userData.groupId, !visibleEspera);
     } catch (error) {
       console.error("Error con la pantalla de espera:", error);
       showNotif("error", "No se pudo cambiar la pantalla de espera. Revisa tu conexión.");

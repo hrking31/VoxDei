@@ -16,15 +16,16 @@ import { useAppContext } from "../Context/AppContext";
 export default function Notificaciones() {
   const { notif, setNotif } = useAppContext();
 
+  // Cada aviso nuevo reinicia la cuenta, aunque llegue con otro abierto.
   useEffect(() => {
     if (notif.open && notif.type !== "confirm") {
       const timer = setTimeout(
         () => setNotif((prev) => ({ ...prev, open: false })),
-        4000
+        notif.duracion ?? 4000
       );
       return () => clearTimeout(timer);
     }
-  }, [notif.open, notif.type, setNotif]);
+  }, [notif.open, notif.type, notif.message, notif.duracion, setNotif]);
 
   const styles = {
     success: "bg-app-success text-black",

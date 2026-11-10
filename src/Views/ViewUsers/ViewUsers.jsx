@@ -12,6 +12,7 @@ import { getDocs, collection, query, where } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
 import { useAuth } from "../../Components/Context/AuthContext";
 import { useAppContext } from "../../Components/Context/AppContext";
+import DatosIglesia from "../../Components/Iglesia/DatosIglesia.jsx";
 import {
   ROLES_PASTORES,
   ROL_OPERADOR,
@@ -525,6 +526,9 @@ export default function ViewUsers() {
         <>
           <div className="flex flex-col items-center justify-items-start w-full flex-1 py-4 px-2">
             <div className="flex flex-col items-center w-full flex-1 py-4 px-2 gap-3">
+              {/* Nombre, sigla y logo de la iglesia: solo pastor y pastora */}
+              {soyPastor && <DatosIglesia />}
+
               {groupUsers.length === 0 ? (
                 <p className="text-app-muted text-sm">
                   No hay usuarios en este grupo

@@ -1,6 +1,6 @@
 import ViewLogin from "./ViewLogin/ViewLogin";
 import ViewSelector from "./ViewSelector/ViewSelector";
-import ViewGestion from "./ViewGestion/ViewGestion";
+import ViewInicio from "./ViewInicio/ViewInicio.jsx";
 import ViewImagenes from "./ViewImagenes/ViewImagenes";
 import ViewDisplay from "./ViewDisplay/ViewDisplay";
 import ViewStylos from "./ViewStylos/ViewStylos";
@@ -24,7 +24,7 @@ import ViewAyuda from "./ViewAyuda/ViewAyuda.jsx";
 
 export {
   ViewLogin,
-  ViewGestion,
+  ViewInicio,
   ViewImagenes,
   ViewSelector,
   ViewDisplay,

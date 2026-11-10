@@ -1,15 +1,10 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  ArrowLeftStartOnRectangleIcon,
-  ComputerDesktopIcon,
-  UserIcon,
-} from "@heroicons/react/24/solid";
+import { ArrowLeftStartOnRectangleIcon, UserIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import { LogoHorizontal, Simbolo } from "../Logo/Logo.jsx";
 import { AYUDA, GRUPOS, INICIO, estaActiva, seccionesPara } from "./Secciones.js";
-import { abrirProyector } from "./abrirProyector.js";
 
 // Barra lateral del panel en el computador. Encogida muestra solo íconos;
 // al pulsar el símbolo se abre por encima del contenido con los nombres y,
@@ -37,11 +32,6 @@ export default function BarraLateral() {
   const ir = (ruta) => {
     setAbierta(false);
     navigate(ruta);
-  };
-
-  const abrirPantalla = () => {
-    setAbierta(false);
-    abrirProyector();
   };
 
   // Un clic suelto en pleno culto no debe sacar a nadie: se confirma.
@@ -93,14 +83,14 @@ export default function BarraLateral() {
           onClick={() => ir(INICIO.ruta)}
         />
 
+        {/* La pantalla del templo no se abre desde aquí: se abre una sola vez,
+            en el dispositivo del proyector, desde la entrada (Proyectar). */}
         {GRUPOS.map((grupo) => {
           const delGrupo = secciones.filter((s) => s.grupo === grupo.id);
           if (delGrupo.length === 0) return null;
           return (
             <div key={grupo.id} role="group" aria-label={grupo.nombre} className="flex flex-col gap-1">
-              <span className="flex h-6 shrink-0 items-center px-3 text-xs uppercase tracking-widest text-app-muted">
-                {abierta ? grupo.nombre : <span className="h-px w-6 bg-app-border" />}
-              </span>
+              <Rotulo abierta={abierta}>{grupo.nombre}</Rotulo>
               {delGrupo.map((s) => (
                 <Opcion
                   key={s.ruta}
@@ -116,16 +106,12 @@ export default function BarraLateral() {
 
         <div className="min-h-2 flex-1" />
 
+        {/* Abajo, después de las secciones: la ayuda y la cuenta */}
         <Opcion
           seccion={AYUDA}
           activa={estaActiva(AYUDA, pathname)}
           abierta={abierta}
           onClick={() => ir(AYUDA.ruta)}
-        />
-        <Opcion
-          seccion={{ nombre: "Abrir pantalla del templo", Icono: ComputerDesktopIcon }}
-          abierta={abierta}
-          onClick={abrirPantalla}
         />
         <Persona userData={userData} abierta={abierta} />
         <Opcion
@@ -135,6 +121,15 @@ export default function BarraLateral() {
         />
       </nav>
     </>
+  );
+}
+
+// Nombre de un grupo. Encogida la barra, una rayita en su lugar.
+function Rotulo({ abierta, children }) {
+  return (
+    <span className="flex h-6 shrink-0 items-center px-3 text-xs uppercase tracking-widest text-app-muted">
+      {abierta ? children : <span className="h-px w-6 bg-app-border" />}
+    </span>
   );
 }
 

@@ -50,14 +50,14 @@ Quien registra la iglesia queda como **pastor o pastora**: es el dueño de la cu
 
 Al iniciar sesión verás dos botones grandes:
 
-- **Presentación** — abre la ventana que vas a mostrar en el proyector. Arrástrala a la pantalla del televisor y toca el ícono del centro para ponerla en pantalla completa.
-- **Administrador** — abre el panel con todas las herramientas.
+- **Proyectar** — en el dispositivo conectado al proyector (computador, tablet o celular), abre la ventana que se ve en el templo. Arrástrala a la pantalla del proyector y toca el botón del centro para ponerla en pantalla completa. Si la pantalla ya está abierta en algún equipo, esta opción no aparece.
+- **Administrar** — abre el panel con todas las herramientas, en ese mismo dispositivo o en otro.
 
 Dentro del panel cambias de sección con un toque: en el computador, con la **barra de la izquierda**; en el celular, con la **barra de abajo** (Biblia, Canciones, Culto, Mensajes y **Más** para el resto). Si es tu primera vez, abre **Ayuda**: explica paso a paso cómo preparar la pantalla para el servicio.
 
 ### 3. Suma a tu equipo
 
-Desde **Administrador → Usuarios** puedes crear cuentas para las personas que te ayudan.
+Desde **Administrar → Usuarios** puedes crear cuentas para las personas que te ayudan.
 
 Si registraste la iglesia, lo primero que verás es la opción de dar de alta a tu pareja: si la registró un pastor, aparece **Pastora**, y si la registró una pastora, aparece **Pastor**. Una vez están los dos, esa opción desaparece y todas las cuentas que crees después serán **Operador**.
 
@@ -234,7 +234,7 @@ No. VOXDEI funciona en el navegador, tanto en el celular como en el computador.
 Sí. Es justamente para lo que está pensada.
 
 **¿Qué pasa si se me cierra la ventana de proyección?**
-Vuelve a entrar y toca **Presentación**. Lo que estaba proyectado sigue ahí.
+Vuelve a entrar y toca **Proyectar**. Lo que estaba proyectado sigue ahí.
 
 **¿Otra iglesia puede ver mis prédicas?**
 No. Cada iglesia tiene su espacio separado.
@@ -261,20 +261,23 @@ Aquí queda anotado lo que va cambiando en la aplicación, para que siempre sepa
 
 - **VOXDEI ya tiene logo.** La pestaña del navegador y los accesos directos muestran el símbolo de VOXDEI: una pantalla iluminada por un haz de luz con una cruz al centro. En el celular, la barra de arriba del navegador toma el gris de la app.
 - **El logo te recibe.** Aparece al iniciar sesión, al registrar tu iglesia, al recuperar la contraseña, en la pantalla de entrada y en la página para eliminar la cuenta.
-- **Nueva barra lateral en el computador.** A la izquierda del panel tienes siempre los íconos de todas las secciones: con un clic pasas de Canciones a Biblia sin volver a la cuadrícula. Toca el símbolo de VOXDEI para ver los nombres; al elegir una sección, la barra se vuelve a recoger. Abajo están **Abrir pantalla del templo** y **Cerrar sesión**, que ahora pide confirmación para que nadie salga por un toque accidental en pleno culto. Por eso, en el computador ya no aparecen los botones «Salida».
+- **Nueva barra lateral en el computador.** A la izquierda del panel tienes siempre los íconos de todas las secciones: con un clic pasas de Canciones a Biblia sin volver a la cuadrícula. Toca el símbolo de VOXDEI para ver los nombres; al elegir una sección, la barra se vuelve a recoger. Abajo están **Ayuda** y **Cerrar sesión**, que ahora pide confirmación para que nadie salga por un toque accidental en pleno culto. Por eso, en el computador ya no aparecen los botones «Salida».
 - **Mientras carga, el proyector se enciende.** En lugar de la rueda que giraba, el símbolo de VOXDEI se ilumina poco a poco con el mensaje «Encendiendo el proyector...».
 - **Si algo falla, lo dice con calma.** Si una pantalla tiene un problema, aparece el símbolo apagado con «La pantalla se apagó un momento» y los botones para recargar o volver al inicio. Lo que estaba en la proyección no se pierde.
 - **La pestaña te dice si te toca.** Mientras usas el panel, el ícono de VOXDEI en la pestaña del navegador lleva un punto **verde** si puedes proyectar y **rojo** si no, igual que la franja del cronograma. La pestaña también dice en qué sección estás («VOXDEI · Canciones»).
 - **Del amarillo al dorado.** Botones, títulos y líneas de la app pasan del amarillo al dorado del logo. Las iglesias nuevas arrancan también con la cita bíblica en dorado; si ya guardaste tus colores en *Estilos y colores*, se quedan como los dejaste.
+- **Nueva pantalla de entrada.** Al entrar, VOXDEI te saluda por tu nombre y te ofrece dos pasos: **1 · Proyectar**, en el dispositivo conectado al proyector, y **2 · Administrar**, desde ese mismo dispositivo o desde otro. Arriba ves tu foto, tu rol y tu iglesia, y **Cerrar sesión**, que ahora pide confirmación.
+- **Sabes si la pantalla del templo está encendida, desde cualquier equipo.** Junto al próximo servicio, un ícono de monitor te lo dice: **gris** si está apagada, **verde** si está encendida y unas **flechas en ámbar** si falta tocar pantalla completa. Si se apaga o se cierra, aparece un aviso de 2 segundos en todos los equipos. Y si ya está abierta, **Proyectar** desaparece en todos: para volver a abrirla se vuelve al dispositivo del proyector.
+- **Inicio ahora es «Hoy».** En lugar de la cuadrícula de botones (las barras ya llevan a todas las secciones), Inicio te muestra el próximo servicio y quién maneja la pantalla, cómo está la pantalla del templo, si el Orden del culto ya está preparado y cuántas canciones hay para hoy, cada cosa con su botón.
+- **Logo y sigla de tu iglesia.** Al registrar una iglesia puedes subir su logo y escribir un nombre corto o sigla (por ejemplo «CDP»). Si ya la tenías registrada, el pastor o la pastora los agregan en **Usuarios → Datos de la iglesia**. El logo se ve junto al nombre de la iglesia en la entrada y, en el celular, se usa la sigla cuando el nombre no cabe.
 - **Nuevo: Orden del culto.** Antes del servicio, en la pestaña **Preparar**, arma la lista de lo que se va a proyectar: mensajes, canciones de la lista de hoy, versículos (escribe «Juan 3:16» y la app lo busca), el título de la prédica y anuncios. Durante el culto, en la pestaña **Culto**, un solo botón grande, **Siguiente**, proyecta cada paso; las canciones avanzan lámina por lámina. También puedes tocar cualquier paso para saltar a él. La lista se comparte: el pastor puede prepararla en el computador y el operador pasarla desde el celular.
-- **Nueva barra abajo en el celular.** Biblia, Canciones, **Culto** (en el centro) y Mensajes quedan a un toque; lo demás está en **Más**. Ya no hay que volver a la cuadrícula para cambiar de sección, y por eso desaparecieron los botones «Salida» del celular y del computador (la cuadrícula sigue estando en **Más → Inicio**).
+- **Nueva barra abajo en el celular.** Biblia, Canciones, **Culto** (en el centro) y Mensajes quedan a un toque; lo demás está en **Más**. Ya no hay que volver a la cuadrícula para cambiar de sección, y por eso desaparecieron los botones «Salida» del celular y del computador (**Inicio** y **Cerrar sesión** están en **Más**).
 - **Volver a la sección anterior con un toque.** En el celular, un botón flotante con el nombre de la sección anterior te devuelve justo donde estabas, por ejemplo a la canción que tenías abierta. Ideal para ir y venir entre una canción y la Biblia.
 - **Nuevo: pantalla de espera.** En *Cronograma* hay un botón **Mostrar** que pone en la pantalla del templo el logo, el nombre de la iglesia y una **cuenta regresiva** hasta el próximo servicio («El servicio empieza en 12:34»). La hora la toma sola del cronograma: no hay que escribir nada. Si falta más de seis horas, muestra el día y la hora del próximo servicio. Se quita con el mismo botón.
 - **Nuevo: marca de agua.** En *Estilos y colores → Marca de agua* puedes poner el símbolo de VOXDEI pequeño y tenue en una esquina de la pantalla, para que se vea en las transmisiones por internet. Eliges la esquina, el tamaño y qué tan discreta se ve. Viene apagada.
 - **Nuevo: Ayuda.** Una pantalla con los tres pasos para preparar la pantalla del servicio (conectar el proyector, abrir la pantalla del templo y manejar todo desde el celular), qué revisar antes de empezar y qué hacer si algo falla. Cada consejo lleva un botón directo a su sección. En el computador está abajo en la barra de la izquierda; en el celular, en **Más**.
 - **Con su ícono en el celular.** Si añades VOXDEI a la pantalla de inicio del teléfono desde el navegador, aparece con el símbolo de VOXDEI bien recortado, sea cual sea la forma de los íconos de tu teléfono, y al abrirla se ve el logo sobre fondo morado. La app para descargar desde Google Play está *en preparación*.
 - **El enlace se ve bonito al compartirlo.** Cuando pasas la dirección de VOXDEI por WhatsApp, Facebook o correo, aparece una tarjeta con el logo y la frase «La pantalla de tu iglesia, controlada desde tu celular», en lugar de un enlace suelto.
-- **La cuadrícula del panel está ordenada por uso.** Primero lo que se proyecta (Biblia, Canciones, Mensajes, Ticker, Imágenes, Video, Prédica) y después lo que se organiza (Cronograma, Usuarios, Estilos y colores).
 
 ### 23 de octubre de 2026
 

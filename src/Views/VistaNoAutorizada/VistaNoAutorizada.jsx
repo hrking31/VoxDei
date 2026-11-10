@@ -11,7 +11,7 @@ export default function VistaNoAutorizada() {
     if (location.state?.from?.pathname === "/VOXDEI") {
       navigate("/ViewSelector");
     } else {
-      navigate("/ViewGestion");
+      navigate("/ViewInicio");
     }
   };
 

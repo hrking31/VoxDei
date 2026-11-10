@@ -80,11 +80,10 @@ describe("BarraLateral", () => {
     expect(interruptor().getAttribute("aria-expanded")).toBe("false");
   });
 
-  it("abre la pantalla del templo en otra ventana", () => {
-    const abrir = vi.spyOn(window, "open").mockReturnValue(null);
+  it("no ofrece abrir la pantalla del templo: eso se hace en la entrada", () => {
     montar(<BarraLateral />);
-    fireEvent.click(boton("Abrir pantalla del templo"));
-    expect(abrir).toHaveBeenCalledWith("/VOXDEI", expect.any(String), expect.any(String));
+    expect(within(barra()).queryByRole("button", { name: /pantalla del templo/ })).toBeNull();
+    expect(within(barra()).queryByRole("group", { name: "Pantalla del templo" })).toBeNull();
   });
 
   it("pide confirmación antes de cerrar sesión", async () => {

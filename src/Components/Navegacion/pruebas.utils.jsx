@@ -16,7 +16,7 @@ function DondeEstoy() {
 
 // Monta un componente con sesión, contexto de la app y enrutador falsos.
 // Por defecto: pastor con sesión lista, en computador, que confirma todo.
-export function montar(ui, { ruta = "/ViewGestion", auth = {}, app = {} } = {}) {
+export function montar(ui, { ruta = "/ViewInicio", auth = {}, app = {} } = {}) {
   const valorAuth = {
     user: { uid: "u1" },
     userData: { name: "Ana Gómez", role: "Pastor" },

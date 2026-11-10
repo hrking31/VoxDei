@@ -10,9 +10,9 @@ describe("Ayuda", () => {
     montar(<Ayuda />);
     const pasos = screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent);
     expect(pasos).toEqual([
-      "Conecta el computador al proyector",
-      "Abre la pantalla del templo en el computador",
-      "Maneja todo desde tu celular",
+      "Conecta el dispositivo al proyector",
+      "Abre la pantalla del templo",
+      "Administra desde este dispositivo o desde otro",
     ]);
   });
 
@@ -22,11 +22,10 @@ describe("Ayuda", () => {
     expect(screen.getByRole("heading", { name: "Si algo no funciona" })).toBeTruthy();
   });
 
-  it("abre la pantalla del templo desde el paso 2", () => {
-    const abrir = vi.spyOn(window, "open").mockReturnValue(null);
+  it("no ofrece abrir la pantalla del templo: se abre con «Proyectar» en la entrada", () => {
     montar(<Ayuda />);
-    fireEvent.click(screen.getByRole("button", { name: "Abrir pantalla del templo" }));
-    expect(abrir).toHaveBeenCalledWith("/VOXDEI", expect.any(String), expect.any(String));
+    expect(screen.queryByRole("button", { name: /Abrir pantalla/ })).toBeNull();
+    expect(screen.getAllByText("Proyectar").length).toBeGreaterThan(0);
   });
 
   it("los consejos llevan a su sección", () => {

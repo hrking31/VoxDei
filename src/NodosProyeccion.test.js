@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { escriturasDePaso } from "./Components/OrdenCulto/utilesOrden.js";
+import { NODO_PANTALLA } from "./Components/PantallaTemplo/presencia.js";
 
 // Guardia: todo nodo de Realtime Database que la app usa bajo un groupId
 // (`<nodo>/${groupId}`) tiene que estar en dos sitios, o falla sin avisar:
@@ -52,6 +53,9 @@ const ejemplos = [
 for (const paso of ejemplos) {
   for (const { nodo } of escriturasDePaso(paso, 0, 0)) usados.add(nodo);
 }
+// La presencia de la pantalla del templo también arma el nombre con una
+// constante (`${NODO_PANTALLA}/${groupId}/…`).
+usados.add(NODO_PANTALLA);
 
 describe("nodos de proyección en Realtime Database", () => {
   it("encuentra los nodos que usa la app", () => {

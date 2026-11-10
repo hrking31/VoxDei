@@ -15,6 +15,9 @@ import {
 import CampoClave from "../../Components/CampoClave/CampoClave.jsx";
 import RequisitosClave from "../../Components/RequisitosClave/RequisitosClave.jsx";
 import { LogoHorizontal } from "../../Components/Logo/Logo.jsx";
+import CampoLogoIglesia from "../../Components/Iglesia/CampoLogoIglesia.jsx";
+import { guardarDatosIglesia } from "../../Components/Iglesia/accionesIglesia.js";
+import { LARGO_SIGLA, normalizarSigla } from "../../Components/Iglesia/datosIglesia.js";
 import {
   AVISO_CLAVE_DEBIL,
   claveValida,
@@ -31,8 +34,13 @@ export default function ViewRegister() {
   const [preview, setPreview] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
 
+  // Logo de la iglesia (opcional), con su vista previa
+  const [logoIglesia, setLogoIglesia] = useState(null);
+  const [vistaLogo, setVistaLogo] = useState(null);
+
   const [form, setForm] = useState({
     churchName: "",
+    sigla: "",
     name: "",
     gender: "",
     email: "",
@@ -164,6 +172,20 @@ export default function ViewRegister() {
 
       await setDoc(doc(db, "users", uid), newUserData);
 
+      // Datos de la iglesia: nombre, sigla y logo. Va después de la ficha,
+      // porque la regla pide que quien escribe sea pastor. Si falla (sin
+      // internet), la iglesia ya existe y los datos se completan luego desde
+      // Usuarios: no se frena el registro por esto.
+      try {
+        await guardarDatosIglesia(uid, {
+          nombre: form.churchName,
+          sigla: form.sigla,
+          logoArchivo: logoIglesia,
+        });
+      } catch (errorIglesia) {
+        console.error("No se guardaron los datos de la iglesia:", errorIglesia);
+      }
+
       // Actualizar contexto
       setUserData(newUserData);
 
@@ -261,6 +283,33 @@ export default function ViewRegister() {
                 onChange={handleChange}
                 className="p-2 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
               />
+
+              {/* Logo y nombre corto de la iglesia (opcionales) */}
+              <div className="flex items-center gap-3">
+                <CampoLogoIglesia
+                  vista={vistaLogo}
+                  onElegir={(archivo) => {
+                    setLogoIglesia(archivo);
+                    setVistaLogo(URL.createObjectURL(archivo));
+                  }}
+                />
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <input
+                    type="text"
+                    name="sigla"
+                    placeholder="Nombre corto o sigla (opcional)"
+                    value={form.sigla}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, sigla: normalizarSigla(e.target.value) }))
+                    }
+                    maxLength={LARGO_SIGLA}
+                    className="p-2 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
+                  />
+                  <span className="text-xs text-app-muted">
+                    Por ejemplo «CDP». Se usa donde el nombre completo no cabe.
+                  </span>
+                </div>
+              </div>
 
               {/* Nombre usuario */}
               <input

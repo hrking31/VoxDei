@@ -315,6 +315,7 @@ const NODOS_PROYECCION = [
   "speedTicker",
   "turnoEnsayo",
   "displayEspera",
+  "pantallaTemplo",
 ];
 
 // Minutos que pueden pasar desde que la persona escribió su contraseña.

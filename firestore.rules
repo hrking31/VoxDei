@@ -50,11 +50,12 @@ service cloud.firestore {
     // pero solo lo escriben pastor y pastora. Va como condición dentro de esta
     // misma regla y no como un match aparte: en Firestore basta con que UNA
     // regla permita, así que un match propio más estricto no le quitaría al
-    // operador el permiso que ya le da este.
+    // operador el permiso que ya le da este. Lo mismo `perfil` (nombre, sigla
+    // y logo de la iglesia, desde el 9 de noviembre de 2026).
     match /iglesias/{groupId}/{coleccion}/{documento=**} {
       allow read: if esMiIglesia(groupId);
       allow write: if esMiIglesia(groupId) &&
-        (coleccion != 'cronograma' || soyPastor());
+        (!(coleccion in ['cronograma', 'perfil']) || soyPastor());
     }
 
     // ---- Usuarios ----

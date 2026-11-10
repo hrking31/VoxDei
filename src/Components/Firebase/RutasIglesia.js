@@ -45,6 +45,11 @@ export const CRONOGRAMA = "cronograma";
 export const ORDEN_CULTO = "ordenCulto";
 export const ORDEN_ACTUAL = "actual";
 
+// Datos de la iglesia: { nombre, sigla, logo }. Los escriben solo pastor y
+// pastora (firestore.rules); los lee toda la iglesia.
+export const PERFIL = "perfil";
+export const PERFIL_DATOS = "datos";
+
 // Catálogo de canciones COMPARTIDO por todas las iglesias, igual que `biblia`.
 // Vive en la raíz, no dentro de iglesias/{groupId}. Cualquier iglesia puede
 // agregar canciones; cada una solo edita o borra las que subió (campo

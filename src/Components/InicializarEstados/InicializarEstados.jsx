@@ -10,8 +10,16 @@ import {
   CONFIGURACION,
   ESTILOS,
   CRONOGRAMA,
+  PERFIL,
+  PERFIL_DATOS,
 } from "../../Components/Firebase/RutasIglesia";
 import { combinarEstilos } from "../../Components/Estilos/EstilosProyeccion";
+import {
+  DURACION_AVISO,
+  NODO_PANTALLA,
+  avisoDeCambio,
+  estadoPantalla,
+} from "../../Components/PantallaTemplo/presencia.js";
 import { ref, onValue } from "firebase/database";
 import { useAppContext } from "../../Components/Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext";
@@ -29,6 +37,8 @@ export default function InicializarEstados() {
     setVisibleImagen,
     setVisibleVideo,
     setVisibleEspera,
+    setPantallaTemplo,
+    setIglesia,
     setVelocidadTicker,
     setEstilos,
     setServicios,
@@ -157,6 +167,29 @@ export default function InicializarEstados() {
       }
     );
 
+    // Pantalla del templo encendida o no (presencia de /VOXDEI). Al cambiar,
+    // aviso de 2 s en todos los equipos, salvo en la propia pantalla del
+    // templo, que se proyecta, y salvo al cargar (no es un cambio).
+    let estadoAnterior = null;
+    const enProyector = window.location.pathname.toUpperCase().startsWith("/VOXDEI");
+    const pantalla = onValue(
+      ref(database, `${NODO_PANTALLA}/${userData.groupId}`),
+      (snapshot) => {
+        const ahora = estadoPantalla(snapshot.val());
+        const aviso = avisoDeCambio(estadoAnterior, ahora);
+        if (aviso && !enProyector) showNotif(aviso.tipo, aviso.texto, DURACION_AVISO);
+        estadoAnterior = ahora;
+        setPantallaTemplo(ahora);
+      }
+    );
+
+    // Datos de la iglesia: nombre, sigla y logo.
+    const datosIglesia = onSnapshot(
+      docIglesia(userData.groupId, PERFIL, PERFIL_DATOS),
+      (snapshot) => setIglesia(snapshot.data() || null),
+      (error) => console.error("Error al cargar los datos de la iglesia:", error)
+    );
+
     // Pantalla de espera antes del servicio. Sin nodo, apagada.
     const visibleEspera = onValue(
       ref(database, `displayEspera/${userData.groupId}`),
@@ -213,6 +246,10 @@ export default function InicializarEstados() {
       visibleImagen();
       visibleVideo();
       visibleEspera();
+      pantalla();
+      datosIglesia();
+      setPantallaTemplo(null);
+      setIglesia(null);
       estilosIglesia();
       speedTicker();
     };
