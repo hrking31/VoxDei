@@ -32,7 +32,7 @@ import {
 
 export default function ViewUsers() {
   const { user, userData, loading, setLoading } = useAuth();
-  const { showNotif, confirmAction, isDesktop } = useAppContext();
+  const { showNotif, confirmAction } = useAppContext();
   const navigate = useNavigate();
   const refGenero = useRef(null);
   const genderOptions = ["Masculino", "Femenino"];
@@ -296,7 +296,7 @@ export default function ViewUsers() {
   }, [mode, userData, recargar]);
 
   return (
-    <div className="min-h-svh flex flex-col bg-linear-to-b from-app-dark/50 to-app-light/50">
+    <div className="min-h-pantalla flex flex-col bg-linear-to-b from-app-dark/50 to-app-light/50">
       {/* Titulo */}
       <div className="text-center mb-4">
         <h1 className="text-3xl sm:text-4xl font-bold text-app-main">
@@ -518,23 +518,6 @@ export default function ViewUsers() {
                     formulario de creación, así que los fallos al borrar o al
                     sincronizar permisos quedaban mudos. */}
               </div>
-
-              {/* Vuelta a la cuadrícula; en el computador la reemplaza la
-                  barra lateral. */}
-              {!isDesktop && (
-                <div className="w-full max-w-md bg-app-light px-8 border-2 border-app-border shadow-xl p-6 sm:p-8 text-center">
-                  <p className="text-app-muted">
-                    ¿Regresar al inicio?
-                    <button
-                      type="button"
-                      onClick={() => navigate("/ViewGestion")}
-                      className="text-app-main font-semibold hover:underline ml-1"
-                    >
-                      Inicio
-                    </button>
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </>
@@ -593,23 +576,6 @@ export default function ViewUsers() {
               )}
             </div>
           </div>
-
-          {/* Vuelta a la cuadrícula. En el computador no hace falta: la
-              barra lateral lleva a cualquier sección. */}
-          {!isDesktop && (
-            <div className="flex justify-center items-center mt-auto px-4 pb-10">
-              <p className="text-app-muted">
-                ¿Regresar al inicio?
-                <button
-                  type="button"
-                  onClick={() => navigate("/ViewGestion")}
-                  className="text-app-main font-semibold hover:underline ml-1"
-                >
-                  Inicio
-                </button>
-              </p>
-            </div>
-          )}
         </>
       )}
 

@@ -28,7 +28,6 @@ import {
 import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext";
 import { normalizar } from "../Canciones/UtilesCanciones";
-import BotonSalida from "../Navegacion/BotonSalida.jsx";
 
 // Cuántas favoritas se muestran: las mismas en ambos casos, pero en el celular
 // van en una columna y en el computador en dos, más grandes.
@@ -285,7 +284,7 @@ export default function ControlCanciones() {
   // La pantalla mide lo que la ventana y no se desplaza: cada bloque se
   // desplaza por dentro.
   return (
-    <div className="h-svh flex flex-col overflow-hidden bg-linear-to-b from-app-dark/50 to-app-light/50">
+    <div className="h-pantalla flex flex-col overflow-hidden bg-linear-to-b from-app-dark/50 to-app-light/50">
       {/* ENCABEZADO */}
       <div className="shrink-0 border-b border-app-main bg-app-light px-2">
         <div className="flex items-center justify-between gap-2 py-1">
@@ -303,7 +302,6 @@ export default function ControlCanciones() {
               Canciones
             </button>
 
-            <BotonSalida className="px-3 py-1.5" />
           </div>
         </div>
       </div>

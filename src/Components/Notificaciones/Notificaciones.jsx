@@ -49,7 +49,7 @@ export default function Notificaciones() {
       {notif.open && (
         // La franja fija va aparte de la tarjeta: framer-motion escribe su
         // propio transform y pisaría un centrado hecho con -translate-x-1/2.
-        <div className="fixed inset-x-0 bottom-6 z-50 flex justify-center px-4 pointer-events-none">
+        <div className="fixed inset-x-0 bottom-avisos z-50 flex justify-center px-4 pointer-events-none">
           <motion.div
             initial={{ opacity: 0, y: 50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

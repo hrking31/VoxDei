@@ -18,7 +18,6 @@ import { useAuth } from "../../Components/Context/AuthContext";
 import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
 import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
 import { useTurno } from "../Hooks/useTurno.js";
-import BotonSalida from "../Navegacion/BotonSalida.jsx";
 
 export default function ControlVersiculos() {
   const { userData } = useAuth();
@@ -356,7 +355,6 @@ export default function ControlVersiculos() {
             Nuevo
           </button>
 
-          <BotonSalida className="w-full py-2" />
 
           {isDesktop ? (
             <div className="flex items-center gap-4">

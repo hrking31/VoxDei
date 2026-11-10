@@ -202,14 +202,14 @@ export default function ControlCancionProyectar() {
 
   if (cargando || !cancion) {
     return (
-      <div className="min-h-svh flex items-center justify-center bg-linear-to-b from-app-dark/50 to-app-light/50">
+      <div className="min-h-pantalla flex items-center justify-center bg-linear-to-b from-app-dark/50 to-app-light/50">
         <p className="text-app-muted">Cargando la canción...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-svh bg-linear-to-b from-app-dark/50 to-app-light/50">
+    <div className="min-h-pantalla bg-linear-to-b from-app-dark/50 to-app-light/50">
       {/* ENCABEZADO */}
       <div className="sticky top-0 border-b border-app-main bg-app-light z-10 px-2">
         <div className="-mx-2">

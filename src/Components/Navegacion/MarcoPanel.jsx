@@ -2,16 +2,18 @@ import { Outlet } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import BarraLateral from "./BarraLateral.jsx";
+import BarraInferior, { BotonAnterior } from "./BarraInferior.jsx";
 import IconoPestana from "./IconoPestana.jsx";
 
 // Marco de las pantallas del panel. En App.jsx es una ruta sin dirección
 // propia que agrupa a las demás: cada una conserva su URL y su protección por
 // rol, y aparece en el hueco `Outlet`. Al cambiar de sección solo se
-// reemplaza ese hueco; la barra no se vuelve a crear.
+// reemplaza ese hueco; las barras no se vuelven a crear.
 //
-// La barra sale solo en el computador y con la sesión lista: mientras
-// ProtectedRoutes decide (cargando, verificar correo, sin ficha) no tiene
-// sentido ofrecer secciones. En el celular se sigue usando la cuadrícula.
+// Las barras salen solo con la sesión lista: mientras ProtectedRoutes decide
+// (cargando, verificar correo, sin ficha) no tiene sentido ofrecer secciones.
+// Computador: barra lateral. Celular: barra inferior y el botón para volver a
+// la sección anterior; el relleno de abajo deja sitio a la barra.
 export default function MarcoPanel() {
   const { isDesktop } = useAppContext();
   const { user, userData, correoVerificado } = useAuth();
@@ -22,7 +24,11 @@ export default function MarcoPanel() {
     return (
       <>
         <IconoPestana />
-        <Outlet />
+        <div className="pb-barra-inferior">
+          <Outlet />
+        </div>
+        <BotonAnterior />
+        <BarraInferior />
       </>
     );
   }

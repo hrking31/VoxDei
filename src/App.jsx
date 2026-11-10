@@ -21,6 +21,7 @@ import {
   ViewEliminarCuenta,
   ViewCronograma,
   ViewServicioEditar,
+  ViewCulto,
 } from "./Views/index";
 import { ProtectedRoutes } from "./Components/ProtectedRoutes/ProtectedRoutes.jsx";
 import { ROLES_PASTORES, ROLES_PROYECCION } from "./Components/Roles/Roles.js";
@@ -125,6 +126,16 @@ export default function App() {
             element={
               <ProtectedRoutes rolesPermitidos={ROLES_PASTORES}>
                 <ViewPredica />
+              </ProtectedRoutes>
+            }
+          />
+
+          {/* Orden del culto: cualquiera del equipo lo prepara y lo pasa */}
+          <Route
+            path="/ViewCulto"
+            element={
+              <ProtectedRoutes rolesPermitidos={ROLES_PROYECCION}>
+                <ViewCulto />
               </ProtectedRoutes>
             }
           />

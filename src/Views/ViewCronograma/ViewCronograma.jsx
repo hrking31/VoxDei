@@ -18,7 +18,6 @@ import {
   textoDias,
   textoHora,
 } from "../../Components/Cronograma/UtilesCronograma.js";
-import BotonSalida from "../../Components/Navegacion/BotonSalida.jsx";
 
 // Cronograma de la iglesia: qué operador proyecta en cada servicio.
 //
@@ -138,7 +137,7 @@ export default function ViewCronograma() {
   const sinServicios = !semanales.length && !unicos.length;
 
   return (
-    <div className="h-svh flex flex-col overflow-hidden bg-linear-to-b from-app-dark/50 to-app-light/50">
+    <div className="h-pantalla flex flex-col overflow-hidden bg-linear-to-b from-app-dark/50 to-app-light/50">
       {/* ENCABEZADO */}
       <div className="shrink-0 border-b border-app-main bg-app-light px-2">
         <div className="flex items-center justify-between gap-2 py-1">
@@ -158,7 +157,6 @@ export default function ViewCronograma() {
               </button>
             )}
 
-            <BotonSalida className="px-3 py-1.5" />
           </div>
         </div>
       </div>

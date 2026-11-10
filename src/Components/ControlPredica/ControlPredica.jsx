@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { database } from "../Firebase/Firebase";
 import { ref, set } from "firebase/database";
-import { useNavigate } from "react-router-dom";
 import {
   handleSlotClick,
   obtenerVersiculo,
@@ -12,7 +11,6 @@ import {
   DocumentTextIcon,
   ChatBubbleLeftRightIcon,
   TagIcon,
-  ArrowLeftEndOnRectangleIcon,
 } from "@heroicons/react/24/solid";
 import EmojiButton from "../EmojiButton/EmojiButton";
 import LibrosModal from "../../Components/ModalLibros/ModalLibros";
@@ -24,7 +22,6 @@ import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
 import { useTurno } from "../Hooks/useTurno.js";
 
 export default function Predica() {
-  const navigate = useNavigate();
   const { userData } = useAuth();
   // Solo quien tiene el turno del cronograma (o un pastor) envía a la pantalla.
   // Preparar y guardar la prédica sí se puede siempre.
@@ -46,7 +43,6 @@ export default function Predica() {
     slots,
     setSlots,
     showNotif,
-    isDesktop,
   } = useAppContext();
   const [tipoLibros, setTipoLibros] = useState("antiguo");
   const [modalActivo, setModalActivo] = useState(null);
@@ -272,19 +268,6 @@ export default function Predica() {
                   <WhatsAppButton message={predicaItems} />
                 )}
               </div>
-            )}
-
-            {/* Salida, la misma en los dos modos. En el computador no hace
-                falta: la barra lateral lleva a cualquier sección. */}
-            {!isDesktop && (
-              <button
-                type="button"
-                onClick={() => navigate("/ViewGestion")}
-                className="p-2 rounded-full hover:bg-app-main transition active:bg-app-error active:text-app-muted"
-                aria-label="Salida"
-              >
-                <ArrowLeftEndOnRectangleIcon className="w-6 h-6 text-app-muted hover:text-app-dark" />
-              </button>
             )}
           </div>
         </div>

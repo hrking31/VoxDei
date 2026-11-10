@@ -119,14 +119,18 @@ Las dos pantallas comparten **`src/Components/Favoritos/FavoritosTexto.jsx`**: e
 
 ### Navegación del panel (9 de noviembre de 2026)
 
-En el **computador** hay una **barra lateral**; en el **celular** sigue la cuadrícula de `ViewGestion` (su rediseño —barra inferior y Orden del culto— está aprobado pero sin hacer). Todo vive en `src/Components/Navegacion/`:
+En el **computador** hay una **barra lateral**; en el **celular**, una **barra inferior** con un botón flotante para volver a la sección anterior. La cuadrícula de `ViewGestion` sigue existiendo como **Inicio**. Todo vive en `src/Components/Navegacion/`:
 
 | Archivo | Qué hace |
 | --- | --- |
-| `Secciones.js` | **La lista única** de secciones (`SECCIONES`, `GRUPOS` «Proyectar»/«Organizar», `INICIO`). La usan la cuadrícula y la barra. `seccionesPara(userData)` aplica el filtro de roles (Prédica solo pastores); `estaActiva(seccion, pathname)` decide qué ícono se enciende, sin distinguir mayúsculas y con los prefijos de `tambien` (`/ViewCancion/` enciende Canciones, `/ViewServicioEditar` enciende Cronograma). |
-| `MarcoPanel.jsx` | Ruta **sin `path`** en `App.jsx` que agrupa las pantallas del panel y pinta la barra junto al `<Outlet />`. Solo con `isDesktop` y la sesión lista (`user`, `userData`, `correoVerificado`). |
-| `BarraLateral.jsx` | Encogida (`w-barra`, solo íconos) o abierta por encima del contenido (`w-barra-abierta`) al pulsar el símbolo; al elegir algo, con Escape o tocando el velo se encoge. Abajo: abrir la pantalla del templo, la persona y cerrar sesión (con `confirmAction`). |
-| `BotonSalida.jsx` | El único botón «Salida» de los paneles. **En el computador no se pinta**: la barra lo reemplaza. |
+| `Secciones.js` | **La lista única** de secciones (`SECCIONES`, `GRUPOS` «Proyectar»/«Organizar», `INICIO`). La usan la cuadrícula y las dos barras. `seccionesPara(userData)` aplica el filtro de roles (Prédica solo pastores); `estaActiva(seccion, pathname)` decide qué ícono se enciende, sin distinguir mayúsculas y con los prefijos de `tambien` (`/ViewCancion/` enciende Canciones, `/ViewServicioEditar` enciende Cronograma). `corto` es el nombre para la barra inferior («Culto»). `EN_BARRA_INFERIOR` / `reparto(userData)` dicen qué cuatro van en la barra del celular (Biblia, Canciones, **Culto** al centro, Mensajes) y qué va en «Más». |
+| `MarcoPanel.jsx` | Ruta **sin `path`** en `App.jsx` que agrupa las pantallas del panel y pinta la barra que toque junto al `<Outlet />`. Solo con la sesión lista (`user`, `userData`, `correoVerificado`). En el celular envuelve el contenido en `pb-barra-inferior`. |
+| `BarraLateral.jsx` | Computador. Encogida (`w-barra`, solo íconos) o abierta por encima del contenido (`w-barra-abierta`) al pulsar el símbolo; al elegir algo, con Escape o tocando el velo se encoge. Abajo: abrir la pantalla del templo, la persona y cerrar sesión (con `confirmAction`). |
+| `BarraInferior.jsx` | Celular. Cuatro secciones y «Más» (hoja con Inicio y el resto; Escape o tocar fuera la cierra). Lleva `data-barra-inferior`. Exporta también `BotonAnterior`, el botón flotante que usa `useSeccionAnterior.js`: recuerda la **última dirección** de la sección anterior (vuelve a la canción abierta, no a la lista); moverse dentro de una sección no la cambia. Lleva `data-boton-anterior`. |
+
+**Altos en el celular** (`index.css`). `:root` define `--alto-barra: 0px` y `--alto-flotante: 0px`; con `:has([data-barra-inferior])` y `:has([data-boton-anterior])` toman su valor. Encima van tres utilidades: `h-pantalla` / `min-h-pantalla` (100svh menos la barra) **reemplazan a `h-svh` / `min-h-svh` en toda pantalla del panel**, y `bottom-avisos` sube las notificaciones por encima de la barra y del botón flotante. En el computador y en `/VOXDEI` las variables valen 0, así que todo mide como antes. Una pantalla nueva del panel con alto fijo debe usar `h-pantalla`, o quedará tapada por la barra.
+
+**Ya no hay botón «Salida»** (9 de noviembre de 2026): las barras lo reemplazan en los dos tamaños. Se borraron `BotonSalida.jsx`, sus usos, la salida de Prédica y los «¿Regresar al inicio?» de Usuarios. No vuelvas a ponerlo: para ir a la cuadrícula está Inicio.
 | `abrirProyector.js` | Abre `/VOXDEI` en la ventana `VisorProyector`. La usan `ViewSelector` y la barra. |
 | `IconoPestana.jsx` + `iconoPestana.js` | Sin pantalla, montado por `MarcoPanel` (celular y computador). Dibuja en el ícono de la pestaña un punto verde o rojo según `puedoProyectar` (idea 4) y pone `VOXDEI · <sección>` en el título. Lee el SVG del símbolo con `?raw` y los colores del tema con `getComputedStyle`; al salir del panel restaura ícono y título. |
 
@@ -134,7 +138,6 @@ Reglas:
 
 - **Una sección nueva se agrega en `SECCIONES`** y su ruta va **dentro** de `<Route element={<MarcoPanel />}>` en `App.jsx`. Fuera del marco quedan a propósito `/VOXDEI`, `/ViewSelector`, login, registro, `/ResetPassword`, `/EliminarCuenta` y `/VistaNoAutorizada`.
 - Las direcciones **no cambiaron**: la barra solo navega a las mismas rutas, así que «atrás», recargar y los favoritos siguen funcionando.
-- Un botón nuevo de «volver a Gestión» en un panel debe ser `BotonSalida` u ocultarse con `isDesktop`.
 - `isDesktop` (`AppProvider`) es `innerWidth >= 1024`; `InicializarEstados` lo recalcula en cada `resize`, así que la barra aparece o desaparece al cambiar el tamaño de la ventana.
 - El prototipo aprobado está en https://claude.ai/artifact/Jaqpt5fwZnHjaaHLzqugne y el del celular en https://claude.ai/artifact/AMSoJ9VXpBRLE5zwJS3kuQ.
 
@@ -297,6 +300,19 @@ Al terminar cualquier cambio que el usuario final pueda notar, añade una entrad
 Nunca describas en el manual una función que no esté terminada sin marcarla como *en preparación*. El caso que citaba este párrafo —**Gestión Video** apuntando a `/ViewPanel`, una ruta inexistente— quedó resuelto: hoy navega a `/ViewVideo`, registrada en `App.jsx`.
 
 **Registro de cambios**: el usuario pidió expresamente (22 de agosto de 2026) que **todo cambio se anote en `README.md`** sin esperar a que lo recuerde, porque es la vista del proyecto en GitHub.
+
+### Orden del culto (9 de noviembre de 2026)
+
+Ruta `/ViewCulto` (`ROLES_PROYECCION`) → `Components/OrdenCulto/OrdenCulto.jsx`. Es la primera sección de «Proyectar» y el botón central de la barra inferior. Dos pestañas:
+
+- **Preparar**: se arma la lista de pasos y se reordena (subir, bajar, quitar, vaciar con `confirmAction`). Tipos: mensaje, título, anuncio (ticker), versículo (se escribe «Juan 3:16» y `parsearCita` lo convierte; el texto sale de `obtenerVersiculo`) y canción (solo de **Canciones de hoy**, el repertorio). Las canciones guardan **copia** de sus láminas: en pleno culto no se lee el catálogo y editar la canción después no cambia el orden ya armado.
+- **Culto**: «Empezar / Siguiente / Fin del culto», lámina por lámina en las canciones; tocar un paso salta a él; «Paso anterior». Cada envío lleva `exigirTurno`. La posición va en `sessionStorage` (solo ese dispositivo, sobrevive a recargar).
+
+Datos: Firestore `iglesias/{groupId}/ordenCulto/actual` = `{ pasos[], actualizado }` (`ORDEN_CULTO`, `ORDEN_ACTUAL` en `RutasIglesia`), escuchado con `onSnapshot`: el pastor prepara en el computador y el operador pasa desde el celular. No necesitó reglas nuevas (lo cubre la regla general de `iglesias/{groupId}`) y se borra con la iglesia (`recursiveDelete`).
+
+La lógica pura está en `utilesOrden.js`: `parsearCita` (acepta tildes o no, «S. Juan»/«San Juan»/«Juan», libros con número y el comienzo del nombre si no hay dos que empiecen igual; valida capítulo y versículo contra `LibrosBiblia`), `avanzar` / `retroceder` / `esElUltimo`, `descripcionPaso` y **`escriturasDePaso`**, que devuelve lo que se escribe en RTDB con **las mismas formas que ya usan las secciones** (`ControlDisplay` no cambió). Además enciende lo necesario para que se vea (texto, título o ticker) y **apaga la pantalla de espera**. El título enciende `visibleTitulo` a diferencia de Prédica: sin eso el paso no mostraría nada. Un versículo no lleva `titulo`, porque RTDB rechaza `undefined`. `NodosProyeccion.test.js` también revisa los nodos que devuelve `escriturasDePaso`.
+
+Lo que **no** hace aún: imágenes y videos como pasos, y la franja «En el templo» del prototipo (saber qué hay en pantalla exige que cada nodo lleve hora para decidir cuál fue el último). Cada sección **no** recuerda su estado interno (Biblia vuelve a empezar); lo que sí se recuerda es la dirección, con el botón de volver.
 
 ### App instalable y archivos de la tienda (9 de noviembre de 2026, ideas 9–11)
 

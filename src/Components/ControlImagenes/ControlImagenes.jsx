@@ -23,7 +23,6 @@ import { useAppContext } from "../../Components/Context/AppContext";
 import { comprimirImagen } from "../ComprimirImagen/ComprimirImagen.js";
 import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
 import { useTurno } from "../Hooks/useTurno.js";
-import BotonSalida from "../Navegacion/BotonSalida.jsx";
 
 export default function ControlImagenes() {
   const { userData } = useAuth();
@@ -385,7 +384,6 @@ export default function ControlImagenes() {
             Proyectar selección
           </button>
 
-          <BotonSalida className="w-full py-2" />
 
           {/* Encender / apagar la imagen en la pantalla */}
           <button

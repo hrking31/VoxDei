@@ -19,6 +19,7 @@ import VistaNoAutorizada from "./VistaNoAutorizada/VistaNoAutorizada.jsx";
 import ViewEliminarCuenta from "./ViewEliminarCuenta/ViewEliminarCuenta.jsx";
 import ViewCronograma from "./ViewCronograma/ViewCronograma.jsx";
 import ViewServicioEditar from "./ViewServicioEditar/ViewServicioEditar.jsx";
+import ViewCulto from "./ViewCulto/ViewCulto.jsx";
 
 export {
   ViewLogin,
@@ -42,4 +43,5 @@ export {
   ViewEliminarCuenta,
   ViewCronograma,
   ViewServicioEditar,
+  ViewCulto,
 };

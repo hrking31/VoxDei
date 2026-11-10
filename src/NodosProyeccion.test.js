@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { escriturasDePaso } from "./Components/OrdenCulto/utilesOrden.js";
 
 // Guardia: todo nodo de Realtime Database que la app usa bajo un groupId
 // (`<nodo>/${groupId}`) tiene que estar en dos sitios, o falla sin avisar:
@@ -37,6 +38,20 @@ const permitidos = new Set(reglas.match(/matches\(\/\^\(([^)]*)\)\$\//)[1].split
 const funciones = readFileSync(resolve(raiz, "functions", "index.js"), "utf8");
 const listaBorrado = funciones.match(/const NODOS_PROYECCION = \[([\s\S]*?)\];/)[1];
 const seBorran = new Set([...listaBorrado.matchAll(/"([A-Za-z]+)"/g)].map((m) => m[1]));
+
+// El Orden del culto arma el nombre del nodo según el paso
+// (`${nodo}/${groupId}`), así que la búsqueda de arriba no lo ve: se suman
+// aquí los que devuelve escriturasDePaso para cada tipo de paso.
+const ejemplos = [
+  { tipo: "mensaje", texto: "a" },
+  { tipo: "cancion", titulo: "a", laminas: ["a"] },
+  { tipo: "versiculo", cita: "a", texto: "a" },
+  { tipo: "titulo", texto: "a" },
+  { tipo: "ticker", texto: "a" },
+];
+for (const paso of ejemplos) {
+  for (const { nodo } of escriturasDePaso(paso, 0, 0)) usados.add(nodo);
+}
 
 describe("nodos de proyección en Realtime Database", () => {
   it("encuentra los nodos que usa la app", () => {

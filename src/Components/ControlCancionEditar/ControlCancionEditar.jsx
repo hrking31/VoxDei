@@ -119,7 +119,7 @@ export default function ControlCancionEditar() {
 
   if (cargando) {
     return (
-      <div className="h-svh flex items-center justify-center bg-linear-to-b from-app-dark/50 to-app-light/50">
+      <div className="h-pantalla flex items-center justify-center bg-linear-to-b from-app-dark/50 to-app-light/50">
         <p className="text-app-muted">Cargando la canción...</p>
       </div>
     );
@@ -128,7 +128,7 @@ export default function ControlCancionEditar() {
   // La pantalla mide exactamente lo que la ventana y no se desplaza: lo único
   // que crece es la letra, y esa se desplaza por dentro.
   return (
-    <div className="h-svh flex flex-col overflow-hidden bg-linear-to-b from-app-dark/50 to-app-light/50">
+    <div className="h-pantalla flex flex-col overflow-hidden bg-linear-to-b from-app-dark/50 to-app-light/50">
       {/* ENCABEZADO, con los botones de guardar y volver */}
       <div className="shrink-0 border-b border-app-main bg-app-light px-2">
         <div className="flex items-center justify-between gap-2 py-1">

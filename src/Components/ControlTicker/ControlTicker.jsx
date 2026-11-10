@@ -17,7 +17,6 @@ import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
 import FavoritosTexto from "../Favoritos/FavoritosTexto.jsx";
 import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
 import { useTurno } from "../Hooks/useTurno.js";
-import BotonSalida from "../Navegacion/BotonSalida.jsx";
 
 // Cuántos tickers caben en favoritos. Los documentos son ticker1..ticker6.
 const TOPE_FAVORITOS = 6;
@@ -313,7 +312,6 @@ export default function ControlTicker() {
               Cancelar
             </button>
 
-            <BotonSalida className="w-full py-1.5" />
 
             {/* Boton visibilidad ticker, titulo, texto */}
             {isDesktop ? (

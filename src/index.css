@@ -19,6 +19,9 @@
   --spacing-barra-etiqueta: 4.25rem; /* nombre flotante, justo al lado de la barra encogida */
   --shadow-barra: 12px 0 30px rgb(0 0 0 / 0.45);
 
+  /* Barra inferior del panel (solo celular) */
+  --spacing-barra-inferior: 4.5rem;
+
   /* Pantalla de espera del templo: relativas al alto de la pantalla */
   --spacing-espera-logo: 30vh;
   --spacing-espera-hueco: 2vh;
@@ -39,6 +42,39 @@
 /* Estilos base */
 body {
   @apply bg-app-dark;
+}
+
+/* Alto que ocupa la barra inferior del celular. Vale 0 salvo cuando la barra
+   está en la página: así el computador y la pantalla del templo miden igual
+   que siempre, sin que ningún componente tenga que preguntar. */
+:root {
+  --alto-barra: 0px;
+  --alto-flotante: 0px;
+}
+:root:has([data-barra-inferior]) {
+  --alto-barra: var(--spacing-barra-inferior);
+}
+/* Con el botón «volver a la anterior» en pantalla, los avisos suben un poco
+   más para no taparlo. */
+:root:has([data-boton-anterior]) {
+  --alto-flotante: 3.25rem;
+}
+
+/* Alto de pantalla descontando la barra inferior. Las pantallas del panel que
+   miden exactamente la pantalla usan estas en vez de h-svh / min-h-svh. */
+@utility h-pantalla {
+  height: calc(100svh - var(--alto-barra));
+}
+@utility min-h-pantalla {
+  min-height: calc(100svh - var(--alto-barra));
+}
+/* Los avisos flotan encima de la barra, no detrás. */
+@utility bottom-avisos {
+  bottom: calc(1.5rem + var(--alto-barra) + var(--alto-flotante));
+}
+/* Botón flotante, justo encima de la barra inferior. */
+@utility bottom-flotante {
+  bottom: calc(0.75rem + var(--alto-barra));
 }
 
 @layer utilities {

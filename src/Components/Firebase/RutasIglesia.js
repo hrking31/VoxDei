@@ -39,6 +39,12 @@ export const REPERTORIO_ACTUAL = "actual";
 // pastora (firestore.rules); la lee toda la iglesia. Ver Cronograma/.
 export const CRONOGRAMA = "cronograma";
 
+// Orden del culto: los pasos que se proyectan uno tras otro con «Siguiente».
+// Un solo documento con el array `pasos`; lo escribe cualquiera de la iglesia
+// (regla general de iglesias/{groupId}). Ver OrdenCulto/.
+export const ORDEN_CULTO = "ordenCulto";
+export const ORDEN_ACTUAL = "actual";
+
 // Catálogo de canciones COMPARTIDO por todas las iglesias, igual que `biblia`.
 // Vive en la raíz, no dentro de iglesias/{groupId}. Cualquier iglesia puede
 // agregar canciones; cada una solo edita o borra las que subió (campo

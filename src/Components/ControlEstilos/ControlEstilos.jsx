@@ -25,7 +25,6 @@ import {
   fondoDe,
   sombraDe,
 } from "../Estilos/EstilosProyeccion";
-import BotonSalida from "../Navegacion/BotonSalida.jsx";
 import { Simbolo } from "../Logo/Logo.jsx";
 
 // Contenido de muestra para la vista previa
@@ -131,7 +130,7 @@ export default function ControlEstilos() {
   const datos = EJEMPLOS[ejemplo];
 
   return (
-    <div className="min-h-svh bg-linear-to-b from-app-dark/50 to-app-light/50">
+    <div className="min-h-pantalla bg-linear-to-b from-app-dark/50 to-app-light/50">
       {/* ENCABEZADO */}
       <div className="sticky top-0 z-20 border-b border-app-main bg-app-light px-2">
         <div className="flex items-center justify-between gap-2 py-2">
@@ -159,7 +158,6 @@ export default function ControlEstilos() {
               {guardando ? "Guardando..." : "Guardar"}
             </button>
 
-            <BotonSalida className="px-3 py-1.5" />
           </div>
         </div>
       </div>

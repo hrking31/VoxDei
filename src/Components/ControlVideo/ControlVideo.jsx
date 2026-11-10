@@ -23,7 +23,6 @@ import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext";
 import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
 import { useTurno } from "../Hooks/useTurno.js";
-import BotonSalida from "../Navegacion/BotonSalida.jsx";
 
 // Convierte segundos a m:ss
 const enMinutos = (segundos) => {
@@ -221,7 +220,7 @@ export default function ControlVideo() {
   };
 
   return (
-    <div className="min-h-svh bg-linear-to-b from-app-dark/50 to-app-light/50">
+    <div className="min-h-pantalla bg-linear-to-b from-app-dark/50 to-app-light/50">
       {/* ENCABEZADO */}
       <div className="sticky top-0 border-b border-app-main bg-app-light z-10 px-2">
         <div className="-mx-2">
@@ -236,7 +235,6 @@ export default function ControlVideo() {
           </h1>
 
           <div className="flex items-center gap-2 shrink-0">
-            <BotonSalida className="px-3 py-1.5" />
 
             <button onClick={toggleVisibleTicker} title="Ticker">
               <TagIcon

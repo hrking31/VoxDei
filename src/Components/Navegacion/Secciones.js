@@ -6,6 +6,7 @@ import {
   MusicalNoteIcon,
   PaintBrushIcon,
   PhotoIcon,
+  QueueListIcon,
   Squares2X2Icon,
   TagIcon,
   UserGroupIcon,
@@ -32,7 +33,15 @@ export const INICIO = {
   Icono: Squares2X2Icon,
 };
 
+// `corto`: nombre para la barra inferior del celular, donde no cabe el largo.
 export const SECCIONES = [
+  {
+    ruta: "/ViewCulto",
+    nombre: "Orden del culto",
+    corto: "Culto",
+    Icono: QueueListIcon,
+    grupo: "proyectar",
+  },
   { ruta: "/ViewVersiculo", nombre: "Biblia", Icono: BookOpenIcon, grupo: "proyectar" },
   {
     ruta: "/ViewCanciones",
@@ -62,6 +71,19 @@ export const SECCIONES = [
   { ruta: "/ViewUsers", nombre: "Usuarios", Icono: UserGroupIcon, grupo: "organizar" },
   { ruta: "/ViewStylos", nombre: "Estilos y colores", Icono: PaintBrushIcon, grupo: "organizar" },
 ];
+
+// Barra inferior del celular: estas cuatro, en este orden, con el Orden del
+// culto en el centro (más grande). Las demás van en «Más».
+export const EN_BARRA_INFERIOR = ["/ViewVersiculo", "/ViewCanciones", "/ViewCulto", "/ViewMessage"];
+export const CENTRO_BARRA_INFERIOR = "/ViewCulto";
+
+export function reparto(userData) {
+  const todas = seccionesPara(userData);
+  return {
+    enBarra: EN_BARRA_INFERIOR.map((ruta) => todas.find((s) => s.ruta === ruta)).filter(Boolean),
+    enMas: todas.filter((s) => !EN_BARRA_INFERIOR.includes(s.ruta)),
+  };
+}
 
 // Prédica es solo de pastor y pastora: se oculta en vez de dejar que el
 // operador entre y choque con la pantalla de acceso denegado.

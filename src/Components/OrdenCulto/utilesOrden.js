@@ -1,0 +1,190 @@
+import { librosAntiguo, librosNuevo } from "../LibrosBiblia/LibrosBiblia.js";
+
+// Lógica del Orden del culto (9 de noviembre de 2026): funciones puras, sin
+// Firebase, para probarlas sin red.
+//
+// Un orden es una lista de pasos que se arma antes del servicio y durante el
+// culto se proyecta con un solo botón, «Siguiente». Tipos de paso:
+//   { id, tipo: "mensaje",   texto }
+//   { id, tipo: "titulo",    texto }
+//   { id, tipo: "ticker",    texto }
+//   { id, tipo: "versiculo", cita, texto }
+//   { id, tipo: "cancion",   cancionId, titulo, laminas: string[] }
+// Las canciones guardan una copia de sus láminas: en pleno culto no hace falta
+// leer el catálogo, y si alguien edita la canción, el orden ya armado no cambia.
+
+export const TIPOS_PASO = {
+  mensaje: "Mensaje",
+  cancion: "Canción",
+  versiculo: "Versículo",
+  titulo: "Título",
+  ticker: "Anuncio",
+};
+
+// ---------- Citas bíblicas escritas a mano: «Juan 3:16» ----------
+
+const LIBROS = [...librosAntiguo, ...librosNuevo];
+
+// «S. Juan» → «juan», «1 Corintios» → «1corintios», sin tildes ni mayúsculas.
+function normalizarLibro(nombre) {
+  return nombre
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/^(s\.|san)\s+/, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+const INDICE_LIBROS = LIBROS.map((libro) => ({ libro, clave: normalizarLibro(libro.nombre) }));
+
+// Entiende «Juan 3:16», «juan 3 16», «San Juan 3.16», «1 Cor 13:4», «sal 23:1».
+// El nombre puede ser el comienzo del libro si no hay dos que empiecen igual.
+// Devuelve { sigla, libro, capitulo, versiculo, cita } o null si no existe.
+export function parsearCita(texto) {
+  const partes = String(texto || "").match(/^\s*(.+?)\s+(\d+)\s*[:.,\s]\s*(\d+)\s*$/);
+  if (!partes) return null;
+
+  const clave = normalizarLibro(partes[1]);
+  if (!clave) return null;
+  const exacto = INDICE_LIBROS.find((l) => l.clave === clave);
+  const empiezan = INDICE_LIBROS.filter((l) => l.clave.startsWith(clave));
+  const elegido = exacto || (empiezan.length === 1 ? empiezan[0] : null);
+  if (!elegido) return null;
+
+  const { libro } = elegido;
+  const capitulo = Number(partes[2]);
+  const versiculo = Number(partes[3]);
+  if (capitulo < 1 || capitulo > libro.capitulos) return null;
+  if (versiculo < 1 || versiculo > (libro[`capitulo${capitulo}`] || 0)) return null;
+
+  const nombre = libro.nombre.replace(/^S\.\s+/, "");
+  return {
+    sigla: libro.sigla,
+    libro: nombre,
+    capitulo,
+    versiculo,
+    cita: `${nombre} ${capitulo}:${versiculo}`,
+  };
+}
+
+// ---------- Avanzar y retroceder ----------
+//
+// La posición es { paso, lamina }; paso -1 es «todavía no empieza». Una
+// canción se recorre lámina por lámina antes de pasar al paso siguiente.
+
+export const INICIO = { paso: -1, lamina: 0 };
+
+const laminasDe = (paso) => (paso?.tipo === "cancion" ? paso.laminas.length : 1);
+
+export function avanzar(pasos, { paso, lamina }) {
+  if (!pasos.length) return null;
+  if (paso < 0) return { paso: 0, lamina: 0 };
+  if (lamina < laminasDe(pasos[paso]) - 1) return { paso, lamina: lamina + 1 };
+  if (paso < pasos.length - 1) return { paso: paso + 1, lamina: 0 };
+  return null; // ya es el último
+}
+
+export function retroceder(pasos, { paso, lamina }) {
+  if (paso < 0) return null;
+  if (lamina > 0) return { paso, lamina: lamina - 1 };
+  if (paso > 0) return { paso: paso - 1, lamina: laminasDe(pasos[paso - 1]) - 1 };
+  return null; // ya es el primero
+}
+
+export function esElUltimo(pasos, posicion) {
+  return posicion.paso >= 0 && avanzar(pasos, posicion) === null;
+}
+
+// Texto corto de lo que está en pantalla, para el panel.
+export function descripcionPaso(paso, lamina = 0) {
+  if (!paso) return "";
+  if (paso.tipo === "cancion") {
+    return `«${paso.titulo}» · lámina ${lamina + 1} de ${paso.laminas.length}`;
+  }
+  if (paso.tipo === "versiculo") return `${paso.cita} — ${paso.texto}`;
+  return paso.texto;
+}
+
+// ---------- Qué escribe cada paso en la pantalla del templo ----------
+//
+// Las mismas formas que ya escribe cada sección (Mensajes, Canciones,
+// Biblia, Prédica, Ticker), para que ControlDisplay no necesite cambios.
+// Además se asegura de que se vea: enciende el texto, el título o el ticker
+// según el paso, y apaga la pantalla de espera, que taparía todo.
+// Devuelve [{ nodo, modo: "set" | "update", datos }].
+
+export function escriturasDePaso(paso, lamina, ahora) {
+  const quitarEspera = { nodo: "displayEspera", modo: "set", datos: { activa: false } };
+  const mostrarTexto = {
+    nodo: "displayVisibleTexto",
+    modo: "update",
+    datos: { visibleTexto: true, timestamp: ahora },
+  };
+
+  switch (paso.tipo) {
+    case "mensaje":
+    case "cancion":
+      return [
+        {
+          nodo: "displayMessage",
+          modo: "set",
+          datos: {
+            text: paso.tipo === "cancion" ? paso.laminas[lamina] : paso.texto,
+            display: "mensaje",
+            timestamp: ahora,
+          },
+        },
+        mostrarTexto,
+        quitarEspera,
+      ];
+    case "versiculo":
+      return [
+        {
+          nodo: "displayVersiculo",
+          modo: "set",
+          datos: { text: paso.texto, cita: paso.cita, display: "versiculo", timestamp: ahora },
+        },
+        mostrarTexto,
+        quitarEspera,
+      ];
+    case "titulo":
+      return [
+        {
+          nodo: "displayTitulo",
+          modo: "set",
+          datos: { text: paso.texto, display: "titulo", timestamp: ahora },
+        },
+        {
+          nodo: "displayVisibleTitulo",
+          modo: "update",
+          datos: { visibleTitulo: true, timestamp: ahora },
+        },
+        quitarEspera,
+      ];
+    case "ticker":
+      return [
+        { nodo: "displayTicker", modo: "set", datos: { text: paso.texto, timestamp: ahora } },
+        {
+          nodo: "displayVisibleTicker",
+          modo: "set",
+          datos: { visibleTicker: true, timestamp: ahora },
+        },
+      ];
+    default:
+      return [];
+  }
+}
+
+// ---------- Editar la lista ----------
+
+export function mover(pasos, indice, desplazamiento) {
+  const destino = indice + desplazamiento;
+  if (destino < 0 || destino >= pasos.length) return pasos;
+  const copia = [...pasos];
+  [copia[indice], copia[destino]] = [copia[destino], copia[indice]];
+  return copia;
+}
+
+export function quitar(pasos, id) {
+  return pasos.filter((p) => p.id !== id);
+}
