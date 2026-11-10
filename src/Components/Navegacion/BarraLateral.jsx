@@ -72,9 +72,9 @@ export default function BarraLateral() {
           {abierta ? (
             // El archivo trae margen vacío alrededor: a la altura completa del
             // botón el texto se lee bien.
-            <LogoHorizontal sinFondo className="h-12 w-auto" alt="" />
+            <LogoHorizontal className="h-12 w-auto" alt="" />
           ) : (
-            <Simbolo sinFondo className="h-9 w-9" alt="" />
+            <Simbolo className="h-9 w-9" alt="" />
           )}
         </button>
 
