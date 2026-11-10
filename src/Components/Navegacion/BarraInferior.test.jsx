@@ -31,9 +31,8 @@ describe("BarraInferior", () => {
     montar(<BarraInferior />, celular);
     fireEvent.click(enBarra("Más"));
     const hoja = screen.getByRole("dialog", { name: "Más secciones" });
-    for (const nombre of ["Inicio", "Ticker", "Imágenes", "Video", "Prédica", "Cronograma", "Usuarios", "Estilos y colores"]) {
-      expect(within(hoja).getByRole("button", { name: nombre })).toBeTruthy();
-    }
+    const nombres = within(hoja).getAllByRole("button").map((b) => b.textContent);
+    expect(nombres).toEqual(["Inicio", "Ticker", "Imágenes", "Video", "Prédica", "Cronograma", "Usuarios", "Estilos y colores", "Ayuda"]);
     fireEvent.click(within(hoja).getByRole("button", { name: "Ticker" }));
     expect(ruta()).toBe("/ViewTicker");
     expect(screen.queryByRole("dialog")).toBeNull();

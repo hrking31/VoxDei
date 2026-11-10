@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GRUPOS, INICIO, SECCIONES, estaActiva, seccionesPara } from "./Secciones.js";
+import { AYUDA, GRUPOS, INICIO, SECCIONES, estaActiva, seccionDeRuta, seccionesPara } from "./Secciones.js";
 
 const seccion = (nombre) => SECCIONES.find((s) => s.nombre === nombre);
 
@@ -46,6 +46,22 @@ describe("estaActiva", () => {
   it("Inicio solo se enciende en Gestión", () => {
     expect(estaActiva(INICIO, "/ViewGestion")).toBe(true);
     expect(estaActiva(INICIO, "/ViewUsers")).toBe(false);
+  });
+});
+
+describe("seccionDeRuta", () => {
+  it("reconoce secciones, Inicio y Ayuda", () => {
+    expect(seccionDeRuta("/ViewCancion/abc")).toBe(seccion("Canciones"));
+    expect(seccionDeRuta("/ViewGestion")).toBe(INICIO);
+    expect(seccionDeRuta("/ViewAyuda")).toBe(AYUDA);
+  });
+
+  it("fuera del panel no devuelve nada", () => {
+    expect(seccionDeRuta("/VOXDEI")).toBeUndefined();
+  });
+
+  it("Ayuda no es una sección de trabajo: no sale en la cuadrícula ni en los grupos", () => {
+    expect(SECCIONES).not.toContain(AYUDA);
   });
 });
 

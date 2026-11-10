@@ -6,6 +6,7 @@ import {
   MusicalNoteIcon,
   PaintBrushIcon,
   PhotoIcon,
+  QuestionMarkCircleIcon,
   QueueListIcon,
   Squares2X2Icon,
   TagIcon,
@@ -31,6 +32,14 @@ export const INICIO = {
   ruta: "/ViewGestion",
   nombre: "Inicio",
   Icono: Squares2X2Icon,
+};
+
+// Cómo preparar la pantalla del servicio. No es una sección de trabajo: va
+// abajo en la barra lateral y dentro de «Más» en el celular.
+export const AYUDA = {
+  ruta: "/ViewAyuda",
+  nombre: "Ayuda",
+  Icono: QuestionMarkCircleIcon,
 };
 
 // `corto`: nombre para la barra inferior del celular, donde no cabe el largo.
@@ -89,6 +98,12 @@ export function reparto(userData) {
 // operador entre y choque con la pantalla de acceso denegado.
 export function seccionesPara(userData) {
   return SECCIONES.filter((s) => !s.soloPastores || esPastor(userData));
+}
+
+// A qué entrada del panel pertenece una dirección (sección, Inicio o Ayuda).
+// La usan el título de la pestaña y el botón de volver a la anterior.
+export function seccionDeRuta(pathname) {
+  return [INICIO, ...SECCIONES, AYUDA].find((s) => estaActiva(s, pathname));
 }
 
 // Las rutas de React Router no distinguen mayúsculas (App registra

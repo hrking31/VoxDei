@@ -22,6 +22,7 @@ import {
   ViewCronograma,
   ViewServicioEditar,
   ViewCulto,
+  ViewAyuda,
 } from "./Views/index";
 import { ProtectedRoutes } from "./Components/ProtectedRoutes/ProtectedRoutes.jsx";
 import { ROLES_PASTORES, ROLES_PROYECCION } from "./Components/Roles/Roles.js";
@@ -126,6 +127,16 @@ export default function App() {
             element={
               <ProtectedRoutes rolesPermitidos={ROLES_PASTORES}>
                 <ViewPredica />
+              </ProtectedRoutes>
+            }
+          />
+
+          {/* Ayuda: cómo preparar la pantalla del servicio. Para todos. */}
+          <Route
+            path="/ViewAyuda"
+            element={
+              <ProtectedRoutes>
+                <ViewAyuda />
               </ProtectedRoutes>
             }
           />

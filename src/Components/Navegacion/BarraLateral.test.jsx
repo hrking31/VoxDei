@@ -21,6 +21,13 @@ describe("BarraLateral", () => {
     expect(within(barra()).getByRole("group", { name: "Organizar" })).toBeTruthy();
   });
 
+  it("lleva a la Ayuda desde abajo, y la marca cuando se está en ella", () => {
+    montar(<BarraLateral />);
+    fireEvent.click(boton("Ayuda"));
+    expect(ruta()).toBe("/ViewAyuda");
+    expect(boton("Ayuda").getAttribute("aria-current")).toBe("page");
+  });
+
   it("al operador no le muestra Prédica", () => {
     montar(<BarraLateral />, { auth: { userData: { name: "Luis", role: "Operador" } } });
     expect(within(barra()).queryByRole("button", { name: "Prédica" })).toBeNull();

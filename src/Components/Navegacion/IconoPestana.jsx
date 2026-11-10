@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import simboloSvg from "../../assets/voxdei-simbolo.svg?raw";
 import { useTurno } from "../Hooks/useTurno.js";
-import { INICIO, SECCIONES, estaActiva } from "./Secciones.js";
+import { seccionDeRuta } from "./Secciones.js";
 import { colorDelTema, iconoConPunto, tituloDePestana } from "./iconoPestana.js";
 
 // Sin pantalla. Mientras se está en el panel, la pestaña del navegador dice
@@ -28,8 +28,7 @@ export default function IconoPestana() {
   }, [puedoProyectar]);
 
   useEffect(() => {
-    const seccion = [INICIO, ...SECCIONES].find((s) => estaActiva(s, pathname));
-    document.title = tituloDePestana(seccion?.nombre);
+    document.title = tituloDePestana(seccionDeRuta(pathname)?.nombre);
     return () => {
       document.title = tituloDePestana();
     };

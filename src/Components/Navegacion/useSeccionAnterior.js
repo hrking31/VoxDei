@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { INICIO, SECCIONES, estaActiva } from "./Secciones.js";
-
-const seccionDe = (pathname) => [INICIO, ...SECCIONES].find((s) => estaActiva(s, pathname));
+import { seccionDeRuta } from "./Secciones.js";
 
 // Sección en la que se estuvo justo antes de la actual, con la ÚLTIMA
 // dirección que se vio en ella: si se dejó abierta una canción
@@ -19,10 +17,10 @@ export function useSeccionAnterior() {
     const previa = ultima.current;
     ultima.current = pathname;
     if (previa === pathname) return;
-    const antes = seccionDe(previa);
-    const ahora = seccionDe(pathname);
+    const antes = seccionDeRuta(previa);
+    const ahora = seccionDeRuta(pathname);
     if (antes && ahora && antes !== ahora) setAnterior({ ruta: previa, seccion: antes });
   }, [pathname]);
 
-  return anterior && seccionDe(pathname) !== anterior.seccion ? anterior : null;
+  return anterior && seccionDeRuta(pathname) !== anterior.seccion ? anterior : null;
 }

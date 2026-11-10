@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowUturnLeftIcon, EllipsisHorizontalIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../Context/AuthContext";
-import { CENTRO_BARRA_INFERIOR, INICIO, estaActiva, reparto } from "./Secciones.js";
+import { AYUDA, CENTRO_BARRA_INFERIOR, INICIO, estaActiva, reparto } from "./Secciones.js";
 import { useSeccionAnterior } from "./useSeccionAnterior.js";
 
 // Navegación del panel en el celular (9 de noviembre de 2026): cuatro
@@ -18,7 +18,9 @@ export default function BarraInferior() {
   const navigate = useNavigate();
   const [masAbierto, setMasAbierto] = useState(false);
   const { enBarra, enMas } = reparto(userData);
-  const masActiva = [INICIO, ...enMas].some((s) => estaActiva(s, pathname));
+  // En «Más»: Inicio, las secciones que no caben en la barra y Ayuda al final.
+  const enHoja = [INICIO, ...enMas, AYUDA];
+  const masActiva = enHoja.some((s) => estaActiva(s, pathname));
 
   useEffect(() => {
     if (!masAbierto) return;
@@ -45,7 +47,7 @@ export default function BarraInferior() {
             aria-label="Más secciones"
             className="fixed inset-x-0 bottom-barra-inferior z-40 grid grid-cols-3 gap-2 rounded-t-2xl border-t border-app-border bg-app-light p-3"
           >
-            {[INICIO, ...enMas].map((s) => (
+            {enHoja.map((s) => (
               <button
                 key={s.ruta}
                 type="button"

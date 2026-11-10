@@ -53,7 +53,7 @@ Al iniciar sesión verás dos botones grandes:
 - **Presentación** — abre la ventana que vas a mostrar en el proyector. Arrástrala a la pantalla del televisor y toca el ícono del centro para ponerla en pantalla completa.
 - **Administrador** — abre el panel con todas las herramientas.
 
-Dentro del panel cambias de sección con un toque: en el computador, con la **barra de la izquierda**; en el celular, con la **barra de abajo** (Biblia, Canciones, Culto, Mensajes y **Más** para el resto).
+Dentro del panel cambias de sección con un toque: en el computador, con la **barra de la izquierda**; en el celular, con la **barra de abajo** (Biblia, Canciones, Culto, Mensajes y **Más** para el resto). Si es tu primera vez, abre **Ayuda**: explica paso a paso cómo preparar la pantalla para el servicio.
 
 ### 3. Suma a tu equipo
 
@@ -271,7 +271,7 @@ Aquí queda anotado lo que va cambiando en la aplicación, para que siempre sepa
 - **Volver a la sección anterior con un toque.** En el celular, un botón flotante con el nombre de la sección anterior te devuelve justo donde estabas, por ejemplo a la canción que tenías abierta. Ideal para ir y venir entre una canción y la Biblia.
 - **Nuevo: pantalla de espera.** En *Cronograma* hay un botón **Mostrar** que pone en la pantalla del templo el logo, el nombre de la iglesia y una **cuenta regresiva** hasta el próximo servicio («El servicio empieza en 12:34»). La hora la toma sola del cronograma: no hay que escribir nada. Si falta más de seis horas, muestra el día y la hora del próximo servicio. Se quita con el mismo botón.
 - **Nuevo: marca de agua.** En *Estilos y colores → Marca de agua* puedes poner el símbolo de VOXDEI pequeño y tenue en una esquina de la pantalla, para que se vea en las transmisiones por internet. Eliges la esquina, el tamaño y qué tan discreta se ve. Viene apagada.
-- **Hoja de bienvenida para imprimir.** Una página con los tres pasos para preparar la pantalla del servicio (conectar el proyector, abrir la pantalla del templo y manejar todo desde el celular), qué revisar antes de empezar y qué hacer si algo falla. Está en [`docs/kit-bienvenida.pdf`](docs/kit-bienvenida.pdf), lista para dejarla junto a la consola de sonido.
+- **Nuevo: Ayuda.** Una pantalla con los tres pasos para preparar la pantalla del servicio (conectar el proyector, abrir la pantalla del templo y manejar todo desde el celular), qué revisar antes de empezar y qué hacer si algo falla. Cada consejo lleva un botón directo a su sección. En el computador está abajo en la barra de la izquierda; en el celular, en **Más**.
 - **Con su ícono en el celular.** Si añades VOXDEI a la pantalla de inicio del teléfono desde el navegador, aparece con el símbolo de VOXDEI bien recortado, sea cual sea la forma de los íconos de tu teléfono, y al abrirla se ve el logo sobre fondo morado. La app para descargar desde Google Play está *en preparación*.
 - **El enlace se ve bonito al compartirlo.** Cuando pasas la dirección de VOXDEI por WhatsApp, Facebook o correo, aparece una tarjeta con el logo y la frase «La pantalla de tu iglesia, controlada desde tu celular», en lugar de un enlace suelto.
 - **La cuadrícula del panel está ordenada por uso.** Primero lo que se proyecta (Biblia, Canciones, Mensajes, Ticker, Imágenes, Video, Prédica) y después lo que se organiza (Cronograma, Usuarios, Estilos y colores).

@@ -8,7 +8,7 @@ import {
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import { LogoHorizontal, Simbolo } from "../Logo/Logo.jsx";
-import { GRUPOS, INICIO, estaActiva, seccionesPara } from "./Secciones.js";
+import { AYUDA, GRUPOS, INICIO, estaActiva, seccionesPara } from "./Secciones.js";
 import { abrirProyector } from "./abrirProyector.js";
 
 // Barra lateral del panel en el computador. Encogida muestra solo íconos;
@@ -116,6 +116,12 @@ export default function BarraLateral() {
 
         <div className="min-h-2 flex-1" />
 
+        <Opcion
+          seccion={AYUDA}
+          activa={estaActiva(AYUDA, pathname)}
+          abierta={abierta}
+          onClick={() => ir(AYUDA.ruta)}
+        />
         <Opcion
           seccion={{ nombre: "Abrir pantalla del templo", Icono: ComputerDesktopIcon }}
           abierta={abierta}
