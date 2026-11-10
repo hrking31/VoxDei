@@ -40,7 +40,7 @@ export default function ViewSelector() {
     <div className="min-h-svh flex flex-col fondo-entrada text-app-texto">
       <EncabezadoUsuario />
 
-      <main className="flex flex-1 flex-col items-center gap-6 px-4 py-6 sm:py-10">
+      <main className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-6 sm:py-10">
         <div className="flex flex-col items-center gap-2 text-center">
           <span className="relative h-16 w-16">
             <span aria-hidden="true" className="absolute -inset-5 rounded-full brillo-oro motion-safe:animate-respira" />
