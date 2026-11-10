@@ -83,23 +83,6 @@ export default function BarraLateral() {
           )}
         </button>
 
-        <button
-          type="button"
-          onClick={() => setAbierta(!abierta)}
-          aria-expanded={abierta}
-          aria-label={abierta ? "Encoger la barra" : "Mostrar los nombres de las secciones"}
-          title={abierta ? "Encoger la barra" : "Mostrar los nombres"}
-          className={`flex h-7 shrink-0 items-center rounded-lg px-3 text-app-muted hover:bg-app-dark hover:text-app-texto ${
-            abierta ? "justify-end" : "justify-start"
-          }`}
-        >
-          {abierta ? (
-            <ChevronDoubleLeftIcon className="h-4 w-4" aria-hidden="true" />
-          ) : (
-            <ChevronDoubleRightIcon className="h-4 w-4" aria-hidden="true" />
-          )}
-        </button>
-
         <Opcion
           seccion={INICIO}
           activa={estaActiva(INICIO, pathname)}
@@ -130,19 +113,37 @@ export default function BarraLateral() {
 
         <div className="min-h-2 flex-1" />
 
-        {/* Abajo, después de las secciones: la ayuda y la cuenta */}
+        {/* Abajo, de arriba hacia abajo (orden pedido por el usuario):
+            la persona, Ayuda, Cerrar sesión y, al final, la flecha que abre
+            o encoge la barra. */}
+        <Persona userData={userData} abierta={abierta} />
         <Opcion
           seccion={AYUDA}
           activa={estaActiva(AYUDA, pathname)}
           abierta={abierta}
           onClick={() => ir(AYUDA.ruta)}
         />
-        <Persona userData={userData} abierta={abierta} />
         <Opcion
           seccion={{ nombre: "Cerrar sesión", Icono: ArrowLeftStartOnRectangleIcon }}
           abierta={abierta}
           onClick={cerrarSesion}
         />
+        <button
+          type="button"
+          onClick={() => setAbierta(!abierta)}
+          aria-expanded={abierta}
+          aria-label={abierta ? "Encoger la barra" : "Mostrar los nombres de las secciones"}
+          title={abierta ? "Encoger la barra" : "Mostrar los nombres"}
+          className={`flex h-8 shrink-0 items-center rounded-lg px-3.5 text-app-muted hover:bg-app-dark hover:text-app-texto ${
+            abierta ? "justify-end" : "justify-start"
+          }`}
+        >
+          {abierta ? (
+            <ChevronDoubleLeftIcon className="h-4 w-4" aria-hidden="true" />
+          ) : (
+            <ChevronDoubleRightIcon className="h-4 w-4" aria-hidden="true" />
+          )}
+        </button>
       </nav>
     </>
   );
@@ -193,7 +194,7 @@ function Opcion({ seccion, activa = false, abierta, onClick }) {
 
 function Persona({ userData, abierta }) {
   return (
-    <div className="flex shrink-0 items-center gap-2 overflow-hidden rounded-lg px-1.5 py-1">
+    <div data-persona className="flex shrink-0 items-center gap-2 overflow-hidden rounded-lg px-1.5 py-1">
       {userData?.photo ? (
         <img src={userData.photo} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
       ) : (

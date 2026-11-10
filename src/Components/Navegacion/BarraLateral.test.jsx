@@ -40,6 +40,21 @@ describe("BarraLateral", () => {
     expect(boton("Biblia").getAttribute("aria-current")).toBeNull();
   });
 
+  it("abajo, en orden: la persona, Ayuda, Cerrar sesión y la flecha al final", () => {
+    montar(<BarraLateral />);
+    const nav = barra();
+    const ayuda = boton("Ayuda");
+    const salir = boton("Cerrar sesión");
+    const flecha = interruptor();
+    const persona = nav.querySelector("[data-persona]");
+    expect(persona).toBeTruthy();
+    const orden = (x, y) => x.compareDocumentPosition(y) & Node.DOCUMENT_POSITION_FOLLOWING;
+    expect(orden(persona, ayuda)).toBeTruthy();
+    expect(orden(ayuda, salir)).toBeTruthy();
+    expect(orden(salir, flecha)).toBeTruthy();
+    expect(nav.lastElementChild).toBe(flecha);
+  });
+
   it("el logo vuelve al menú inicial (la entrada)", () => {
     montar(<BarraLateral />);
     fireEvent.click(boton("Menú inicial"));
