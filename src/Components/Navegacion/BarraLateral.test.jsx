@@ -81,6 +81,18 @@ describe("BarraLateral", () => {
     expect(within(barra()).getByText("Biblia")).toBeTruthy();
   });
 
+  it("la flecha es «|›» encogida y «‹|» abierta", () => {
+    montar(<BarraLateral />);
+    const icono = () => interruptor().querySelector("[data-icono-encoger]");
+    expect(icono().getAttribute("data-icono-encoger")).toBe("abrir");
+    expect(icono().getAttribute("class")).toContain("-scale-x-100");
+
+    fireEvent.click(interruptor());
+
+    expect(icono().getAttribute("data-icono-encoger")).toBe("encoger");
+    expect(icono().getAttribute("class")).not.toContain("-scale-x-100");
+  });
+
   it("al elegir una sección navega a su dirección y se vuelve a encoger", () => {
     montar(<BarraLateral />);
     fireEvent.click(interruptor());

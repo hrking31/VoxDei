@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  ArrowLeftStartOnRectangleIcon,
-  ChevronDoubleLeftIcon,
-  ChevronDoubleRightIcon,
-  UserIcon,
-} from "@heroicons/react/24/solid";
+import { ArrowLeftStartOnRectangleIcon, UserIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import { LogoHorizontal, Simbolo } from "../Logo/Logo.jsx";
@@ -139,11 +134,7 @@ export default function BarraLateral() {
             abierta ? "justify-end" : "justify-start"
           }`}
         >
-          {abierta ? (
-            <ChevronDoubleLeftIcon className="h-4 w-4" aria-hidden="true" />
-          ) : (
-            <ChevronDoubleRightIcon className="h-4 w-4" aria-hidden="true" />
-          )}
+          <IconoEncoger abierta={abierta} />
         </button>
       </nav>
     </>
@@ -151,6 +142,28 @@ export default function BarraLateral() {
 }
 
 // Nombre de un grupo. Encogida la barra, una rayita en su lugar.
+// «‹|»: flecha hacia la barra, el ícono que eligió el usuario para encogerla.
+// Encogida se ve al revés, «|›», para abrirla. Heroicons no lo trae: se
+// dibuja aquí y toma el color del texto (currentColor), como los demás.
+function IconoEncoger({ abierta }) {
+  return (
+    <svg
+      data-icono-encoger={abierta ? "encoger" : "abrir"}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={`h-4 w-4 ${abierta ? "" : "-scale-x-100"}`}
+    >
+      <path d="M14 6l-6 6 6 6" />
+      <path d="M19 5v14" />
+    </svg>
+  );
+}
+
 function Rotulo({ abierta, children }) {
   return (
     <span className="flex h-6 shrink-0 items-center px-3 text-xs uppercase tracking-widest text-app-muted">
