@@ -32,10 +32,17 @@ describe("BarraInferior", () => {
     fireEvent.click(enBarra("Más"));
     const hoja = screen.getByRole("dialog", { name: "Más secciones" });
     const nombres = within(hoja).getAllByRole("button").map((b) => b.textContent);
-    expect(nombres).toEqual(["Inicio", "Ticker", "Imágenes", "Video", "Prédica", "Cronograma", "Usuarios", "Estilos y colores", "Ayuda", "Cerrar sesión"]);
+    expect(nombres).toEqual(["Inicio", "Ticker", "Imágenes", "Video", "Prédica", "Cronograma", "Usuarios", "Estilos y colores", "Ayuda", "Menú inicial", "Cerrar sesión"]);
     fireEvent.click(within(hoja).getByRole("button", { name: "Ticker" }));
     expect(ruta()).toBe("/ViewTicker");
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("«Menú inicial» de «Más» vuelve a la entrada", () => {
+    montar(<BarraInferior />, celular);
+    fireEvent.click(enBarra("Más"));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Menú inicial" }));
+    expect(ruta()).toBe("/ViewSelector");
   });
 
   it("«Cerrar sesión» de «Más» pide confirmación antes de salir", async () => {

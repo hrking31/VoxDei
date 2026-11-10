@@ -40,7 +40,13 @@ describe("BarraLateral", () => {
     expect(boton("Biblia").getAttribute("aria-current")).toBeNull();
   });
 
-  it("empieza encogida y al pulsar el símbolo muestra los nombres", () => {
+  it("el logo vuelve al menú inicial (la entrada)", () => {
+    montar(<BarraLateral />);
+    fireEvent.click(boton("Menú inicial"));
+    expect(ruta()).toBe("/ViewSelector");
+  });
+
+  it("empieza encogida y la flecha muestra los nombres", () => {
     montar(<BarraLateral />);
     expect(interruptor().getAttribute("aria-expanded")).toBe("false");
     // Encogida, el nombre solo existe en la etiqueta flotante (oculta al

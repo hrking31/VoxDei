@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeftStartOnRectangleIcon, UserIcon } from "@heroicons/react/24/solid";
+import {
+  ArrowLeftStartOnRectangleIcon,
+  ChevronDoubleLeftIcon,
+  ChevronDoubleRightIcon,
+  UserIcon,
+} from "@heroicons/react/24/solid";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import { LogoHorizontal, Simbolo } from "../Logo/Logo.jsx";
-import { AYUDA, GRUPOS, INICIO, estaActiva, seccionesPara } from "./Secciones.js";
+import { AYUDA, GRUPOS, INICIO, MENU_INICIAL, estaActiva, seccionesPara } from "./Secciones.js";
 
 // Barra lateral del panel en el computador. Encogida muestra solo íconos;
 // al pulsar el símbolo se abre por encima del contenido con los nombres y,
@@ -60,11 +65,13 @@ export default function BarraLateral() {
           abierta ? "w-barra-abierta shadow-barra" : "w-barra"
         }`}
       >
+        {/* El logo vuelve al menú inicial (Proyectar / Administrar), como en
+            casi todas las apps. Abrir y cerrar la barra va en la flecha. */}
         <button
           type="button"
-          onClick={() => setAbierta(!abierta)}
-          aria-expanded={abierta}
-          aria-label={abierta ? "Encoger la barra" : "Mostrar los nombres de las secciones"}
+          onClick={() => ir(MENU_INICIAL.ruta)}
+          aria-label={MENU_INICIAL.nombre}
+          title={MENU_INICIAL.nombre}
           className="flex h-12 shrink-0 items-center rounded-lg px-1.5 hover:bg-app-dark"
         >
           {abierta ? (
@@ -73,6 +80,23 @@ export default function BarraLateral() {
             <LogoHorizontal className="h-12 w-auto" alt="" />
           ) : (
             <Simbolo className="h-9 w-9" alt="" />
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setAbierta(!abierta)}
+          aria-expanded={abierta}
+          aria-label={abierta ? "Encoger la barra" : "Mostrar los nombres de las secciones"}
+          title={abierta ? "Encoger la barra" : "Mostrar los nombres"}
+          className={`flex h-7 shrink-0 items-center rounded-lg px-3 text-app-muted hover:bg-app-dark hover:text-app-texto ${
+            abierta ? "justify-end" : "justify-start"
+          }`}
+        >
+          {abierta ? (
+            <ChevronDoubleLeftIcon className="h-4 w-4" aria-hidden="true" />
+          ) : (
+            <ChevronDoubleRightIcon className="h-4 w-4" aria-hidden="true" />
           )}
         </button>
 

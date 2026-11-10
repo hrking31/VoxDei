@@ -2,6 +2,7 @@ import {
   BookOpenIcon,
   CalendarDaysIcon,
   ChatBubbleLeftRightIcon,
+  HomeIcon,
   MicrophoneIcon,
   MusicalNoteIcon,
   PaintBrushIcon,
@@ -32,6 +33,14 @@ export const INICIO = {
   ruta: "/ViewInicio",
   nombre: "Inicio",
   Icono: Squares2X2Icon,
+};
+
+// La entrada (Proyectar / Administrar). Está fuera del panel: se llega con el
+// logo de la barra lateral y, en el celular, desde «Más».
+export const MENU_INICIAL = {
+  ruta: "/ViewSelector",
+  nombre: "Menú inicial",
+  Icono: HomeIcon,
 };
 
 // Cómo preparar la pantalla del servicio. No es una sección de trabajo: va

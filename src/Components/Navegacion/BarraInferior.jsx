@@ -7,7 +7,7 @@ import {
 } from "@heroicons/react/24/solid";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
-import { AYUDA, CENTRO_BARRA_INFERIOR, INICIO, estaActiva, reparto } from "./Secciones.js";
+import { AYUDA, CENTRO_BARRA_INFERIOR, INICIO, MENU_INICIAL, estaActiva, reparto } from "./Secciones.js";
 import { useSeccionAnterior } from "./useSeccionAnterior.js";
 
 // Navegación del panel en el celular (9 de noviembre de 2026): cuatro
@@ -75,15 +75,26 @@ export default function BarraInferior() {
                 {s.nombre}
               </button>
             ))}
-            {/* En el computador está en la barra lateral; aquí, al final de «Más» */}
-            <button
-              type="button"
-              onClick={cerrarSesion}
-              className="col-span-3 flex items-center justify-center gap-2 rounded-xl border border-app-border p-3 text-xs text-app-muted transition hover:border-app-error/60 hover:text-app-error"
-            >
-              <ArrowLeftStartOnRectangleIcon className="h-5 w-5" aria-hidden="true" />
-              Cerrar sesión
-            </button>
+            {/* En el computador, el logo de la barra lleva al menú inicial y
+                «Cerrar sesión» está abajo; aquí, al final de «Más». */}
+            <div className="col-span-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => ir(MENU_INICIAL.ruta)}
+                className="flex items-center justify-center gap-2 rounded-xl border border-app-border p-3 text-xs text-app-muted transition hover:border-app-main hover:text-app-main"
+              >
+                <MENU_INICIAL.Icono className="h-5 w-5" aria-hidden="true" />
+                {MENU_INICIAL.nombre}
+              </button>
+              <button
+                type="button"
+                onClick={cerrarSesion}
+                className="flex items-center justify-center gap-2 rounded-xl border border-app-border p-3 text-xs text-app-muted transition hover:border-app-error/60 hover:text-app-error"
+              >
+                <ArrowLeftStartOnRectangleIcon className="h-5 w-5" aria-hidden="true" />
+                Cerrar sesión
+              </button>
+            </div>
           </div>
         </>
       )}
