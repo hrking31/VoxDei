@@ -38,8 +38,9 @@ const EXPLICACION = {
 
 // Cómo está la pantalla del templo, junto al próximo servicio y en la franja
 // del turno. `estado` fija uno a mano (los ejemplos de la Ayuda); sin él, el
-// de verdad.
-export default function EstadoPantalla({ estado } = {}) {
+// de verdad. `sinChip` (12-11-2026, pedido del usuario): solo el ícono y la
+// palabra, sin borde de píldora; lo usa la franja del turno.
+export default function EstadoPantalla({ estado, sinChip = false } = {}) {
   const { pantallaTemplo: enVivo } = useAppContext();
   const pantallaTemplo = estado ?? enVivo;
   if (!pantallaTemplo) return null;
@@ -51,8 +52,9 @@ export default function EstadoPantalla({ estado } = {}) {
       role="status"
       title={EXPLICACION[pantallaTemplo]}
       aria-label={EXPLICACION[pantallaTemplo]}
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs ${
-        apagada ? "border-app-border" : "border-app-success/50"
+      data-sin-chip={sinChip || undefined}
+      className={`inline-flex shrink-0 items-center gap-1.5 text-xs ${
+        sinChip ? "" : `rounded-full border px-2.5 py-0.5 ${apagada ? "border-app-border" : "border-app-success/50"}`
       }`}
     >
       <Icono

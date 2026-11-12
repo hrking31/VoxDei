@@ -46,6 +46,15 @@ describe("FranjaTurno", () => {
     expect(screen.queryByText(/COMPLETA|Apagada|VENTANA/)).toBeNull();
   });
 
+  it("dentro de la franja, el estado de la pantalla va sin chip: solo el ícono y la palabra", () => {
+    abrir({ pantalla: "encendida" });
+    const estado = screen.getByText("COMPLETA").parentElement;
+    expect(estado.hasAttribute("data-sin-chip")).toBe(true);
+    expect(estado.className).not.toContain("rounded-full");
+    expect(estado.className).not.toContain("border");
+    expect(estado.querySelector("[data-icono=\"encendida\"]")).not.toBeNull();
+  });
+
   it("el operador inicia el ensayo", () => {
     abrir({ auth: operador });
     fireEvent.click(screen.getByRole("button", { name: "Iniciar ensayo" }));

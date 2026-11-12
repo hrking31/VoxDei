@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { ChevronLeftIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { ChevronLeftIcon, PlayIcon } from "@heroicons/react/24/solid";
+import { PlusIcon as MasGrueso } from "@heroicons/react/24/outline";
 import { obtenerVersiculo } from "../FuncionesControlPredica/FuncionesControlPredica";
 import { useAppContext } from "../Context/AppContext";
 import { librosDe, versionValida } from "../Biblia/versionesBiblia";
@@ -23,9 +24,22 @@ async function textoDe(sigla, capitulo, versiculo, version) {
 // - desde ahí hasta abajo, el versículo elegido (escrito o tocado en la
 //   cuadrícula): la cita, las iniciales de su Biblia y el texto. Un clic en
 //   la tarjeta, o Enter en el campo, lo agrega al bosquejo.
+// En Predicar (12-11-2026, pedido del usuario: «copia todo ese bloque como
+// está en Preparar») es el mismo bloque con `accion="proyectar"`: la tarjeta
+// dice «Proyectar» y el clic lo envía al templo sin tocar el bosquejo. Si
+// `onAgregar` devuelve false (sin turno), lo escrito se queda.
 // TEMPORAL DHH: los libros, el reconocimiento y el texto son de la Biblia
 // elegida (RVR1960 o DHH); al quitarla, `librosDe` y `version` se van.
-export default function BuscadorVersiculos({ onAgregar, showNotif }) {
+const ACCIONES = {
+  // La marca de agua del +: el de contorno con trazo grueso (el relleno era
+  // muy fino y no se veía; pedido del usuario, 12-11-2026).
+  agregar: { verbo: "Agregar", marca: MasGrueso, grosor: 3, ayuda: "aquí lo ves y con un clic se agrega." },
+  proyectar: { verbo: "Proyectar", marca: PlayIcon, ayuda: "aquí lo ves y con un clic se proyecta." },
+};
+
+export default function BuscadorVersiculos({ onAgregar, showNotif, accion = "agregar" }) {
+  const { verbo, marca: MarcaAgua, grosor, ayuda } = ACCIONES[accion] || ACCIONES.agregar;
+  // La tarjeta dice qué hace con la marca de agua; el nombre queda en aria-label.
   const { versionBiblia } = useAppContext();
   const version = versionValida(versionBiblia);
   const libros = librosDe(version);
@@ -63,7 +77,7 @@ export default function BuscadorVersiculos({ onAgregar, showNotif }) {
 
   const agregar = (versiculo) => {
     if (!versiculo || versiculo.error) return;
-    onAgregar(nuevaPieza("versiculo", { cita: versiculo.cita, texto: versiculo.texto, version: versiculo.version }));
+    if (onAgregar(nuevaPieza("versiculo", { cita: versiculo.cita, texto: versiculo.texto, version: versiculo.version })) === false) return;
     setElegido(null);
     setTexto("");
   };
@@ -98,7 +112,7 @@ export default function BuscadorVersiculos({ onAgregar, showNotif }) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2.5">
-      <form onSubmit={alEnviar} aria-label="Agregar versículo">
+      <form onSubmit={alEnviar} aria-label={`${verbo} versículo`}>
         <label className="flex h-11 w-full items-center rounded-xl border-2 border-app-border bg-app-aviso px-3 focus-within:border-app-agua">
           <span className="sr-only">Buscar versículo</span>
           <input
@@ -191,22 +205,26 @@ export default function BuscadorVersiculos({ onAgregar, showNotif }) {
           type="button"
           data-versiculo-elegido
           onClick={() => agregar(elegido)}
-          aria-label={`Agregar ${elegido.cita}`}
-          className="scrollbar-custom flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto rounded-xl border border-app-agua/60 bg-app-agua/10 p-3 text-left transition hover:border-app-agua hover:bg-app-agua/15"
+          aria-label={`${verbo} ${elegido.cita}`}
+          className="group scrollbar-custom relative isolate flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto rounded-xl border border-app-agua/60 bg-app-agua/10 p-3 text-left transition hover:border-app-agua hover:bg-app-agua/15"
         >
+          {/* Marca de agua: + en Preparar, ▶ en Predicar (12-11-2026, pedido
+              del usuario, en vez del rótulo «Agregar» / «Proyectar»). */}
+          <MarcaAgua
+            data-marca-agua={accion}
+            strokeWidth={grosor}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -z-10 m-auto h-24 w-24 text-app-agua/15 transition group-hover:text-app-agua/25"
+          />
           <span className="flex w-full items-center gap-2 text-xs font-bold tracking-widest text-app-agua uppercase">
             {elegido.cita}
             <span className="opacity-60">· {siglaBiblia(elegido.version)}</span>
-            <span className="ml-auto flex items-center gap-1 text-xs tracking-normal normal-case">
-              <PlusIcon className="h-3.5 w-3.5" aria-hidden="true" />
-              Agregar
-            </span>
           </span>
           <span className="text-sm leading-relaxed text-app-texto">{elegido.texto}</span>
         </button>
       ) : (
         <p className="m-0 flex min-h-0 flex-1 items-center justify-center rounded-xl border border-dashed border-app-border p-3 text-center text-sm text-app-muted">
-          {elegido?.error ? `No encontré ${elegido.cita}.` : "Elige un versículo o escribe una cita: aquí lo ves y con un clic se agrega."}
+          {elegido?.error ? `No encontré ${elegido.cita}.` : `Elige un versículo o escribe una cita: ${ayuda}`}
         </p>
       )}
     </div>

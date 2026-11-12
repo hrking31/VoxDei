@@ -16,6 +16,8 @@ import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
 import { Simbolo } from "../Logo/Logo.jsx";
 import { avisoBiblia } from "../LibrosBiblia/avisosBiblia.js";
 import PantallaEspera from "../PantallaEspera/PantallaEspera.jsx";
+import { alineacionValida, bloqueDeMensaje } from "./alineacionMensaje.js";
+import ResumenPuntos from "./ResumenPuntos.jsx";
 import { usePresenciaPantalla } from "../PantallaTemplo/usePresenciaPantalla.js";
 
 export default function DisplayView() {
@@ -26,6 +28,9 @@ export default function DisplayView() {
   const [mensaje, setMensaje] = useState("");
   const [tituloPredica, setTituloPredica] = useState("");
   const [mensajePredica, setMensajePredica] = useState("");
+  // El resumen de puntos vistos de Prédica trae su alineación (12-11-2026);
+  // los demás mensajes no, y siguen la de Estilos y colores.
+  const [alineacionPredica, setAlineacionPredica] = useState(null);
   const [versiculo, setVersiculo] = useState("");
   const [tituloVersiculo, setTituloVersiculo] = useState("");
   const [cita, setCita] = useState("");
@@ -185,6 +190,7 @@ export default function DisplayView() {
             setDisplay(data.display);
           } else {
             setMensajePredica(data.text);
+            setAlineacionPredica(alineacionValida(data.alineacion));
             setDisplay(data.display);
           }
         }
@@ -396,6 +402,8 @@ export default function DisplayView() {
     textAlign: estilos.texto.alineacion,
     textShadow: sombra,
   };
+  // El resumen de puntos vistos de Prédica, con su alineación propia.
+  const bloque = bloqueDeMensaje(estiloTexto, display === "mensajePredica" ? alineacionPredica : null);
 
   return (
     <div
@@ -478,11 +486,19 @@ export default function DisplayView() {
             className="flex-1 flex items-center justify-center px-8"
             style={{ transition: transicion }}
           >
-            {display === "mensajePredica" || display === "mensaje" ? (
+            {display === "mensajePredica" && alineacionPredica ? (
+              // El resumen de puntos vistos: en lista, con sangría francesa.
+              <ResumenPuntos
+                key={mensajePredica}
+                texto={mensajePredica}
+                className={`wrap-break-words ${bloque.clase}`}
+                style={{ ...bloque.estilo, animation: animacion }}
+              />
+            ) : display === "mensajePredica" || display === "mensaje" ? (
               <div
                 key={display === "mensaje" ? mensaje : mensajePredica}
-                className="w-full whitespace-pre-wrap wrap-break-words"
-                style={{ ...estiloTexto, animation: animacion }}
+                className={`whitespace-pre-wrap wrap-break-words ${bloque.clase}`}
+                style={{ ...bloque.estilo, animation: animacion }}
               >
                 {display === "mensaje" ? mensaje : mensajePredica}
               </div>

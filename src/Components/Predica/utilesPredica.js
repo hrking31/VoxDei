@@ -25,8 +25,6 @@ const estadoValido = (estado) => (GUARDABLES.includes(estado) ? estado : "borrad
 export const estadoVisible = (predica, hoy) =>
   predica.estado !== "predicada" && predica.fecha && predica.fecha < hoy ? "sin-predicar" : predica.estado;
 
-// El botón de arriba: Borrador ↔ Terminada; una predicada vuelve a terminada.
-export const siguienteEstado = (estado) => (estado === "terminada" ? "borrador" : "terminada");
 
 // En el calendario, un día con varias muestra la que más pide atención.
 const URGENCIA = ["sin-predicar", "borrador", "terminada", "predicada"];
@@ -64,6 +62,12 @@ export function normalizarPredica(id, datos = {}) {
     titulo: datos.titulo || (numero ? `Prédica guardada ${numero}` : "Sin título"),
     fecha: datos.fecha || "",
     serie: datos.serie || "",
+    // El versículo base es un dato propio desde el 12-11-2026 (pedido del
+    // usuario: solo se muestra arriba, no es un ítem). Las de antes, sin el
+    // campo, toman el primer versículo del bosquejo, como se veía entonces.
+    base: typeof datos.base === "string" ? datos.base : textoBase(piezas),
+    numeracion: numeracionValida(datos.numeracion),
+    numeracionNiveles: nivelesValidos(datos.numeracionNiveles),
     estado: estadoValido(datos.estado),
     piezas,
     antigua,
@@ -75,12 +79,16 @@ export function normalizarPredica(id, datos = {}) {
 // Lo que se guarda: la forma nueva completa (una antigua pierde `items`).
 // Nunca un recuadro vacío ni una imagen sin foto (piezaCompleta), aunque se
 // guarde justo mientras se escribe uno nuevo.
-export const documentoDePredica = ({ titulo, fecha, serie, estado, piezas }) => ({
+export const documentoDePredica = ({ titulo, fecha, serie, base, numeracion, numeracionNiveles, estado, piezas }) => ({
   titulo: titulo.trim() || "Sin título",
   fecha: fecha || "",
   serie: (serie || "").trim(),
+  base: (base || "").trim(),
+  numeracion: numeracionValida(numeracion),
+  numeracionNiveles: nivelesValidos(numeracionNiveles),
   estado: estadoValido(estado),
-  piezas: piezas.filter(piezaCompleta).map(({ id, tipo, contenido }) => ({ id, tipo, contenido })),
+  // El nivel solo se guarda en los subpuntos (Firestore no acepta undefined).
+  piezas: piezas.filter(piezaCompleta).map((p) => ({ id: p.id, tipo: p.tipo, contenido: p.contenido, ...(nivelDe(p) ? { nivel: nivelDe(p) } : {}) })),
 });
 
 // ---------- Puntos numerados I, II, III ----------
@@ -100,11 +108,179 @@ export function romano(numero) {
 }
 
 // { idDePieza: "I" | "II" … } solo para los puntos, en orden.
-export function numerosDePuntos(piezas) {
+// Cómo se numeran los puntos (12-11-2026, pedido del usuario: elegirlo en
+// el botón «Punto», con las mismas opciones de la biblioteca de números de
+// Word). Cada prédica guarda la suya en `numeracion`; la etiqueta lleva su
+// signo («I.», «1)», «a)»).
+export const NUMERACIONES = [
+  { clave: "numeros", nombre: "Números con punto", ejemplo: "1. 2. 3." },
+  { clave: "numeros-parentesis", nombre: "Números con paréntesis", ejemplo: "1) 2) 3)" },
+  { clave: "romanos", nombre: "Romanos", ejemplo: "I. II. III." },
+  { clave: "letras", nombre: "Letras", ejemplo: "A. B. C." },
+  { clave: "minusculas-parentesis", nombre: "Minúsculas con paréntesis", ejemplo: "a) b) c)" },
+  { clave: "minusculas", nombre: "Minúsculas con punto", ejemplo: "a. b. c." },
+  { clave: "romanos-minusculas", nombre: "Romanos minúsculos", ejemplo: "i. ii. iii." },
+];
+export const numeracionValida = (clave) => (NUMERACIONES.some((n) => n.clave === clave) ? clave : "romanos");
+
+// 1 → A, 26 → Z, 27 → AA (como las columnas de una hoja de cálculo).
+function letra(numero) {
+  let n = numero;
+  let texto = "";
+  while (n > 0) {
+    const resto = (n - 1) % 26;
+    texto = String.fromCharCode(65 + resto) + texto;
+    n = Math.floor((n - 1) / 26);
+  }
+  return texto;
+}
+
+export function etiquetaPunto(numero, estilo = "romanos") {
+  switch (numeracionValida(estilo)) {
+    case "numeros":
+      return `${numero}.`;
+    case "numeros-parentesis":
+      return `${numero})`;
+    case "letras":
+      return `${letra(numero)}.`;
+    case "minusculas-parentesis":
+      return `${letra(numero).toLowerCase()})`;
+    case "minusculas":
+      return `${letra(numero).toLowerCase()}.`;
+    case "romanos-minusculas":
+      return `${romano(numero).toLowerCase()}.`;
+    default:
+      return `${romano(numero)}.`;
+  }
+}
+
+// Niveles de los puntos (12-11-2026, pedidos del usuario), como la lista
+// multinivel de Word: 0 punto, 1 subpunto, 2 sub-subpunto (`nivel` en la
+// pieza; hasta 3 niveles: más, en el proyector, deja el texto muy angosto).
+// Cada nivel se numera dentro del de arriba y empieza de nuevo en cada uno:
+// I. → a) → 1.; con puntos en letras, A. → 1) → a.
+export const NIVEL_MAXIMO = 2;
+export const nivelDe = (pieza) => (pieza?.tipo === "titulo" && (pieza.nivel === 1 || pieza.nivel === 2) ? pieza.nivel : 0);
+export const esSubpunto = (pieza) => nivelDe(pieza) > 0;
+const ESTILOS_DE_LETRAS = ["letras", "minusculas", "minusculas-parentesis"];
+export function estiloDeNivel(estilo, nivel) {
+  if (nivel === 0) return numeracionValida(estilo);
+  const conLetras = ESTILOS_DE_LETRAS.includes(numeracionValida(estilo));
+  if (nivel === 1) return conLetras ? "numeros-parentesis" : "minusculas-parentesis";
+  return conLetras ? "minusculas" : "numeros";
+}
+
+// El estilo de cada nivel se puede elegir (12-11-2026, pedido del usuario:
+// «romanos, después números y después letras»). `numeracionNiveles` guarda
+// el de subpuntos y sub-subpuntos; null es «automático» (el de estiloDeNivel).
+export const nivelesValidos = (niveles) =>
+  [0, 1].map((i) => (Array.isArray(niveles) && NUMERACIONES.some((n) => n.clave === niveles[i]) ? niveles[i] : null));
+export const estilosDeNiveles = (estilo, niveles) => {
+  const elegidos = nivelesValidos(niveles);
+  return [numeracionValida(estilo), elegidos[0] ?? estiloDeNivel(estilo, 1), elegidos[1] ?? estiloDeNivel(estilo, 2)];
+};
+
+// Combinaciones ya hechas para los tres niveles, como la biblioteca de
+// listas multinivel de Word (12-11-2026, pedido del usuario: «mejor las
+// combinaciones ya hechas, al final solo son tres puntos»). Se elige una y
+// quedan puestos los tres estilos.
+export const COMBINACIONES = [
+  { clave: "clasico", nombre: "Esquema clásico", estilos: ["romanos", "letras", "numeros"] },
+  { clave: "fabrica", nombre: "Romanos y letras", estilos: ["romanos", "minusculas-parentesis", "numeros"] },
+  { clave: "romanos-numeros", nombre: "Romanos y números", estilos: ["romanos", "numeros-parentesis", "minusculas"] },
+  { clave: "numeros", nombre: "Números", estilos: ["numeros", "minusculas-parentesis", "romanos-minusculas"] },
+  { clave: "letras", nombre: "Letras", estilos: ["letras", "numeros-parentesis", "minusculas"] },
+  { clave: "parentesis", nombre: "Con paréntesis", estilos: ["numeros-parentesis", "minusculas-parentesis", "romanos-minusculas"] },
+];
+// La combinación que coincide con lo que tiene la prédica (o null).
+export const combinacionDe = (estilo, niveles) => {
+  const actuales = estilosDeNiveles(estilo, niveles);
+  return COMBINACIONES.find((c) => c.estilos.every((e, i) => e === actuales[i])) || null;
+};
+// Lo que se guarda al elegir una.
+export const datosDeCombinacion = (combinacion) => ({ numeracion: combinacion.estilos[0], numeracionNiveles: combinacion.estilos.slice(1) });
+
+export function numerosDePuntos(piezas, estilo = "romanos", niveles = null) {
+  const estilos = estilosDeNiveles(estilo, niveles);
   const numeros = {};
-  let n = 0;
-  for (const pieza of piezas) if (pieza.tipo === "titulo") numeros[pieza.id] = romano(++n);
+  const cuenta = [0, 0, 0];
+  for (const pieza of piezas) {
+    if (pieza.tipo !== "titulo") continue;
+    const nivel = nivelDe(pieza);
+    cuenta[nivel] += 1;
+    for (let mas = nivel + 1; mas <= NIVEL_MAXIMO; mas++) cuenta[mas] = 0;
+    numeros[pieza.id] = etiquetaPunto(cuenta[nivel], estilos[nivel]);
+  }
   return numeros;
+}
+
+// Poner un punto en un nivel (0 a NIVEL_MAXIMO): la sangría de Word. Solo
+// los puntos; los demás ítems no cambian.
+// Regla del esquema (12-11-2026, pedido del usuario): un punto puede ir, como
+// mucho, un nivel más adentro que el punto de arriba (los demás ítems no
+// cuentan); el primero siempre es punto. Así no hay un «1.» sin su «a)» arriba.
+export function nivelPermitido(piezas, id) {
+  const i = piezas.findIndex((p) => p.id === id);
+  for (let j = i - 1; j >= 0; j--) if (piezas[j].tipo === "titulo") return Math.min(NIVEL_MAXIMO, nivelDe(piezas[j]) + 1);
+  return 0;
+}
+
+export const cambiarNivel = (piezas, id, nivel) =>
+  piezas.map((p) => {
+    if (p.id !== id || p.tipo !== "titulo") return p;
+    const destino = Math.min(nivelPermitido(piezas, id), Math.max(0, nivel));
+    const { nivel: _quitado, ...sinNivel } = p;
+    return destino > 0 ? { ...sinNivel, nivel: destino } : sinNivel;
+  });
+
+// Un punto se proyecta como mensaje, con su número delante: «I. La fe…».
+// La etiqueta ya trae su signo («I.», «1)»).
+export const textoDePunto = (numero, contenido) => (numero ? `${numero} ${contenido}` : String(contenido || ""));
+
+// El resumen de los puntos ya vistos, uno por renglón, para proyectarlo
+// como un solo mensaje. `hasta` es el índice del último ítem visto.
+// Los subpuntos, con sangría bajo su punto.
+export const SANGRIA_RESUMEN = "    ";
+// Regla (12-11-2026, pedido del usuario): SOLO lo que se proyecta desde
+// «Resumen de puntos vistos» va alineado así, renglón por renglón, en un
+// bloque centrado; todo lo demás sigue la alineación de Estilos y colores.
+export const ALINEACION_RESUMEN = "izquierda";
+
+// El resumen, por partes, para que nunca quede cortado en la pantalla
+// (12-11-2026, pedido del usuario): paquetes de hasta `maximo` renglones. Un
+// punto va siempre con sus subpuntos: si no cabe entero, pasa a la parte
+// siguiente (solo se parte si él solo ya no cabe en una).
+export const RENGLONES_RESUMEN = 6;
+export function partesDelResumen(lineas, maximo = RENGLONES_RESUMEN) {
+  const grupos = [];
+  for (const linea of lineas) {
+    if (linea.startsWith(SANGRIA_RESUMEN) && grupos.length) grupos.at(-1).push(linea);
+    else grupos.push([linea]);
+  }
+  const partes = [];
+  let parte = [];
+  for (const grupo of grupos) {
+    if (parte.length && parte.length + grupo.length > maximo) {
+      partes.push(parte);
+      parte = [];
+    }
+    for (const linea of grupo) {
+      if (parte.length === maximo) {
+        partes.push(parte);
+        parte = [];
+      }
+      parte.push(linea);
+    }
+  }
+  if (parte.length) partes.push(parte);
+  return partes;
+}
+export function resumenDePuntos(piezas, hasta, estilo = "romanos", niveles = null) {
+  const numeros = numerosDePuntos(piezas, estilo, niveles);
+  return piezas
+    .slice(0, hasta + 1)
+    .filter((p) => p.tipo === "titulo")
+    .map((p) => SANGRIA_RESUMEN.repeat(nivelDe(p)) + textoDePunto(numeros[p.id], p.contenido));
 }
 
 export function resumenPiezas(piezas) {
@@ -123,6 +299,8 @@ export function resumenPiezas(piezas) {
 export const cuantosItems = (n) => `${n} ${n === 1 ? "ítem" : "ítems"}`;
 
 // El primer versículo es el «texto base» de la prédica.
+// El primer versículo del bosquejo: solo para las prédicas guardadas antes
+// de que el versículo base fuera un dato propio (normalizarPredica).
 export const textoBase = (piezas) => piezas.find((p) => p.tipo === "versiculo")?.contenido?.cita || "";
 
 // ---------- Mover y quitar ----------
@@ -135,14 +313,27 @@ export function mover(piezas, indice, paso) {
   return copia;
 }
 
-export const quitar = (piezas, id) => piezas.filter((p) => p.id !== id);
-
-// Lo nuevo va debajo del ítem elegido; sin elegido, al final (11-11-2026).
-export function insertarDespues(piezas, idElegida, pieza) {
-  const i = piezas.findIndex((p) => p.id === idElegida);
-  if (i < 0) return [...piezas, pieza];
-  return [...piezas.slice(0, i + 1), pieza, ...piezas.slice(i + 1)];
+// La numeración del bosquejo (12-11-2026, pedido del usuario): escribir otro
+// número en la cajita de un ítem lo lleva a ese lugar y los demás se corren.
+export function moverA(piezas, desde, hasta) {
+  const fuera = (n) => !Number.isInteger(n) || n < 0 || n >= piezas.length;
+  if (desde === hasta || fuera(desde) || fuera(hasta)) return piezas;
+  const copia = [...piezas];
+  const [pieza] = copia.splice(desde, 1);
+  copia.splice(hasta, 0, pieza);
+  return copia;
 }
+
+// Lo escrito en la cajita → el índice de destino. "3" con 8 ítems → 2.
+// Vacío, con letras, con decimales o fuera de 1..total → null (se ignora).
+export function posicionEscrita(texto, total) {
+  const limpio = String(texto ?? "").trim();
+  if (!/^\d+$/.test(limpio)) return null;
+  const numero = Number(limpio);
+  return numero >= 1 && numero <= total ? numero - 1 : null;
+}
+
+export const quitar = (piezas, id) => piezas.filter((p) => p.id !== id);
 
 // En el computador, Punto, Mensaje e Imagen crean el recuadro vacío y se
 // llena en el sitio (11-11-2026). Uno vacío o una imagen sin foto no está
@@ -189,6 +380,14 @@ export function interpretarEntrada(texto, tipoElegido, libros) {
   return { tipo: tipoElegido === "titulo" ? "titulo" : "mensaje" };
 }
 
+// El versículo base escrito → la cita bien escrita («juan 3 16» → «Juan 3:16»).
+// Vacío → "" (se quita); lo que no es una cita → null (no se guarda).
+export function citaBase(texto, libros) {
+  const limpio = String(texto ?? "").trim();
+  if (!limpio) return "";
+  return parsearCita(limpio, libros)?.cita ?? null;
+}
+
 // Texto corto de una pieza para listas, avisos y el «luego».
 export function textoDePieza(pieza) {
   if (!pieza) return "";
@@ -209,7 +408,7 @@ export function filtrarPredicas(predicas, busqueda = "", filtro = "todas") {
   return predicas.filter((p) => {
     if (filtro !== "todas" && p.estado !== filtro) return false;
     if (!buscado) return true;
-    const donde = [p.titulo, p.serie, ...p.piezas.map((x) => (x.tipo === "versiculo" ? x.contenido?.cita : ""))];
+    const donde = [p.titulo, p.serie, p.base, ...p.piezas.map((x) => (x.tipo === "versiculo" ? x.contenido?.cita : ""))];
     return donde.some((t) => sinTildes(t).includes(buscado));
   });
 }
@@ -237,6 +436,26 @@ export function fechaCorta(fecha) {
   if (!partes) return "";
   const dia = new Date(Number(partes[1]), Number(partes[2]) - 1, Number(partes[3]));
   return `${DIAS[dia.getDay()]} ${dia.getDate()} ${MESES[dia.getMonth()]}`;
+}
+
+const DIAS_LARGOS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const MESES_LARGOS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+
+// "2026-11-21" → "Sábado 21 de noviembre" (el día marcado del calendario). Sin fecha, "".
+export function fechaLarga(fecha) {
+  const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(fecha || "");
+  if (!partes) return "";
+  const dia = new Date(Number(partes[1]), Number(partes[2]) - 1, Number(partes[3]));
+  return `${DIAS_LARGOS[dia.getDay()]} ${dia.getDate()} de ${MESES_LARGOS[dia.getMonth()]}`;
+}
+
+// La hoja de almanaque del bosquejo: "2026-11-15" → { mes: "NOV", dia: 15,
+// semana: "domingo" }. Sin fecha (o mal escrita), null.
+export function hojaDeFecha(fecha) {
+  const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(fecha || "");
+  if (!partes) return null;
+  const dia = new Date(Number(partes[1]), Number(partes[2]) - 1, Number(partes[3]));
+  return { mes: MESES[dia.getMonth()].toUpperCase(), dia: dia.getDate(), semana: DIAS_LARGOS[dia.getDay()].toLowerCase() };
 }
 
 // Fecha local de hoy en "AAAA-MM-DD".

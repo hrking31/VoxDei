@@ -47,7 +47,8 @@ export default function VistaFranja({ estado, alPulsar, pantalla, ejemplo = fals
         )
       )}
 
-      <EstadoPantalla estado={pantalla} />
+      {/* Sin chip dentro de la franja (12-11-2026, pedido del usuario). */}
+      <EstadoPantalla estado={pantalla} sinChip />
     </div>
   );
 }

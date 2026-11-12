@@ -7,10 +7,10 @@ import {
   cuantosItems,
   estadoVisible,
   fechaCorta,
+  fechaLarga,
   filtrarPredicas,
   hoyLocal,
   ordenarPredicas,
-  textoBase,
 } from "./utilesPredica.js";
 import { tonoDe } from "./tonosPredica.js";
 
@@ -24,10 +24,22 @@ const FILTROS = [
 // Mis prédicas: todas las que el pastor quiera (sin el límite de 5 de antes),
 // con buscador, filtros y calendario. En el computador es la columna de la
 // izquierda; en el celular, la pantalla de entrada, con la más próxima al frente.
-export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNueva, compacta = false }) {
+// Computador: un día libre del calendario pone su fecha en la vacía
+// (`onElegirFecha`), que se crea al escribir. Celular: lo marca y debajo
+// ofrece «Crear para este día» (`onNueva`). Nada se crea con solo tocar
+// (12-11-2026, pedido del usuario).
+export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNueva, onPredicar, fechaVacia = null, onElegirFecha, compacta = false }) {
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("todas");
+  const [marcada, setMarcada] = useState(null); // celular: el día tocado
   const hoy = hoyLocal();
+
+  const tocarDia = (fecha, delDia) => {
+    if (compacta) setMarcada((antes) => (antes === fecha ? null : fecha));
+    else if (delDia.length) onAbrir(delDia[0].id);
+    else onElegirFecha?.(fecha);
+  };
+  const delMarcado = marcada ? predicas.filter((p) => p.fecha === marcada) : [];
 
   const { proximas, anteriores } = useMemo(
     () => ordenarPredicas(filtrarPredicas(predicas, busqueda, filtro), hoy),
@@ -63,12 +75,28 @@ export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNue
         >
           <span className="flex w-full items-center justify-between gap-2">
             <span className="truncate text-xs text-app-muted">
-              {[fechaCorta(p.fecha), textoBase(p.piezas), cuantosItems(p.piezas.length)].filter(Boolean).join(" · ")}
+              {[fechaCorta(p.fecha), cuantosItems(p.piezas.length)].filter(Boolean).join(" · ")}
             </span>
-            <Etiqueta tono={tono.letra}>{ESTADOS[visible]}</Etiqueta>
+            {/* La palabra del estado solo en «Sin predicar», que es un aviso; en
+                las demás lo dice el color del punto (12-11-2026, pedido del
+                usuario: la lista se veía cargada). El lector de pantalla la
+                sigue oyendo. */}
+            {visible === "sin-predicar" ? (
+              <Etiqueta tono={tono.letra}>{ESTADOS[visible]}</Etiqueta>
+            ) : (
+              <span className="sr-only">{ESTADOS[visible]}</span>
+            )}
           </span>
           <b className="truncate text-sm text-app-texto">{p.titulo}</b>
-          {p.serie && <span className="truncate text-xs text-app-azul">Serie · {p.serie}</span>}
+          {/* El versículo base va junto a la serie, no arriba: así arriba caben
+              la fecha y los ítems (12-11-2026, pedido del usuario). */}
+          {(p.serie || p.base) && (
+            <span data-serie-y-base className="truncate text-xs">
+              {p.serie && <span className="text-app-azul">Serie · {p.serie}</span>}
+              {p.serie && p.base && <span className="text-app-muted"> · </span>}
+              {p.base && <span className="text-app-agua">{p.base}</span>}
+            </span>
+          )}
         </button>
       </li>
     );
@@ -79,7 +107,8 @@ export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNue
       <span aria-hidden="true" className="absolute top-2 bottom-2 left-1.75 w-0.5 rounded-full bg-app-border" />
       {agruparPorMes(lista, hoy).map((mes) => (
         <section key={mes.clave} data-mes={mes.clave} aria-label={mes.nombre}>
-          <h4 className="pt-2 pb-1 pl-9 text-xs font-bold tracking-wide text-app-texto/80 uppercase">{mes.nombre}</h4>
+          {/* El mes en dorado (12-11-2026, pedido del usuario). */}
+          <h4 className="pt-2 pb-1 pl-9 text-xs font-bold tracking-wide text-app-main uppercase">{mes.nombre}</h4>
           <ul className="flex flex-col gap-0.5">{mes.predicas.map(fila)}</ul>
         </section>
       ))}
@@ -90,14 +119,17 @@ export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNue
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-lg font-bold text-app-texto">Mis prédicas</h2>
+        {/* Computador: la entrada al púlpito de la abierta (12-11-2026, pedido
+            del usuario; antes aquí iba «Nueva»: la nueva es la vacía que se ve
+            al entrar, y antes «Predicar» iba encima del título). */}
         {!compacta && (
           <button
             type="button"
-            onClick={() => onNueva()}
-            className="flex h-9 items-center gap-1.5 rounded-lg border border-app-main px-3 text-sm font-semibold text-app-main hover:bg-app-main hover:text-app-dark"
+            onClick={onPredicar}
+            className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-app-main px-4 text-sm font-bold text-app-dark"
           >
-            <PlusIcon className="h-4 w-4" aria-hidden="true" />
-            Nueva
+            <PlayIcon className="h-4 w-4" aria-hidden="true" />
+            Predicar
           </button>
         )}
       </div>
@@ -141,7 +173,7 @@ export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNue
             {destacada.titulo}
           </h3>
           <span className="text-xs text-app-muted">
-            {[textoBase(destacada.piezas), cuantosItems(destacada.piezas.length)].filter(Boolean).join(" · ")}
+            {[destacada.base, cuantosItems(destacada.piezas.length)].filter(Boolean).join(" · ")}
           </span>
           <div className="mt-1 flex gap-2">
             <button type="button" onClick={() => onAbrir(destacada.id)} className="h-11 flex-1 rounded-xl border border-app-border text-sm font-semibold text-app-texto">
@@ -174,13 +206,68 @@ export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNue
         )}
         {proximas.length + anteriores.length === 0 && (
           <p className="px-2 py-6 text-center text-sm text-app-muted">
-            {predicas.length ? "Ninguna coincide con la búsqueda." : "Aún no tienes prédicas. Crea la primera con «Nueva»."}
+            {predicas.length
+              ? "Ninguna coincide con la búsqueda."
+              : compacta
+                ? "Aún no tienes prédicas. Crea la primera con «Nueva prédica»."
+                : "Aún no tienes prédicas. Escribe la primera en el bosquejo."}
           </p>
         )}
       </div>
 
       {/* El calendario va abajo, después de la lista (pedido del usuario, 11-11-2026). */}
-      <CalendarioPredicas predicas={predicas} abiertaFecha={abierta?.fecha} onAbrir={onAbrir} onNueva={onNueva} hoy={hoy} />
+      <CalendarioPredicas
+        predicas={predicas}
+        abiertaFecha={abierta?.fecha}
+        marcada={compacta ? marcada : fechaVacia}
+        onTocarDia={tocarDia}
+        hoy={hoy}
+      />
+
+      {compacta && marcada && (
+        <section aria-label="Día elegido" data-dia-elegido className="flex flex-col gap-2.5 rounded-2xl border border-app-border bg-app-light p-3">
+          {delMarcado.length ? (
+            delMarcado.map((p) => (
+              <div key={p.id} className="flex flex-col gap-2">
+                <span className="flex flex-col">
+                  <b className="truncate text-sm text-app-texto">{p.titulo}</b>
+                  <span className="text-xs text-app-muted">
+                    {fechaLarga(marcada)} · <span className={tonoDe(estadoVisible(p, hoy)).letra}>{ESTADOS[estadoVisible(p, hoy)]}</span>
+                  </span>
+                </span>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => onAbrir(p.id)} className="h-11 flex-1 rounded-xl border border-app-border text-sm font-semibold text-app-texto">
+                    Preparar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onAbrir(p.id, "predicar")}
+                    className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-app-main text-sm font-bold text-app-dark"
+                  >
+                    <PlayIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                    Predicar
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <>
+              <span className="flex flex-col">
+                <b className="text-sm text-app-texto">{fechaLarga(marcada)}</b>
+                <span className="text-xs text-app-muted">Sin prédica</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => onNueva(marcada)}
+                className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-app-main text-sm font-bold text-app-dark"
+              >
+                <PlusIcon className="h-4 w-4" aria-hidden="true" />
+                Crear para este día
+              </button>
+            </>
+          )}
+        </section>
+      )}
 
       {/* Hoy solo informa; si algún día se cobra por cantidad, aquí va el plan. */}
       <p className="flex justify-between border-t border-app-border pt-2.5 text-xs text-app-muted">

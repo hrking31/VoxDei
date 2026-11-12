@@ -14,6 +14,9 @@ export async function crearPredica(groupId, datos = {}) {
     titulo: datos.titulo || "Nueva prédica",
     fecha: datos.fecha ?? proximoDomingo(),
     serie: datos.serie || "",
+    base: datos.base || "",
+    numeracion: datos.numeracion,
+    numeracionNiveles: datos.numeracionNiveles,
     estado: "borrador",
     piezas: datos.piezas || [],
   });
@@ -44,8 +47,19 @@ export function borrarPredica(groupId, id) {
 // Imagen (11 de noviembre de 2026): por el canal de la sección Imágenes
 // (`displayImage`, una sola) y la enciende. Como la imagen tapa el texto en el
 // templo, proyectar otra pieza con `imagenEncendida` la apaga primero.
-export async function proyectarPieza(groupId, pieza, { imagenEncendida = false } = {}) {
+//
+// `tituloArriba` (12-11-2026): el nombre de la prédica sube a la franja de
+// título. Se escribe primero y con el mismo `display` del ítem que va
+// después: en el templo los dos canales cambian `display` y, con valores
+// distintos, el último pisaría al otro y el centro quedaría vacío.
+// Los puntos ya no van por displayTitulo: el púlpito los manda como mensaje,
+// con su número («I. La fe…»).
+export async function proyectarPieza(groupId, pieza, { imagenEncendida = false, tituloArriba = null } = {}) {
   const timestamp = Date.now();
+  if (tituloArriba !== null) {
+    const display = pieza.tipo === "versiculo" ? "versiculo" : "mensajePredica";
+    await set(ref(database, `displayTitulo/${groupId}`), { text: tituloArriba, display, timestamp });
+  }
   if (pieza.tipo === "imagen") {
     const url = pieza.contenido?.url;
     await set(ref(database, `displayImage/${groupId}`), { type: "single", images: [url], image: url, interval: 5000, timestamp });
@@ -63,22 +77,22 @@ export async function proyectarPieza(groupId, pieza, { imagenEncendida = false }
       timestamp,
     });
   }
-  if (pieza.tipo === "titulo") {
-    return set(ref(database, `displayTitulo/${groupId}`), {
-      text: pieza.contenido,
-      display: "titulo",
-      timestamp,
-    });
-  }
   return set(ref(database, `displayMessage/${groupId}`), {
     text: pieza.contenido,
     display: "mensajePredica",
+    // El resumen de puntos vistos: alineado, no según Estilos y colores.
+    ...(pieza.alineacion ? { alineacion: pieza.alineacion } : {}),
     timestamp,
   });
 }
 
 export function apagarImagen(groupId) {
   return set(ref(database, `displayVisibleImagen/${groupId}`), { visibleImagen: false, timestamp: Date.now() });
+}
+
+// «Mostrar» del púlpito: vuelve a encender la imagen que «Ocultar» apagó.
+export function encenderImagen(groupId) {
+  return set(ref(database, `displayVisibleImagen/${groupId}`), { visibleImagen: true, timestamp: Date.now() });
 }
 
 // Interruptores de lo que se ve en el templo (título, texto, anuncio).

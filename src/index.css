@@ -46,6 +46,9 @@
   --color-app-rojo-neon: #ff5470; /* imágenes (pedido del usuario; más rosado que app-error) */
   --color-app-plata: #c3c7cc;
   --color-app-pieza-base: #1d2522; /* el oscuro del tapete bajo cada ítem */
+  /* Borrador de Prédica (12-11-2026, pedido del usuario): naranja intenso, bien
+     lejos del dorado de acento (#f2be55, más amarillo) y del rojo de errores. */
+  --color-app-naranja: #ff6b1a;
   --shadow-neon-punto: 0 0 6px color-mix(in srgb, var(--color-app-violeta) 14%, transparent);
   --shadow-neon-versiculo: 0 0 6px color-mix(in srgb, var(--color-app-agua) 12%, transparent);
   --shadow-neon-imagen: 0 0 6px color-mix(in srgb, var(--color-app-rojo-neon) 12%, transparent);
@@ -104,6 +107,10 @@
   --animate-escena-baja: escena-baja 3s cubic-bezier(0.6, 0, 0.4, 1) infinite;
   --animate-escena-ojo: escena-ojo 3s ease-out infinite;
   --animate-escena-late: escena-late 1s ease-in-out infinite;
+  /* «Mostrar» del púlpito: con todo oculto, palpita para pedir atención (12-11-2026) */
+  --animate-palpita: palpita 1.4s ease-in-out infinite;
+  /* El anuncio de la mini pantalla del púlpito: pasa de derecha a izquierda (12-11-2026) */
+  --animate-ticker-mini: ticker-mini 14s linear infinite;
   --animate-escena-tv: escena-tv 3.2s ease-in infinite;
   @keyframes cuenta-aviso {
     to { transform: scaleX(0); }
@@ -149,6 +156,17 @@
   }
   @keyframes escena-late {
     50% { opacity: 0.35; }
+  }
+  /* Late como un corazón: crece un poco y suelta un halo rojo. */
+  /* Con `ticker-mini` (padding de todo el ancho), 0 → -100 % lleva el texto
+     desde el borde derecho hasta salir por la izquierda. */
+  @keyframes ticker-mini {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
+  }
+  @keyframes palpita {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-app-error) 55%, transparent); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 7px color-mix(in srgb, var(--color-app-error) 0%, transparent); }
   }
   /* Televisor viejo que se apaga: línea, punto y nada */
   @keyframes escena-tv {
@@ -280,6 +298,23 @@ body {
 }
 /* Mini pantalla del templo en Prédica (vista previa y «en el templo ahora»):
    el morado del símbolo que se oscurece hacia los bordes. */
+/* El resumen de puntos vistos con sangría francesa: número del punto, del
+   subpunto y del sub-subpunto, y el texto. Las líneas que se parten siguen alineadas con el texto. */
+@utility lista-resumen {
+  display: grid;
+  grid-template-columns: auto auto auto minmax(0, 1fr);
+  column-gap: 0.5em;
+  row-gap: 0.15em;
+  text-align: left;
+}
+
+/* El texto del anuncio en la mini pantalla: empieza fuera, a la derecha. */
+@utility ticker-mini {
+  display: inline-block;
+  padding-left: 100%;
+  white-space: nowrap;
+}
+
 @utility pantalla-templo {
   background: radial-gradient(120% 90% at 50% 10%, var(--color-app-morado), var(--color-app-noche) 70%);
 }

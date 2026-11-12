@@ -1,23 +1,31 @@
 import { useMemo, useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
-import { NOMBRES_MES, diasDelMes, estadoDelDia, hoyLocal, predicasPorFecha } from "./utilesPredica.js";
+import { NOMBRES_MES, diasDelMes, estadoDelDia, fechaLarga, hoyLocal, predicasPorFecha } from "./utilesPredica.js";
 import { tonoDe } from "./tonosPredica.js";
 
 const SEMANA = ["D", "L", "M", "M", "J", "V", "S"];
 
+const mesDe = (fecha) => {
+  const [anio, m] = fecha.split("-").map(Number);
+  return { anio, mes: m - 1 };
+};
+
 // Calendario de Mis prédicas (pedido del usuario, tomado de una referencia):
-// los domingos resaltados, un punto en los días con prédica con el color de
-// su estado (tonosPredica: dorado borrador, azul terminada, verde predicada,
-// rojo sin predicar), la abierta en dorado y hoy con
-// un aro. Tocar un día con prédica la abre; un día sin prédica crea una nueva
-// con esa fecha.
-export default function CalendarioPredicas({ predicas, abiertaFecha, onAbrir, onNueva, hoy = hoyLocal() }) {
-  const [mes, setMes] = useState(() => {
-    const [anio, m] = (abiertaFecha || hoy).split("-").map(Number);
-    return { anio, mes: m - 1 };
-  });
+// los domingos resaltados, un círculo punteado en los días con prédica con el
+// color de su estado (tonosPredica: dorado borrador, azul terminada, verde
+// predicada, rojo sin predicar), la abierta en dorado y hoy en violeta.
+//
+// Tocar un día no crea nada (12-11-2026, pedido del usuario: antes un día
+// libre creaba un borrador al instante, y mirar el mes siguiente se prestaba
+// a crearlos por error). Quien lo monta decide con `onTocarDia(fecha,
+// prédicasDelDia)`; `marcada` es el día libre elegido (aro dorado punteado).
+// Un día gris del mes vecino solo pasa a ese mes, y «Hoy» vuelve al actual.
+export default function CalendarioPredicas({ predicas, abiertaFecha, marcada, onTocarDia, hoy = hoyLocal() }) {
+  const [mes, setMes] = useState(() => mesDe(abiertaFecha || hoy));
   const dias = useMemo(() => diasDelMes(mes.anio, mes.mes), [mes]);
   const porFecha = useMemo(() => predicasPorFecha(predicas), [predicas]);
+  const actual = mesDe(hoy);
+  const enMesActual = mes.anio === actual.anio && mes.mes === actual.mes;
 
   const cambiarMes = (paso) =>
     setMes(({ anio, mes: m }) => {
@@ -27,13 +35,22 @@ export default function CalendarioPredicas({ predicas, abiertaFecha, onAbrir, on
 
   return (
     <section aria-label="Calendario de prédicas" className="flex flex-col gap-1.5 rounded-2xl border border-app-border bg-app-aviso p-2.5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-1">
         <button type="button" onClick={() => cambiarMes(-1)} aria-label="Mes anterior" className="grid h-8 w-8 place-items-center rounded-full text-app-muted hover:text-app-main">
           <ChevronLeftIcon className="h-4 w-4" aria-hidden="true" />
         </button>
-        <b className="text-sm text-app-main">
+        <b className="flex-1 text-center text-sm text-app-main">
           {NOMBRES_MES[mes.mes]} {mes.anio}
         </b>
+        {!enMesActual && (
+          <button
+            type="button"
+            onClick={() => setMes(actual)}
+            className="h-6 rounded-full border border-app-border px-2.5 text-diminuto font-semibold text-app-muted hover:border-app-main hover:text-app-main"
+          >
+            Hoy
+          </button>
+        )}
         <button type="button" onClick={() => cambiarMes(1)} aria-label="Mes siguiente" className="grid h-8 w-8 place-items-center rounded-full text-app-muted hover:text-app-main">
           <ChevronRightIcon className="h-4 w-4" aria-hidden="true" />
         </button>
@@ -48,34 +65,50 @@ export default function CalendarioPredicas({ predicas, abiertaFecha, onAbrir, on
         {dias.map(({ fecha, dia, delMes, domingo }) => {
           const delDia = porFecha[fecha] || [];
           const abierta = fecha === abiertaFecha;
-          // El punto lleva el color del estado que más pide atención ese día.
-          const estado = estadoDelDia(delDia, hoy);
+          const conPredica = delDia.length > 0;
+          const esMarcada = delMes && !abierta && !conPredica && fecha === marcada;
+          const esHoy = fecha === hoy && !abierta;
+          // Cada día es un círculo (12-11-2026, pedido del usuario):
+          //   con prédica: borde punteado del color del estado que más pide
+          //     atención ese día (antes, un puntito debajo);
+          //   libre elegido: borde dorado continuo;
+          //   hoy: fondo violeta suave (antes, un aro gris), que se ve también
+          //     si hoy tiene prédica, porque esa va en el borde;
+          //   abierta: relleno dorado.
+          const estado = conPredica ? estadoDelDia(delDia, hoy) : null;
+          const borde = abierta
+            ? ""
+            : conPredica
+              ? `border border-dashed ${tonoDe(estado).borde}` // fino: 1 px (pedido del usuario)
+              : esMarcada
+                ? "border-2 border-app-main"
+                : "";
+          const fondo = abierta
+            ? "bg-app-main font-bold text-app-dark"
+            : esHoy
+              ? "bg-app-violeta/20 font-bold text-app-violeta"
+              : esMarcada
+                ? "font-bold text-app-main"
+                : !delMes
+                  ? "text-app-border hover:text-app-muted"
+                  : domingo
+                    ? "font-semibold text-app-texto hover:bg-app-light"
+                    : "text-app-muted hover:bg-app-light";
           return (
             <button
               key={fecha}
               type="button"
               data-fecha={fecha}
-              aria-label={`${dia}${delDia.length ? `: ${delDia.map((p) => p.titulo).join(", ")}` : ""}`}
+              data-estado-dia={estado || undefined}
+              data-marcada={esMarcada || undefined}
+              data-hoy={esHoy || undefined}
+              aria-label={`${fechaLarga(fecha)}${conPredica ? `: ${delDia.map((p) => p.titulo).join(", ")}` : ""}`}
               aria-current={abierta ? "date" : undefined}
-              onClick={() => (delDia.length ? onAbrir(delDia[0].id) : onNueva(fecha))}
-              className={`relative grid h-7 place-items-center rounded-full text-xs transition ${
-                abierta
-                  ? "bg-app-main font-bold text-app-dark"
-                  : !delMes
-                    ? "text-app-border"
-                    : domingo
-                      ? "font-semibold text-app-texto hover:bg-app-light"
-                      : "text-app-muted hover:bg-app-light"
-              } ${fecha === hoy && !abierta ? "ring-1 ring-app-muted ring-inset" : ""}`}
+              aria-pressed={esMarcada || undefined}
+              onClick={() => (delMes ? onTocarDia(fecha, delDia) : setMes(mesDe(fecha)))}
+              className={`mx-auto grid h-7 w-7 place-items-center rounded-full text-xs transition ${fondo} ${borde}`}
             >
               {dia}
-              {delDia.length > 0 && !abierta && (
-                <span
-                  aria-hidden="true"
-                  data-punto={estado}
-                  className={`absolute bottom-0 h-1 w-1 rounded-full ${tonoDe(estado).punto}`}
-                />
-              )}
             </button>
           );
         })}

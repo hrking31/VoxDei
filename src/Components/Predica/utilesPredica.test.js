@@ -5,13 +5,35 @@ import {
   diasDelMes,
   estadoDelDia,
   estadoVisible,
-  siguienteEstado,
+  citaBase,
+  cambiarNivel,
+  esSubpunto,
+  estiloDeNivel,
+  estilosDeNiveles,
+  nivelesValidos,
+  COMBINACIONES,
+  combinacionDe,
+  datosDeCombinacion,
+  nivelDe,
+  nivelPermitido,
+  NIVEL_MAXIMO,
+  SANGRIA_RESUMEN,
+  partesDelResumen,
+  RENGLONES_RESUMEN,
+  etiquetaPunto,
+  NUMERACIONES,
+  numeracionValida,
+  resumenDePuntos,
+  textoDePunto,
   documentoDePredica,
   fechaCorta,
+  fechaLarga,
+  hojaDeFecha,
   filtrarPredicas,
-  insertarDespues,
   interpretarEntrada,
   mover,
+  moverA,
+  posicionEscrita,
   nombreCorto,
   normalizarPredica,
   numerosDePuntos,
@@ -55,13 +77,13 @@ describe("prédicas antiguas y nuevas", () => {
 
   it("al guardar queda la forma nueva, sin campos de más", () => {
     const doc = documentoDePredica({ titulo: "  ", fecha: "", serie: " Navidad ", estado: "otro", piezas: [{ ...PIEZAS[1], extra: 1 }] });
-    expect(doc).toEqual({ titulo: "Sin título", fecha: "", serie: "Navidad", estado: "borrador", piezas: [PIEZAS[1]] });
+    expect(doc).toEqual({ titulo: "Sin título", fecha: "", serie: "Navidad", base: "", numeracion: "romanos", numeracionNiveles: [null, null], estado: "borrador", piezas: [PIEZAS[1]] });
   });
 });
 
 describe("bosquejo", () => {
   it("los puntos se numeran I, II, III…", () => {
-    expect(numerosDePuntos(PIEZAS)).toEqual({ b: "I", d: "II" });
+    expect(numerosDePuntos(PIEZAS)).toEqual({ b: "I.", d: "II." }); // con su signo, como en Word
     expect([1, 4, 9, 14, 40].map(romano)).toEqual(["I", "IV", "IX", "XIV", "XL"]);
   });
 
@@ -76,6 +98,166 @@ describe("bosquejo", () => {
     expect(mover(PIEZAS, 1, -1).map((p) => p.id)).toEqual(["b", "a", "c", "d"]);
     expect(mover(PIEZAS, 3, 1)).toBe(PIEZAS);
     expect(quitar(PIEZAS, "c").map((p) => p.id)).toEqual(["a", "b", "d"]);
+  });
+
+  it("versículo base: dato propio; las de antes toman el primer versículo; se reconoce la cita", () => {
+    expect(normalizarPredica("x", { piezas: PIEZAS }).base).toBe("Hebreos 11:1");
+    expect(normalizarPredica("x", { base: "Juan 3:16", piezas: PIEZAS }).base).toBe("Juan 3:16");
+    expect(normalizarPredica("x", { base: "", piezas: PIEZAS }).base).toBe("");
+    expect(documentoDePredica({ titulo: "x", fecha: "", serie: "", base: " Juan 3:16 ", estado: "borrador", piezas: [] }).base).toBe("Juan 3:16");
+    expect(citaBase("juan 3 16")).toBe("Juan 3:16");
+    expect(citaBase("  ")).toBe("");
+    expect(citaBase("la fe")).toBeNull();
+    const lista = [normalizarPredica("a", { titulo: "Uno", base: "Juan 3:16", piezas: [] }), normalizarPredica("b", { titulo: "Dos", piezas: [] })];
+    expect(filtrarPredicas(lista, "juan").map((p) => p.id)).toEqual(["a"]);
+  });
+
+  it("estilos de numeración de los puntos, el texto que se proyecta y el resumen de los vistos", () => {
+    // Las opciones de Word, cada una con su signo.
+    expect([1, 2, 4, 9].map((n) => etiquetaPunto(n))).toEqual(["I.", "II.", "IV.", "IX."]);
+    expect(etiquetaPunto(3, "numeros")).toBe("3.");
+    expect(etiquetaPunto(3, "numeros-parentesis")).toBe("3)");
+    expect(etiquetaPunto(2, "letras")).toBe("B.");
+    expect(etiquetaPunto(27, "letras")).toBe("AA.");
+    expect(etiquetaPunto(3, "minusculas-parentesis")).toBe("c)");
+    expect(etiquetaPunto(3, "minusculas")).toBe("c.");
+    expect(etiquetaPunto(4, "romanos-minusculas")).toBe("iv.");
+    expect(etiquetaPunto(3, "ninguna")).toBe("III."); // «Sin número» se quitó: vuelve a romanos
+    expect(etiquetaPunto(3, "rara")).toBe("III."); // lo desconocido vuelve a romanos
+    expect(numerosDePuntos(PIEZAS, "letras")).toEqual({ b: "A.", d: "B." });
+    expect(textoDePunto("II.", "La fe obedece")).toBe("II. La fe obedece");
+    expect(textoDePunto("b)", "La fe obedece")).toBe("b) La fe obedece");
+    expect(textoDePunto("", "La fe obedece")).toBe("La fe obedece");
+    // PIEZAS: a versículo, b punto, c mensaje, d punto.
+    expect(resumenDePuntos(PIEZAS, 0)).toEqual([]);
+    expect(resumenDePuntos(PIEZAS, 2).length).toBe(1);
+    expect(resumenDePuntos(PIEZAS, 3, "numeros").map((t) => t.slice(0, 3))).toEqual(["1. ", "2. "]);
+    expect(normalizarPredica("x", { piezas: [] }).numeracion).toBe("romanos");
+    expect(normalizarPredica("x", { numeracion: "letras", piezas: [] }).numeracion).toBe("letras");
+    expect(numeracionValida("otra")).toBe("romanos");
+    expect(NUMERACIONES.map((n) => n.ejemplo)).toEqual(["1. 2. 3.", "1) 2) 3)", "I. II. III.", "A. B. C.", "a) b) c)", "a. b. c.", "i. ii. iii."]);
+  });
+
+  it("subpuntos: se numeran dentro de su punto, se guardan con nivel 1 y entran con sangría al resumen", () => {
+    const BOSQUEJO = [
+      { id: "p1", tipo: "titulo", contenido: "La fe ve" },
+      { id: "s1", tipo: "titulo", contenido: "Ve lo invisible", nivel: 1 },
+      { id: "s2", tipo: "titulo", contenido: "Ve lo que viene", nivel: 1 },
+      { id: "m", tipo: "mensaje", contenido: "Hola" },
+      { id: "p2", tipo: "titulo", contenido: "La fe obedece" },
+      { id: "s3", tipo: "titulo", contenido: "Obedece sin ver", nivel: 1 },
+    ];
+    expect(numerosDePuntos(BOSQUEJO)).toEqual({ p1: "I.", s1: "a)", s2: "b)", p2: "II.", s3: "a)" });
+    // Con puntos en letras, los subpuntos van con números.
+    expect(numerosDePuntos(BOSQUEJO, "letras")).toEqual({ p1: "A.", s1: "1)", s2: "2)", p2: "B.", s3: "1)" });
+    expect(esSubpunto(BOSQUEJO[1])).toBe(true);
+    expect(esSubpunto({ tipo: "mensaje", nivel: 1 })).toBe(false); // solo los puntos
+    // Poner en un nivel: como mucho, uno más adentro que el punto de arriba
+    // (los demás ítems no cuentan); el primero siempre es punto.
+    expect(cambiarNivel(BOSQUEJO, "p2", 1).find((p) => p.id === "p2").nivel).toBe(1);
+    expect("nivel" in cambiarNivel(BOSQUEJO, "s1", 0).find((p) => p.id === "s1")).toBe(false);
+    expect(cambiarNivel(BOSQUEJO, "s1", 2).find((p) => p.id === "s1").nivel).toBe(1); // arriba hay un punto: no salta a «1.»
+    expect(cambiarNivel(BOSQUEJO, "s2", 2).find((p) => p.id === "s2").nivel).toBe(2); // arriba hay un subpunto: sí
+    expect(cambiarNivel(BOSQUEJO, "s2", 5).find((p) => p.id === "s2").nivel).toBe(2);
+    expect("nivel" in cambiarNivel(BOSQUEJO, "p1", 1).find((p) => p.id === "p1")).toBe(false); // el primero
+    expect("nivel" in cambiarNivel(BOSQUEJO, "s1", -1).find((p) => p.id === "s1")).toBe(false);
+    expect(cambiarNivel(BOSQUEJO, "m", 1)).toEqual(BOSQUEJO);
+    expect([nivelPermitido(BOSQUEJO, "p1"), nivelPermitido(BOSQUEJO, "s1"), nivelPermitido(BOSQUEJO, "p2")]).toEqual([0, 1, 2]);
+    // Se guarda el nivel solo en los subpuntos.
+    const doc = documentoDePredica({ titulo: "x", fecha: "", serie: "", base: "", estado: "borrador", piezas: BOSQUEJO });
+    expect(doc.piezas.find((p) => p.id === "s1")).toEqual({ id: "s1", tipo: "titulo", contenido: "Ve lo invisible", nivel: 1 });
+    expect("nivel" in doc.piezas.find((p) => p.id === "p1")).toBe(false);
+    // El resumen: los subpuntos con sangría bajo su punto.
+    expect(resumenDePuntos(BOSQUEJO, 5)).toEqual([
+      "I. La fe ve",
+      SANGRIA_RESUMEN + "a) Ve lo invisible",
+      SANGRIA_RESUMEN + "b) Ve lo que viene",
+      "II. La fe obedece",
+      SANGRIA_RESUMEN + "a) Obedece sin ver",
+    ]);
+  });
+
+  it("tres niveles: punto, subpunto y sub-subpunto, cada uno numerado dentro del de arriba", () => {
+    const TRES = [
+      { id: "p1", tipo: "titulo", contenido: "La fe ve" },
+      { id: "s1", tipo: "titulo", contenido: "Ve lo invisible", nivel: 1 },
+      { id: "t1", tipo: "titulo", contenido: "Como Moisés", nivel: 2 },
+      { id: "t2", tipo: "titulo", contenido: "Como Abraham", nivel: 2 },
+      { id: "s2", tipo: "titulo", contenido: "Ve lo que viene", nivel: 1 },
+      { id: "t3", tipo: "titulo", contenido: "Como Noé", nivel: 2 },
+      { id: "p2", tipo: "titulo", contenido: "La fe obedece" },
+    ];
+    // I. → a) → 1.; cada nivel empieza de nuevo bajo el de arriba.
+    expect(numerosDePuntos(TRES)).toEqual({ p1: "I.", s1: "a)", t1: "1.", t2: "2.", s2: "b)", t3: "1.", p2: "II." });
+    // Con letras: A. → 1) → a.
+    expect(numerosDePuntos(TRES, "letras")).toEqual({ p1: "A.", s1: "1)", t1: "a.", t2: "b.", s2: "2)", t3: "a.", p2: "B." });
+    expect([nivelDe(TRES[0]), nivelDe(TRES[1]), nivelDe(TRES[2])]).toEqual([0, 1, 2]);
+    expect(nivelDe({ tipo: "titulo", nivel: 7 })).toBe(0); // lo raro vuelve a punto
+    expect(estiloDeNivel("romanos", 2)).toBe("numeros");
+    expect(NIVEL_MAXIMO).toBe(2);
+    // Se guarda su nivel; el resumen lleva dos sangrías en el tercer nivel.
+    const doc = documentoDePredica({ titulo: "x", fecha: "", serie: "", base: "", estado: "borrador", piezas: TRES });
+    expect(doc.piezas.find((p) => p.id === "t1").nivel).toBe(2);
+    expect(resumenDePuntos(TRES, 3)).toEqual(["I. La fe ve", SANGRIA_RESUMEN + "a) Ve lo invisible", SANGRIA_RESUMEN + SANGRIA_RESUMEN + "1. Como Moisés", SANGRIA_RESUMEN + SANGRIA_RESUMEN + "2. Como Abraham"]);
+    // Por partes, el sub-subpunto va con su punto.
+    expect(partesDelResumen(resumenDePuntos(TRES, 6), 6).map((p) => p.length)).toEqual([6, 1]);
+  });
+
+  it("cada nivel con su propia numeración; sin elegir, sigue al de arriba", () => {
+    const TRES = [
+      { id: "p1", tipo: "titulo", contenido: "La fe ve" },
+      { id: "s1", tipo: "titulo", contenido: "Ve lo invisible", nivel: 1 },
+      { id: "t1", tipo: "titulo", contenido: "Como Moisés", nivel: 2 },
+    ];
+    // Romanos, después números y después letras (el caso del usuario).
+    expect(numerosDePuntos(TRES, "romanos", ["numeros-parentesis", "minusculas"])).toEqual({ p1: "I.", s1: "1)", t1: "a." });
+    // Solo el segundo nivel elegido: el tercero sigue automático.
+    expect(numerosDePuntos(TRES, "romanos", [null, "letras"])).toEqual({ p1: "I.", s1: "a)", t1: "A." });
+    expect(estilosDeNiveles("romanos", null)).toEqual(["romanos", "minusculas-parentesis", "numeros"]);
+    expect(nivelesValidos(["letras", "rara"])).toEqual(["letras", null]);
+    expect(nivelesValidos(undefined)).toEqual([null, null]);
+    expect(normalizarPredica("x", { numeracionNiveles: ["numeros"], piezas: [] }).numeracionNiveles).toEqual(["numeros", null]);
+    expect(resumenDePuntos(TRES, 2, "romanos", ["numeros", "letras"])).toEqual(["I. La fe ve", SANGRIA_RESUMEN + "1. Ve lo invisible", SANGRIA_RESUMEN + SANGRIA_RESUMEN + "A. Como Moisés"]);
+  });
+
+  it("combinaciones ya hechas para los tres niveles, y cuál tiene la prédica", () => {
+    const vista = (c) => c.estilos.map((s) => etiquetaPunto(1, s)).join(" ");
+    expect(COMBINACIONES.map(vista)).toEqual(["I. A. 1.", "I. a) 1.", "I. 1) a.", "1. a) i.", "A. 1) a.", "1) a) i."]);
+    // La de fábrica (sin niveles elegidos) es «Romanos y letras».
+    expect(combinacionDe("romanos", null).clave).toBe("fabrica");
+    expect(combinacionDe("romanos", ["numeros-parentesis", "minusculas"]).clave).toBe("romanos-numeros");
+    expect(combinacionDe("romanos", ["letras", "letras"])).toBeNull();
+    expect(datosDeCombinacion(COMBINACIONES[0])).toEqual({ numeracion: "romanos", numeracionNiveles: ["letras", "numeros"] });
+  });
+
+  it("el resumen por partes de 6 renglones, sin separar un punto de sus subpuntos", () => {
+    const S = SANGRIA_RESUMEN;
+    const ocho = ["I. a", "II. b", "III. c", "IV. d", "V. e", "VI. f", "VII. g", "VIII. h"];
+    expect(partesDelResumen(ocho)).toEqual([ocho.slice(0, 6), ocho.slice(6)]);
+    expect(partesDelResumen(ocho.slice(0, 6))).toHaveLength(1);
+    expect(partesDelResumen([])).toEqual([]);
+    // El punto V con sus dos subpuntos no cabe en la primera parte: pasa entero.
+    const conSub = ["I. a", "II. b", "III. c", "IV. d", "V. e", S + "a) x", S + "b) y"];
+    expect(partesDelResumen(conSub)).toEqual([["I. a", "II. b", "III. c", "IV. d"], ["V. e", S + "a) x", S + "b) y"]]);
+    // Un punto que solo ya no cabe se parte (no hay otra forma).
+    const largo = ["I. a", ...Array.from({ length: 7 }, (_, i) => S + i)];
+    expect(partesDelResumen(largo).map((p) => p.length)).toEqual([6, 2]);
+    expect(RENGLONES_RESUMEN).toBe(6);
+  });
+
+  it("numeración: escribir otro número lleva el ítem a ese lugar y los demás se corren", () => {
+    const ids = (lista) => lista.map((p) => p.id);
+    expect(ids(moverA(PIEZAS, 3, 0))).toEqual(["d", "a", "b", "c"]);
+    expect(ids(moverA(PIEZAS, 0, 2))).toEqual(["b", "c", "a", "d"]);
+    expect(moverA(PIEZAS, 1, 1)).toBe(PIEZAS);
+    expect(moverA(PIEZAS, 1, 9)).toBe(PIEZAS);
+    expect(posicionEscrita("3", 8)).toBe(2);
+    expect(posicionEscrita(" 8 ", 8)).toBe(7);
+    expect(posicionEscrita("9", 8)).toBeNull();
+    expect(posicionEscrita("0", 8)).toBeNull();
+    expect(posicionEscrita("", 8)).toBeNull();
+    expect(posicionEscrita("2.5", 8)).toBeNull();
+    expect(posicionEscrita("dos", 8)).toBeNull();
   });
 });
 
@@ -127,6 +309,12 @@ describe("biblioteca", () => {
   it("fechas cortas, próximo domingo y reloj", () => {
     expect(fechaCorta("2026-11-15")).toBe("Dom 15 nov");
     expect(fechaCorta("")).toBe("");
+    expect(fechaLarga("2026-11-21")).toBe("Sábado 21 de noviembre");
+    expect(fechaLarga("2026-11-15")).toBe("Domingo 15 de noviembre");
+    expect(fechaLarga("")).toBe("");
+    expect(hojaDeFecha("2026-11-15")).toEqual({ mes: "NOV", dia: 15, semana: "domingo" });
+    expect(hojaDeFecha("2026-11-21")).toEqual({ mes: "NOV", dia: 21, semana: "sábado" });
+    expect(hojaDeFecha("")).toBeNull();
     expect(proximoDomingo(new Date(2026, 10, 10))).toBe("2026-11-15");
     expect(proximoDomingo(new Date(2026, 10, 15))).toBe("2026-11-15");
     expect(relojDesde(18 * 60000 + 42000)).toBe("18:42");
@@ -166,11 +354,6 @@ describe("estados: borrador, terminada, predicada (y «sin predicar»)", () => {
     expect(documentoDePredica({ titulo: "a", fecha: "", serie: "", estado: "sin-predicar", piezas: [] }).estado).toBe("borrador");
   });
 
-  it("el botón: borrador ↔ terminada; una predicada vuelve a terminada", () => {
-    expect(siguienteEstado("borrador")).toBe("terminada");
-    expect(siguienteEstado("terminada")).toBe("borrador");
-    expect(siguienteEstado("predicada")).toBe("terminada");
-  });
 
   it("«sin predicar» si pasó la fecha y no se predicó", () => {
     expect(estadoVisible(p("borrador", "2026-11-08"), hoy)).toBe("sin-predicar");
@@ -227,14 +410,7 @@ describe("la pieza imagen (en lugar del botón Versículo)", () => {
 
 describe("recuadros nuevos (computador)", () => {
   const a = { id: "a", tipo: "titulo", contenido: "Uno" };
-  const b = { id: "b", tipo: "mensaje", contenido: "Dos" };
   const n = { id: "n", tipo: "mensaje", contenido: "" };
-
-  it("lo nuevo va debajo del elegido; sin elegido, al final", () => {
-    expect(insertarDespues([a, b], "a", n).map((p) => p.id)).toEqual(["a", "n", "b"]);
-    expect(insertarDespues([a, b], null, n).map((p) => p.id)).toEqual(["a", "b", "n"]);
-    expect(insertarDespues([a, b], "no-existe", n).map((p) => p.id)).toEqual(["a", "b", "n"]);
-  });
 
   it("vacío o imagen sin foto no está completo y no se guarda", () => {
     expect(piezaCompleta(n)).toBe(false);
