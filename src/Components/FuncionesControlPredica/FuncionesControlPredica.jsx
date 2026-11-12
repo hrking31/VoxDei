@@ -1,124 +1,34 @@
 import { db } from "../Firebase/Firebase";
-import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore";
-import { docIglesia, PREDICAS } from "../Firebase/RutasIglesia";
+import { doc, getDoc } from "firebase/firestore";
+import { leerCapituloDHH } from "../Biblia/bibliaDHH";
+import { libroEnVersion } from "../Biblia/versionesBiblia";
 
-// Guardar prédica en la iglesia indicada
-export const guardarPredica = async (
-  groupId,
-  index,
-  items,
-  setSlots,
-  editar,
-  showNotif
-) => {
-  try {
-    await setDoc(docIglesia(groupId, PREDICAS, `predica${index + 1}`), {
-      items,
-      updatedAt: new Date().toISOString(),
-    });
-
-    setSlots((prev) => {
-      const nuevo = [...prev];
-      nuevo[index] = true;
-      return nuevo;
-    });
-
-    if (editar) {
-      showNotif("success", `🔄  Predica ${index + 1} actualizada`);
-    } else {
-      showNotif("success", `💾 Predica ${index + 1} guardada`);
+// Lee un capítulo de la versión elegida: la RVR1960 de Firestore (`biblia`) y,
+// TEMPORAL DHH, la Dios Habla Hoy del repositorio público (ver bibliaDHH.js).
+// Las dos devuelven la misma forma, así que lo demás no distingue la versión.
+const leerCapitulo = async (sigla, capitulo, version, showNotif) => {
+  if (version === "DHHS94") {
+    try {
+      return await leerCapituloDHH(sigla, capitulo, libroEnVersion(sigla, version)?.nombre);
+    } catch (error) {
+      console.error("No se pudo bajar la Dios Habla Hoy:", error);
+      showNotif("error", "No se pudo cargar la Dios Habla Hoy. Revisa el internet o cambia a RVR1960.");
+      return undefined;
     }
-  } catch (error) {
-    showNotif("error", "Error al guardar la prédica");
-    console.error(error);
   }
+  const snapshot = await getDoc(doc(db, "biblia", `${sigla.toUpperCase()}_${capitulo}`));
+  return snapshot.exists() ? snapshot.data() : null;
 };
 
-// Manejar click en slot
-export const handleSlotClick = async ({
-  groupId,
-  index,
-  slots,
-  editar,
-  predicaItems,
-  setPredicaItems,
-  setSlots,
-  setEditar,
-  setNumSlots,
-  showNotif,
-}) => {
-  try {
-    const slotOcupado = slots[index];
-
-    if (!editar) {
-      // Modo lectura → cargar prédica si existe
-      if (slotOcupado) {
-        const snap = await getDoc(
-          docIglesia(groupId, PREDICAS, `predica${index + 1}`)
-        );
-        if (snap.exists()) {
-          setPredicaItems(snap.data().items);
-          setNumSlots(index + 1);
-          showNotif("info", `📥 Predica ${index + 1} cargada`);
-        }
-        return;
-      }
-      // Slot vacío → guardar si hay items
-      else if (predicaItems && predicaItems.length > 0) {
-        await guardarPredica(
-          groupId,
-          index,
-          predicaItems,
-          setSlots,
-          editar,
-          showNotif
-        );
-      } else {
-        showNotif("warning", `🚫 No hay nada que guardar en Slot ${index + 1}`);
-      }
-    }
-
-    // Modo editar
-    if (editar) {
-      if (slotOcupado) {
-        if (!predicaItems || predicaItems.length === 0) {
-          // Eliminar
-          await deleteDoc(docIglesia(groupId, PREDICAS, `predica${index + 1}`));
-          setSlots((prev) => {
-            const nuevo = [...prev];
-            nuevo[index] = false;
-            return nuevo;
-          });
-          showNotif("info", `🗑️ Predica ${index + 1} eliminada`);
-        } else {
-          // Actualizar
-          await guardarPredica(
-            groupId,
-            index,
-            predicaItems,
-            setSlots,
-            editar,
-            showNotif
-          );
-        }
-      }
-    }
-
-    setEditar(false);
-    setNumSlots("");
-  } catch (error) {
-    showNotif("error", "Error al procesar la prédica");
-    console.error(error);
-  }
-};
-
-// Consultar versiculosy capitulos
+// Consultar versiculosy capitulos. `version`: la Biblia elegida en SelectorBiblia
+// (`versionBiblia` del contexto); sin ella, la RVR1960.
 export const obtenerVersiculo = async (
   sigla,
   capitulo,
   numeroVersiculo,
   tipo,
-  showNotif
+  showNotif,
+  version = "RVR1960"
 ) => {
   try {
     if (!sigla || !capitulo || !numeroVersiculo) {
@@ -129,16 +39,13 @@ export const obtenerVersiculo = async (
       return;
     }
 
-    const docId = `${sigla.toUpperCase()}_${capitulo}`;
-    const ref = doc(db, "biblia", docId);
-    const snapshot = await getDoc(ref);
-
-    if (!snapshot.exists()) {
+    const data = await leerCapitulo(sigla, capitulo, version, showNotif);
+    if (data === undefined) return; // ya avisó
+    if (!data) {
       showNotif("error", "📄 Documento no encontrado");
       return;
     }
 
-    const data = snapshot.data();
     let texto;
     if (tipo === "versiculo") {
       texto = data.versiculos?.[numeroVersiculo.toString()] || null;

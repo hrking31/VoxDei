@@ -1,14 +1,16 @@
 import { useMemo } from "react";
 import { XMarkIcon } from "@heroicons/react/24/solid";
-import { librosAntiguo, librosNuevo } from "../LibrosBiblia/LibrosBiblia";
+import * as librosRVR from "../LibrosBiblia/LibrosBiblia";
 
-export default function LibrosModal({ open, onClose, tipo, onLibro }) {
+// `libros`: { librosAntiguo, librosNuevo } de la Biblia elegida (librosDe de
+// versionesBiblia). Sin él, la RVR1960.
+export default function LibrosModal({ open, onClose, tipo, onLibro, libros = librosRVR }) {
   // El hook va antes de cualquier salida temprana: React exige que se ejecuten
   // siempre en el mismo orden, y al abrir/cerrar el modal el componente pasaba
   // de tener cero hooks a tener uno.
   const TipoLibros = useMemo(
-    () => (tipo === "antiguo" ? librosAntiguo : librosNuevo),
-    [tipo]
+    () => (tipo === "antiguo" ? libros.librosAntiguo : libros.librosNuevo),
+    [tipo, libros]
   );
 
   if (open !== "libro") return null;

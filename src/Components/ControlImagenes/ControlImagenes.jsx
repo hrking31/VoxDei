@@ -1,17 +1,10 @@
 import { useState, useEffect } from "react";
 import { ref as dbRef, set as dbSet } from "firebase/database";
-import {
-  ref as storageRef,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject,
-} from "firebase/storage";
+import { ref as storageRef, deleteObject } from "firebase/storage";
 import {
   collection,
-  addDoc,
   doc,
   deleteDoc,
-  serverTimestamp,
   onSnapshot,
   query,
   where,
@@ -20,7 +13,7 @@ import { PhotoIcon } from "@heroicons/react/24/solid";
 import { database, storage, db } from "../../Components/Firebase/Firebase.js";
 import { useAuth } from "../../Components/Context/AuthContext";
 import { useAppContext } from "../../Components/Context/AppContext";
-import { comprimirImagen } from "../ComprimirImagen/ComprimirImagen.js";
+import { subirImagen } from "../Imagenes/imagenesIglesia.js";
 import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
 import { useTurno } from "../Hooks/useTurno.js";
 
@@ -126,25 +119,10 @@ export default function ControlImagenes() {
   const uploadAndSave = async (filesToUpload) => {
     if (!filesToUpload || filesToUpload.length === 0) return [];
 
+    // Comprimir, subir y registrar: lo mismo que usa Prédica (imagenesIglesia).
     const uploadedUrls = [];
     for (const original of filesToUpload) {
-      const file = await comprimirImagen(original);
-      // ruta por groupId + timestamp + nombre
-      const path = `imagenes/${userData.groupId}/${Date.now()}-${file.name}`;
-      const sRef = storageRef(storage, path);
-
-      await uploadBytes(sRef, file);
-      const url = await getDownloadURL(sRef);
-
-      // guardar documento individual en Firestore
-      await addDoc(collection(db, "imagenes"), {
-        groupId: userData.groupId,
-        url,
-        name: file.name,
-        storagePath: path,
-        createdAt: serverTimestamp(),
-      });
-
+      const { url } = await subirImagen(userData.groupId, original);
       uploadedUrls.push(url);
     }
     return uploadedUrls;

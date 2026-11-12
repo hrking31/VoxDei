@@ -1,13 +1,15 @@
-import { ClockIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import { useTurno } from "../Hooks/useTurno.js";
-import { esPastor } from "../Roles/Roles.js";
 import { iniciarEnsayo, terminarEnsayo } from "./AccionesEnsayo.js";
-import { textoHora } from "./UtilesCronograma.js";
+import { estadoFranja } from "./utilesFranja.js";
+import VistaFranja from "./VistaFranja.jsx";
 
-// Franja que dice de quién es el turno de proyectar y, si no es tuyo, por qué
-// no puedes. Va arriba del Cronograma y de cada panel que envía a la pantalla.
+// Franja que dice de quién es el turno de proyectar. Va arriba del Cronograma
+// y de cada panel que envía a la pantalla. El color depende de quién mira: con
+// el servicio de Laura, el pastor y Laura la ven verde («Turno de Laura» / «Tu
+// turno») y otro operador, roja. Los textos salen de estadoFranja y el dibujo
+// de VistaFranja, los mismos que enseña la Ayuda.
 //
 // Botones del ensayo, según el caso:
 // - Sin servicio ni ensayo, un operador lo inicia para sí mismo (para dárselo a
@@ -18,10 +20,7 @@ import { textoHora } from "./UtilesCronograma.js";
 export default function FranjaTurno() {
   const { user, userData } = useAuth();
   const { showNotif, confirmAction } = useAppContext();
-  const { turno, puedoProyectar } = useTurno();
-
-  const pastor = esPastor(userData);
-  const esMio = turno.uid && turno.uid === user?.uid;
+  const { turno } = useTurno();
   const yo = { uid: user?.uid, nombre: userData?.name || "Operador" };
 
   const ejecutar = async (accion, exito) => {
@@ -34,96 +33,16 @@ export default function FranjaTurno() {
     }
   };
 
-  const tomar = async () => {
-    const ok = await confirmAction(
-      `${turno.nombre} tiene el ensayo. ¿Quieres tomarlo?`
-    );
-    if (ok) {
-      ejecutar(
-        () => iniciarEnsayo(userData.groupId, yo, user.uid),
-        "Ahora el ensayo es tuyo."
-      );
+  const alPulsar = async (clave) => {
+    if (clave === "iniciar") {
+      ejecutar(() => iniciarEnsayo(userData.groupId, yo, user.uid), "Ensayo iniciado: ya puedes proyectar.");
+    } else if (clave === "tomar") {
+      const ok = await confirmAction(`${turno.nombre} tiene el ensayo. ¿Quieres tomarlo?`);
+      if (ok) ejecutar(() => iniciarEnsayo(userData.groupId, yo, user.uid), "Ahora el ensayo es tuyo.");
+    } else if (clave === "terminar") {
+      ejecutar(() => terminarEnsayo(userData.groupId), "Ensayo terminado.");
     }
   };
 
-  let titulo;
-  if (turno.tipo === "servicio") {
-    const s = turno.servicio;
-    titulo = !turno.uid
-      ? "Servicio sin operador asignado"
-      : esMio
-        ? "Tu turno"
-        : `Turno de ${turno.nombre}`;
-    titulo += ` · ${textoHora(s.inicio)} – ${textoHora(s.fin)}`;
-  } else if (turno.tipo === "ensayo") {
-    titulo = `${esMio ? "Tu ensayo" : `Ensayo de ${turno.nombre}`} · hasta ${new Date(
-      turno.hasta
-    ).toLocaleTimeString("es", { hour: "numeric", minute: "2-digit" })}`;
-  } else {
-    titulo = "Sin servicio en curso";
-  }
-
-  let detalle = "";
-  if (!puedoProyectar) {
-    detalle =
-      turno.tipo === "libre"
-        ? "Inicia un ensayo para poder proyectar."
-        : "No puedes proyectar ahora.";
-  } else if (pastor && !esMio) {
-    detalle = "Puedes proyectar como pastor.";
-  }
-
-  const boton =
-    "shrink-0 px-2 py-1 text-xs font-bold rounded inset-shadow-sm transition";
-
-  return (
-    <div
-      className={`shrink-0 flex items-center gap-2 px-3 py-1.5 text-xs sm:text-sm border-b ${
-        puedoProyectar
-          ? "bg-app-success/10 border-app-success text-app-success"
-          : "bg-app-error/10 border-app-error text-app-error"
-      }`}
-      role="status"
-    >
-      <ClockIcon className="w-4 h-4 shrink-0" />
-      <div className="flex-1 min-w-0 leading-tight">
-        <p className="font-bold truncate">{titulo}</p>
-        {detalle && <p className="text-app-muted truncate">{detalle}</p>}
-      </div>
-
-      {turno.tipo === "libre" && !pastor && (
-        <button
-          onClick={() =>
-            ejecutar(
-              () => iniciarEnsayo(userData.groupId, yo, user.uid),
-              "Ensayo iniciado: ya puedes proyectar."
-            )
-          }
-          className={`${boton} text-app-main inset-shadow-app-main hover:bg-app-main hover:text-app-dark`}
-        >
-          Iniciar ensayo
-        </button>
-      )}
-
-      {turno.tipo === "ensayo" && !esMio && !pastor && (
-        <button
-          onClick={tomar}
-          className={`${boton} text-app-main inset-shadow-app-main hover:bg-app-main hover:text-app-dark`}
-        >
-          Tomar ensayo
-        </button>
-      )}
-
-      {turno.tipo === "ensayo" && (esMio || pastor) && (
-        <button
-          onClick={() =>
-            ejecutar(() => terminarEnsayo(userData.groupId), "Ensayo terminado.")
-          }
-          className={`${boton} text-app-muted inset-shadow-app-muted hover:text-app-error hover:inset-shadow-app-error`}
-        >
-          Terminar
-        </button>
-      )}
-    </div>
-  );
+  return <VistaFranja estado={estadoFranja(turno, userData, user?.uid)} alPulsar={alPulsar} />;
 }

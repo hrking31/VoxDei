@@ -1,4 +1,4 @@
-import { librosAntiguo, librosNuevo } from "../LibrosBiblia/LibrosBiblia.js";
+import * as librosRVR from "../LibrosBiblia/LibrosBiblia.js";
 
 // Lógica del Orden del culto (9 de noviembre de 2026): funciones puras, sin
 // Firebase, para probarlas sin red.
@@ -23,7 +23,6 @@ export const TIPOS_PASO = {
 
 // ---------- Citas bíblicas escritas a mano: «Juan 3:16» ----------
 
-const LIBROS = [...librosAntiguo, ...librosNuevo];
 
 // «S. Juan» → «juan», «1 Corintios» → «1corintios», sin tildes ni mayúsculas.
 function normalizarLibro(nombre) {
@@ -35,20 +34,41 @@ function normalizarLibro(nombre) {
     .replace(/[^a-z0-9]/g, "");
 }
 
-const INDICE_LIBROS = LIBROS.map((libro) => ({ libro, clave: normalizarLibro(libro.nombre) }));
+// Un índice por catálogo, armado la primera vez que se usa.
+const indices = new WeakMap();
+function indiceDe(libros) {
+  if (!indices.has(libros)) {
+    const todos = [...libros.librosAntiguo, ...libros.librosNuevo];
+    indices.set(libros, todos.map((libro) => ({ libro, clave: normalizarLibro(libro.nombre) })));
+  }
+  return indices.get(libros);
+}
+
+// Entre varios libros que empiezan igual, el que es el comienzo de todos los
+// demás: «est» → Ester y no «Ester (dc)», «dan» → Daniel. Si no hay uno así,
+// la cita es ambigua («jo»: Job, Joel, Jonás, Josué…).
+function elegirEntre(empiezan) {
+  if (empiezan.length === 1) return empiezan[0];
+  const corto = empiezan.reduce((a, b) => (b.clave.length < a.clave.length ? b : a), empiezan[0]);
+  return corto && empiezan.every((l) => l.clave.startsWith(corto.clave)) ? corto : null;
+}
 
 // Entiende «Juan 3:16», «juan 3 16», «San Juan 3.16», «1 Cor 13:4», «sal 23:1».
 // El nombre puede ser el comienzo del libro si no hay dos que empiecen igual.
 // Devuelve { sigla, libro, capitulo, versiculo, cita } o null si no existe.
-export function parsearCita(texto) {
+// `libros`: el catálogo contra el que se valida ({ librosAntiguo, librosNuevo });
+// sin él, la RVR1960. TEMPORAL DHH: Prédica le pasa el de la Biblia elegida
+// para reconocer los deuterocanónicos («Tobit 4:7»). Al quitar la DHH se puede
+// dejar el parámetro: sin él todo sigue igual.
+export function parsearCita(texto, libros = librosRVR) {
   const partes = String(texto || "").match(/^\s*(.+?)\s+(\d+)\s*[:.,\s]\s*(\d+)\s*$/);
   if (!partes) return null;
 
   const clave = normalizarLibro(partes[1]);
   if (!clave) return null;
-  const exacto = INDICE_LIBROS.find((l) => l.clave === clave);
-  const empiezan = INDICE_LIBROS.filter((l) => l.clave.startsWith(clave));
-  const elegido = exacto || (empiezan.length === 1 ? empiezan[0] : null);
+  const indice = indiceDe(libros);
+  const exacto = indice.find((l) => l.clave === clave);
+  const elegido = exacto || elegirEntre(indice.filter((l) => l.clave.startsWith(clave)));
   if (!elegido) return null;
 
   const { libro } = elegido;
@@ -142,7 +162,8 @@ export function escriturasDePaso(paso, lamina, ahora) {
         {
           nodo: "displayVersiculo",
           modo: "set",
-          datos: { text: paso.texto, cita: paso.cita, display: "versiculo", timestamp: ahora },
+          // El Orden del culto usa siempre la RVR1960: lo dice el aviso del templo.
+          datos: { text: paso.texto, cita: paso.cita, display: "versiculo", version: "RVR1960", timestamp: ahora },
         },
         mostrarTexto,
         quitarEspera,

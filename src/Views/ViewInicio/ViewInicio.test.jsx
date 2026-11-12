@@ -30,7 +30,9 @@ describe("ViewInicio (resumen del día)", () => {
 
   it("junto al servicio dice cómo está la pantalla del templo", () => {
     montar(<ViewInicio />, { auth: pastor, app: { pantallaTemplo: "apagada" } });
-    expect(screen.getByRole("status", { name: /apagada/ })).toBeTruthy();
+    // Una en la tarjeta del servicio y otra en la franja del turno (desde el
+    // 11 de noviembre de 2026 la franja también la muestra).
+    expect(screen.getAllByRole("status", { name: /apagada/ })).toHaveLength(2);
   });
 
   it("no ofrece abrir la pantalla del templo ni tiene ficha con X", () => {

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1100 -1850 2200 1910">
+  <!-- Marca de agua de VOXDEI: el haz del proyector, sin la pantalla dorada ni la
+       cruz. El foco está en 0,0 (50 % de ancho, 96,9 % de alto) y los rayos suben.
+       Lo gira y lo coloca la utilidad haz-esquina de index.css. -->
+  <defs>
+    <linearGradient id="rayo-largo" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="-1800">
+      <stop offset="0" stop-color="#FFD978" stop-opacity=".95"/>
+      <stop offset=".6" stop-color="#F0A93A" stop-opacity=".5"/>
+      <stop offset=".9" stop-color="#F0A93A" stop-opacity=".25"/>
+      <stop offset="1" stop-color="#F0A93A" stop-opacity=".1"/>
+    </linearGradient>
+    <radialGradient id="foco"><stop offset="0" stop-color="#FFF8E0"/><stop offset=".35" stop-color="#FFD978" stop-opacity=".85"/><stop offset="1" stop-color="#F0A93A" stop-opacity="0"/></radialGradient>
+  </defs>
+  <g fill="url(#rayo-largo)">
+    <path d="M0 0 L-299 -1800 H299 Z"/>
+    <path d="M0 0 L-689 -1800 H-416 Z" opacity="0.75"/>
+    <path d="M0 0 L689 -1800 H416 Z" opacity="0.75"/>
+    <path d="M0 0 L-1027 -1800 H-832 Z" opacity="0.45"/>
+    <path d="M0 0 L1027 -1800 H832 Z" opacity="0.45"/>
+  </g>
+  <circle r="130" fill="url(#foco)"/>
+  <circle r="30" fill="#FFF8E6"/>
+</svg>

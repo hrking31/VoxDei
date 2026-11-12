@@ -33,7 +33,7 @@ export default function ViewSelector() {
   // Proyectar se oculta solo si se SABE que la pantalla está abierta. Si aún
   // no se sabe (cargando, o sin permiso de leer la presencia), se ofrece: es
   // mejor ofrecerlo de más que dejar a alguien sin poder abrir el proyector.
-  const lista = pantallaTemplo === "encendida" || pantallaTemplo === "sin-completa";
+  const lista = Boolean(pantallaTemplo) && pantallaTemplo !== "apagada";
   const conProyectar = !lista;
 
   return (

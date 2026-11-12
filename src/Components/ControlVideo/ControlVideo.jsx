@@ -14,7 +14,6 @@ import {
   TrashIcon,
   TagIcon,
   BookmarkIcon,
-  ChatBubbleLeftRightIcon,
 } from "@heroicons/react/24/solid";
 import { database } from "../Firebase/Firebase";
 import { colIglesia, docIglesia, VIDEOS } from "../Firebase/RutasIglesia";

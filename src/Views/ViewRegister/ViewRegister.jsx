@@ -8,16 +8,13 @@ import { useAppContext } from "../../Components/Context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { UserPlusIcon, UserIcon } from "@heroicons/react/24/solid";
 import Footer from "../../Components/Footer/Footer.jsx";
+import { MarcaAguaHaz } from "../../Components/Logo/Logo.jsx";
 import {
   LADO_PERFIL,
   comprimirImagen,
 } from "../../Components/ComprimirImagen/ComprimirImagen.js";
 import CampoClave from "../../Components/CampoClave/CampoClave.jsx";
 import RequisitosClave from "../../Components/RequisitosClave/RequisitosClave.jsx";
-import { LogoHorizontal } from "../../Components/Logo/Logo.jsx";
-import CampoLogoIglesia from "../../Components/Iglesia/CampoLogoIglesia.jsx";
-import { guardarDatosIglesia } from "../../Components/Iglesia/accionesIglesia.js";
-import { LARGO_SIGLA, normalizarSigla } from "../../Components/Iglesia/datosIglesia.js";
 import {
   AVISO_CLAVE_DEBIL,
   claveValida,
@@ -34,13 +31,8 @@ export default function ViewRegister() {
   const [preview, setPreview] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
 
-  // Logo de la iglesia (opcional), con su vista previa
-  const [logoIglesia, setLogoIglesia] = useState(null);
-  const [vistaLogo, setVistaLogo] = useState(null);
-
   const [form, setForm] = useState({
     churchName: "",
-    sigla: "",
     name: "",
     gender: "",
     email: "",
@@ -114,6 +106,8 @@ export default function ViewRegister() {
   const handleCreate = async (e) => {
     e.preventDefault();
 
+    // Todo es obligatorio menos la foto (pedido del usuario, 11 de noviembre
+    // de 2026): sin foto, la app muestra las iniciales.
     if (
       !form.churchName.trim() ||
       !form.name.trim() ||
@@ -130,11 +124,6 @@ export default function ViewRegister() {
       return;
     }
 
-    if (!form.photo) {
-      showNotif("error", "Por favor sube una foto");
-      return;
-    }
-
     setLoading(true);
 
     try {
@@ -142,15 +131,16 @@ export default function ViewRegister() {
       const userCred = await obtenerCuenta();
       const uid = userCred.user.uid;
 
-      // Subir la imagen a Firebase Storage
-      const imageRef = ref(storage, `users/${uid}/profile.jpg`);
-      await uploadBytes(
-        imageRef,
-        await comprimirImagen(form.photo, LADO_PERFIL)
-      );
-
-      // Obtener URL de la imagen
-      const photoURL = await getDownloadURL(imageRef);
+      // La foto, si la eligió. Sin foto, photo queda en "".
+      let photoURL = "";
+      if (form.photo) {
+        const imageRef = ref(storage, `users/${uid}/profile.jpg`);
+        await uploadBytes(
+          imageRef,
+          await comprimirImagen(form.photo, LADO_PERFIL)
+        );
+        photoURL = await getDownloadURL(imageRef);
+      }
 
       const role =
         form.gender.toLowerCase() === "femenino" ? "Pastora" : "Pastor";
@@ -171,20 +161,6 @@ export default function ViewRegister() {
       };
 
       await setDoc(doc(db, "users", uid), newUserData);
-
-      // Datos de la iglesia: nombre, sigla y logo. Va después de la ficha,
-      // porque la regla pide que quien escribe sea pastor. Si falla (sin
-      // internet), la iglesia ya existe y los datos se completan luego desde
-      // Usuarios: no se frena el registro por esto.
-      try {
-        await guardarDatosIglesia(uid, {
-          nombre: form.churchName,
-          sigla: form.sigla,
-          logoArchivo: logoIglesia,
-        });
-      } catch (errorIglesia) {
-        console.error("No se guardaron los datos de la iglesia:", errorIglesia);
-      }
 
       // Actualizar contexto
       setUserData(newUserData);
@@ -223,14 +199,16 @@ export default function ViewRegister() {
   };
 
   return (
-    <div className="min-h-svh flex flex-col bg-linear-to-b from-gray-900 to-gray-800 overflow-hidden">
+    // `isolate`: sin él, la marca de agua quedaría detrás del fondo.
+    <div className="isolate min-h-svh flex flex-col bg-linear-to-b from-gray-900 to-gray-800 overflow-hidden">
+      {/* VOXDEI va de marca de agua, detrás de todo: la vista es la publicada
+          el 26 de octubre de 2026 más esto y la foto opcional (pedido del
+          usuario, 11 de noviembre de 2026). */}
+      <MarcaAguaHaz />
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="w-full max-w-md space-y-4">
           {/* Encabezado */}
           <div className="text-center mb-4">
-            {/* Horizontal y pequeño: el formulario es largo y la página no
-                se desplaza, así que el vertical lo empujaría fuera. */}
-            <LogoHorizontal className="mx-auto mb-3 h-10 sm:h-12 w-auto" />
             <h1 className="text-3xl sm:text-4xl font-extrabold text-app-main drop-shadow-md">
               Registrar Iglesia
             </h1>
@@ -283,33 +261,6 @@ export default function ViewRegister() {
                 onChange={handleChange}
                 className="p-2 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
               />
-
-              {/* Logo y nombre corto de la iglesia (opcionales) */}
-              <div className="flex items-center gap-3">
-                <CampoLogoIglesia
-                  vista={vistaLogo}
-                  onElegir={(archivo) => {
-                    setLogoIglesia(archivo);
-                    setVistaLogo(URL.createObjectURL(archivo));
-                  }}
-                />
-                <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <input
-                    type="text"
-                    name="sigla"
-                    placeholder="Nombre corto o sigla (opcional)"
-                    value={form.sigla}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, sigla: normalizarSigla(e.target.value) }))
-                    }
-                    maxLength={LARGO_SIGLA}
-                    className="p-2 sm:p-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-300 focus:outline-none focus:ring-2 focus:ring-app-main"
-                  />
-                  <span className="text-xs text-app-muted">
-                    Por ejemplo «CDP». Se usa donde el nombre completo no cabe.
-                  </span>
-                </div>
-              </div>
 
               {/* Nombre usuario */}
               <input

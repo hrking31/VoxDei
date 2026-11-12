@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { QuestionMarkCircleIcon } from "@heroicons/react/24/solid";
+import VistaFranja from "../Cronograma/VistaFranja.jsx";
+import { estadoFranja } from "../Cronograma/utilesFranja.js";
 
 // Ayuda dentro de la app (9 de noviembre de 2026): cómo preparar la pantalla
 // para el servicio. Reemplaza a la hoja impresa que hubo un rato el mismo
@@ -65,6 +67,49 @@ const ANTES = [
         templo verá el logo y cuánto falta para empezar.
       </>
     ),
+  },
+];
+
+// ¿Quién puede proyectar? (11 de noviembre de 2026, pedido del usuario).
+// Cada ejemplo se dibuja con la franja de verdad (VistaFranja) y sus textos
+// salen de estadoFranja: si cambian las reglas o los textos de la franja, la
+// Ayuda cambia sola. Las personas son de ejemplo.
+const PASTOR = { uid: "pastor", userData: { name: "Pastor", role: "Pastor" } };
+const LAURA = { uid: "laura", userData: { name: "Laura", role: "Operador" } };
+const LUIS = { uid: "luis", userData: { name: "Luis", role: "Operador" } };
+
+const SERVICIO_LAURA = {
+  tipo: "servicio",
+  uid: "laura",
+  nombre: "Laura",
+  servicio: { inicio: "14:00", fin: "16:00" },
+};
+const SIN_SERVICIO = { tipo: "libre" };
+const ENSAYO_LUIS = { tipo: "ensayo", uid: "luis", nombre: "Luis", hasta: new Date(2026, 10, 15, 17, 30).getTime() };
+
+const EJEMPLOS_TURNO = [
+  {
+    titulo: "Servicio de 14:00 a 16:00, asignado a Laura",
+    casos: [
+      { quien: "El pastor", turno: SERVICIO_LAURA, persona: PASTOR },
+      { quien: "Laura", turno: SERVICIO_LAURA, persona: LAURA },
+      { quien: "Otro operador (Luis)", turno: SERVICIO_LAURA, persona: LUIS },
+    ],
+  },
+  {
+    titulo: "Sin servicio en ese momento",
+    casos: [
+      { quien: "El pastor", turno: SIN_SERVICIO, persona: PASTOR },
+      { quien: "Un operador", turno: SIN_SERVICIO, persona: LUIS },
+    ],
+  },
+  {
+    titulo: "Con el ensayo de Luis",
+    casos: [
+      { quien: "Luis", turno: ENSAYO_LUIS, persona: LUIS },
+      { quien: "Otro operador (Laura)", turno: ENSAYO_LUIS, persona: LAURA },
+      { quien: "El pastor", turno: ENSAYO_LUIS, persona: PASTOR },
+    ],
   },
 ];
 
@@ -139,10 +184,46 @@ export default function Ayuda() {
           </section>
 
           <Consejos titulo="Antes de empezar" id="ayuda-antes" consejos={ANTES} navigate={navigate} />
+          <QuienProyecta />
           <Consejos titulo="Si algo no funciona" id="ayuda-problemas" consejos={PROBLEMAS} navigate={navigate} />
         </div>
       </div>
     </div>
+  );
+}
+
+function QuienProyecta() {
+  return (
+    <section aria-labelledby="ayuda-turno" className="flex flex-col gap-3">
+      <h2 id="ayuda-turno" className="font-bold text-app-main">
+        ¿Quién puede proyectar?
+      </h2>
+      <p className="text-sm text-app-muted">
+        El <b>pastor</b> y la <b>pastora</b> pueden proyectar siempre. Un <b>operador</b>, solo en el servicio
+        que tiene asignado en <b>Cronograma</b> o cuando tiene el <b>ensayo</b>. La franja de arriba de cada
+        sección te lo dice, y cambia según quién haya entrado: <b>verde</b> si puedes proyectar,{" "}
+        <b>roja</b> si no. A la derecha ves cómo está la pantalla del templo, igual para todos.
+      </p>
+      {EJEMPLOS_TURNO.map((grupo) => (
+        <div key={grupo.titulo} className="flex flex-col gap-2 rounded-lg border border-app-border bg-app-light p-3">
+          <h3 className="text-sm font-semibold text-app-texto">{grupo.titulo}</h3>
+          <ul className="flex flex-col gap-2">
+            {grupo.casos.map(({ quien, turno, persona }) => (
+              <li key={quien} data-ejemplo-turno className="flex flex-col gap-1 sm:grid sm:grid-cols-4 sm:items-center sm:gap-3">
+                <span className="text-xs text-app-muted">{quien}</span>
+                <div className="overflow-hidden rounded-md border border-app-border sm:col-span-3">
+                  <VistaFranja ejemplo pantalla="encendida" estado={estadoFranja(turno, persona.userData, persona.uid)} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+      <p className="text-sm text-app-muted">
+        Si alguien sin turno toca algo para proyectar, la app le avisa y no envía nada a la pantalla.{" "}
+        <b>Tomar ensayo</b> pide confirmación antes de quitárselo a quien lo tenía.
+      </p>
+    </section>
   );
 }
 

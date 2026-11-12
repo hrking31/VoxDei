@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { librosAntiguo, librosNuevo } from "../LibrosBiblia/LibrosBiblia";
+import * as librosRVR from "../LibrosBiblia/LibrosBiblia";
 
 // Normaliza texto (minúsculas, sin acentos, y sin "S. " inicial)
 const normalizar = (texto) =>
@@ -11,7 +11,9 @@ const normalizar = (texto) =>
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/^s\.\s*/i, ""); // Elimina "S. " al inicio (como "S. Mateo")
 
-export default function BuscadorLibros({ open, setOpen, onLibroSeleccionado }) {
+// `libros`: { librosAntiguo, librosNuevo } de la Biblia elegida. Sin él, la RVR1960.
+export default function BuscadorLibros({ open, setOpen, onLibroSeleccionado, libros = librosRVR }) {
+  const { librosAntiguo, librosNuevo } = libros;
   const [query, setQuery] = useState("");
   const [resultados, setResultados] = useState([]);
 

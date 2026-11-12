@@ -26,7 +26,7 @@ describe("ViewSelector · los dos pasos", () => {
   });
 
   it("con la pantalla ya abierta en cualquier equipo, queda solo Administrar", () => {
-    for (const pantallaTemplo of ["encendida", "sin-completa"]) {
+    for (const pantallaTemplo of ["encendida", "maximizada", "ventana", "oculta"]) {
       const { unmount } = entrar({ pantallaTemplo });
       expect(ficha("1Proyectar")).toBeNull();
       expect(ficha("Administrar")).toBeTruthy();
@@ -59,8 +59,31 @@ describe("ViewSelector · los dos pasos", () => {
   });
 
   it("muestra el estado de la pantalla junto al próximo servicio", () => {
-    entrar({ pantallaTemplo: "sin-completa" });
-    expect(screen.getByRole("status", { name: /falta tocar pantalla completa/ }).textContent).toBe("Pantalla completa");
+    entrar({ pantallaTemplo: "ventana" });
+    expect(screen.getByRole("status", { name: /falta tocar pantalla completa/ }).textContent).toBe("VENTANA");
+  });
+
+  it("chip e ícono verdes si está abierta, grises si está apagada; el texto lleva el color del estado", () => {
+    const casos = [
+      ["apagada", "text-app-muted", "Apagada", "text-app-muted"],
+      ["oculta", "text-app-success", "OCULTA", "text-app-error"],
+      ["ventana", "text-app-success", "VENTANA", "text-app-main"],
+      ["maximizada", "text-app-success", "MAXIMIZADA", "text-app-azul"],
+      ["encendida", "text-app-success", "COMPLETA", "text-app-success"],
+    ];
+    const iconos = new Set();
+    for (const [pantallaTemplo, colorIcono, texto, colorTexto] of casos) {
+      const { unmount } = entrar({ pantallaTemplo });
+      const chip = screen.getByRole("status", { name: /Pantalla del templo/ });
+      const icono = chip.querySelector("svg");
+      expect(chip.className).toContain(pantallaTemplo === "apagada" ? "border-app-border" : "border-app-success");
+      expect(icono.getAttribute("class")).toContain(colorIcono);
+      expect(screen.getByText(texto).className).toBe(colorTexto);
+      iconos.add(icono.innerHTML);
+      unmount();
+    }
+    // Cada estado lleva su propio ícono.
+    expect(iconos.size).toBe(5);
   });
 });
 

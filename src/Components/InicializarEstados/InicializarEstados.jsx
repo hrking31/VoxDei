@@ -1,10 +1,9 @@
 import { useEffect } from "react";
-import { getDoc, onSnapshot } from "firebase/firestore";
+import { onSnapshot } from "firebase/firestore";
 import { database } from "../../Components/Firebase/Firebase";
 import {
   colIglesia,
   docIglesia,
-  PREDICAS,
   TICKERS,
   MESSAGES,
   CONFIGURACION,
@@ -12,10 +11,11 @@ import {
   CRONOGRAMA,
   PERFIL,
   PERFIL_DATOS,
+  BIBLIA_ELEGIDA,
 } from "../../Components/Firebase/RutasIglesia";
+import { VERSION_POR_DEFECTO, versionValida } from "../../Components/Biblia/versionesBiblia";
 import { combinarEstilos } from "../../Components/Estilos/EstilosProyeccion";
 import {
-  DURACION_AVISO,
   NODO_PANTALLA,
   avisoDeCambio,
   estadoPantalla,
@@ -27,7 +27,6 @@ import { useAuth } from "../../Components/Context/AuthContext";
 export default function InicializarEstados() {
   const { user, userData, loading } = useAuth();
   const {
-    setSlots,
     setIsDesktop,
     setTickerItems,
     setMessageItems,
@@ -38,13 +37,14 @@ export default function InicializarEstados() {
     setVisibleVideo,
     setVisibleEspera,
     setPantallaTemplo,
+    setAvisoPantalla,
     setIglesia,
+    setVersionBiblia,
     setVelocidadTicker,
     setEstilos,
     setServicios,
     setEnsayo,
     setDesfaseReloj,
-    showNotif,
   } = useAppContext();
 
   // Detectar tamaño de pantalla
@@ -58,23 +58,6 @@ export default function InicializarEstados() {
     if (loading || !user || !userData?.groupId) return;
 
     const { groupId } = userData;
-
-    // Actualiza slots al iniciar
-    const loadSlots = async () => {
-      try {
-        const estados = [];
-        for (let i = 1; i <= 5; i++) {
-          const snap = await getDoc(
-            docIglesia(groupId, PREDICAS, `predica${i}`)
-          );
-          estados.push(snap.exists());
-        }
-        setSlots(estados);
-      } catch (error) {
-        console.error("Error al cargar los slots:", error);
-        showNotif("error", "No se pudieron cargar los slots");
-      }
-    };
 
     // Actualiza tickers en tiempo real
     const loadTickers = onSnapshot(
@@ -167,9 +150,9 @@ export default function InicializarEstados() {
       }
     );
 
-    // Pantalla del templo encendida o no (presencia de /VOXDEI). Al cambiar,
-    // aviso de 2 s en todos los equipos, salvo en la propia pantalla del
-    // templo, que se proyecta, y salvo al cargar (no es un cambio).
+    // Cómo está la pantalla del templo (presencia de /VOXDEI). Al cambiar,
+    // AvisoPantalla lo cuenta 2 s en todos los equipos, salvo en la propia
+    // pantalla del templo, que se proyecta, y salvo al cargar (no es un cambio).
     let estadoAnterior = null;
     const enProyector = window.location.pathname.toUpperCase().startsWith("/VOXDEI");
     const pantalla = onValue(
@@ -177,7 +160,7 @@ export default function InicializarEstados() {
       (snapshot) => {
         const ahora = estadoPantalla(snapshot.val());
         const aviso = avisoDeCambio(estadoAnterior, ahora);
-        if (aviso && !enProyector) showNotif(aviso.tipo, aviso.texto, DURACION_AVISO);
+        if (aviso && !enProyector) setAvisoPantalla({ ...aviso, id: Date.now() });
         estadoAnterior = ahora;
         setPantallaTemplo(ahora);
       }
@@ -188,6 +171,13 @@ export default function InicializarEstados() {
       docIglesia(userData.groupId, PERFIL, PERFIL_DATOS),
       (snapshot) => setIglesia(snapshot.data() || null),
       (error) => console.error("Error al cargar los datos de la iglesia:", error)
+    );
+
+    // Biblia elegida por la iglesia (TEMPORAL DHH). Sin ajuste, la RVR1960.
+    const bibliaElegida = onSnapshot(
+      docIglesia(userData.groupId, CONFIGURACION, BIBLIA_ELEGIDA),
+      (snapshot) => setVersionBiblia(versionValida(snapshot.data()?.version)),
+      (error) => console.error("Error al cargar la Biblia elegida:", error)
     );
 
     // Pantalla de espera antes del servicio. Sin nodo, apagada.
@@ -230,8 +220,6 @@ export default function InicializarEstados() {
       setDesfaseReloj(snap.val() || 0)
     );
 
-    loadSlots();
-
     return () => {
       cronograma();
       turnoEnsayo();
@@ -248,12 +236,15 @@ export default function InicializarEstados() {
       visibleEspera();
       pantalla();
       datosIglesia();
+      bibliaElegida();
+      setVersionBiblia(VERSION_POR_DEFECTO);
       setPantallaTemplo(null);
+      setAvisoPantalla(null);
       setIglesia(null);
       estilosIglesia();
       speedTicker();
     };
-  }, [loading, user, userData?.groupId, setSlots]);
+  }, [loading, user, userData?.groupId]);
 
   return null;
 }

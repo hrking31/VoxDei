@@ -10,6 +10,7 @@
   --color-app-border: #444749; /* ➖ Líneas divisorias, bordes suaves */
   --color-app-success: #4ade80; /* ✅ Verde para mensajes de éxito */
   --color-app-error: #ef4444; /* ❌ Rojo para errores */
+  --color-app-azul: #60a5fa; /* Pantalla del templo maximizada */
   --color-app-texto: #f3f4f6; /* Texto principal claro sobre los fondos oscuros */
   --color-app-velo: rgb(0 0 0 / 0.45); /* Oscurece el fondo detrás de un panel abierto */
 
@@ -29,6 +30,26 @@
   /* Colores del logo, para los dibujos de la pantalla de entrada */
   --color-app-noche: #0d0b26; /* fondo del símbolo */
   --color-app-haz: #ffd978; /* luz del proyector */
+  --color-app-morado: #2a1b5e; /* morado del cuadro del símbolo */
+  --color-app-cita: #93c5fd; /* cita reconocida en el campo de Prédica */
+  --color-app-tapete: #25302c; /* verde del tapete de corte del bosquejo (Preparar) */
+  --color-app-tapete-pieza: rgb(31 40 37 / 0.88); /* fondo de cada pieza sobre el tapete */
+  --color-app-tapete-regla: #1f2925; /* las reglas de arriba y de la izquierda del tapete */
+  /* Un color por tipo de ítem de la prédica (11-11-2026, tonosPieza.js). Los
+     cuatro de una paleta que mandó el usuario (sin el rosa), en neón para el
+     fondo oscuro: punto violeta, versículo aguamarina, imagen rojo neón (pedido),
+     mensaje plata. Nada de dorado (ya se usa mucho) ni verde (el tapete);
+     el rojo es más rosado que el de errores. El fondo es la utilidad `fondo-pieza-*`
+     (más abajo), difuminado, y el brillo, la sombra `neon-*`. */
+  --color-app-violeta: #b388ff;
+  --color-app-agua: #2ee6c9;
+  --color-app-rojo-neon: #ff5470; /* imágenes (pedido del usuario; más rosado que app-error) */
+  --color-app-plata: #c3c7cc;
+  --color-app-pieza-base: #1d2522; /* el oscuro del tapete bajo cada ítem */
+  --shadow-neon-punto: 0 0 6px color-mix(in srgb, var(--color-app-violeta) 14%, transparent);
+  --shadow-neon-versiculo: 0 0 6px color-mix(in srgb, var(--color-app-agua) 12%, transparent);
+  --shadow-neon-imagen: 0 0 6px color-mix(in srgb, var(--color-app-rojo-neon) 12%, transparent);
+  --shadow-neon-mensaje: 0 0 5px color-mix(in srgb, var(--color-app-plata) 8%, transparent);
 
   /* Animaciones de la pantalla de entrada (9 de noviembre de 2026) */
   --animate-respira: respira 4s ease-in-out infinite; /* brillo del símbolo */
@@ -66,6 +87,77 @@
     40% { background-color: var(--color-app-muted); }
   }
 
+  /* Aviso de la pantalla del templo (AvisoPantalla, 10 de noviembre de 2026) */
+  --color-app-aviso: #1d1e21; /* fondo de la tarjeta y de la mini pantalla */
+  --color-app-escritorio: #1b2a3a; /* escritorio de la mini pantalla */
+  --spacing-aviso-pantalla: 20.625rem; /* ancho de la tarjeta en el computador */
+  --text-diminuto: 0.6rem; /* «Ventana → Completa» y el equipo */
+  --text-chip: 0.8125rem; /* 13 px: los filtros de Mis prédicas */
+  /* Dura lo mismo que DURACION_AVISO (presencia.js): si cambias uno, cambia el otro */
+  --animate-cuenta-aviso: cuenta-aviso 2s linear forwards;
+  --animate-brillo-aviso: brillo-aviso 1s 0.35s ease-out both; /* al ponerse en pantalla completa */
+  --animate-escena-crece: escena-crece 3.2s cubic-bezier(0.3, 1.4, 0.5, 1) infinite;
+  --animate-escena-rayos: escena-rayos 3.2s ease-out infinite;
+  --animate-escena-esquinas: escena-esquinas 3.2s ease-out infinite;
+  --animate-escena-empuja: escena-empuja 1.4s ease-in-out infinite;
+  --animate-escena-flota: escena-flota 2.4s ease-in-out infinite;
+  --animate-escena-baja: escena-baja 3s cubic-bezier(0.6, 0, 0.4, 1) infinite;
+  --animate-escena-ojo: escena-ojo 3s ease-out infinite;
+  --animate-escena-late: escena-late 1s ease-in-out infinite;
+  --animate-escena-tv: escena-tv 3.2s ease-in infinite;
+  @keyframes cuenta-aviso {
+    to { transform: scaleX(0); }
+  }
+  @keyframes brillo-aviso {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+  }
+  /* La diapositiva crece hasta llenar la pantalla */
+  @keyframes escena-crece {
+    0% { transform: scale(0.55); }
+    30%, 100% { transform: scale(1); }
+  }
+  /* Los rayos del logo se encienden */
+  @keyframes escena-rayos {
+    0%, 25% { opacity: 0; transform: scale(0.6); }
+    45%, 90% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0.6; }
+  }
+  /* Las flechas de las esquinas salen hacia afuera */
+  @keyframes escena-esquinas {
+    0%, 15% { opacity: 0; transform: scale(0.7); }
+    35% { opacity: 1; transform: scale(1.12); }
+    60%, 100% { opacity: 0; transform: scale(1.25); }
+  }
+  /* Las flechas empujan, pidiendo el último paso */
+  @keyframes escena-empuja {
+    0%, 100% { opacity: 0.55; transform: scale(0.92); }
+    50% { opacity: 1; transform: scale(1.08); }
+  }
+  @keyframes escena-flota {
+    0%, 100% { transform: translateY(1.5px); }
+    50% { transform: translateY(-1.5px); }
+  }
+  /* La ventana baja a la barra de tareas */
+  @keyframes escena-baja {
+    0%, 15% { opacity: 1; transform: scale(1); }
+    50%, 100% { opacity: 0; transform: translateY(14px) scale(0.12); }
+  }
+  @keyframes escena-ojo {
+    0%, 45% { opacity: 0; transform: scale(0.6); }
+    60%, 100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes escena-late {
+    50% { opacity: 0.35; }
+  }
+  /* Televisor viejo que se apaga: línea, punto y nada */
+  @keyframes escena-tv {
+    0%, 20% { opacity: 1; transform: scale(1, 1); filter: brightness(1); }
+    35% { opacity: 1; transform: scale(1, 0.03); filter: brightness(2.5); }
+    48% { opacity: 1; transform: scale(0.02, 0.03); filter: brightness(3); }
+    58%, 100% { opacity: 0; transform: scale(0, 0); }
+  }
+
   /* El símbolo se enciende y se apaga como un proyector que calienta */
   --animate-enciende: enciende 2.4s ease-in-out infinite;
   @keyframes enciende {
@@ -76,6 +168,25 @@
     50% {
       filter: brightness(1.1) saturate(1);
     }
+  }
+
+  /* Marca de agua «haz del proyector» (MarcaAguaHaz): parpadeo de proyector
+     de cine, casi siempre estable con caídas cortas e irregulares. Parte de la
+     misma opacidad que la clase opacity-17 de los rayos. */
+  --animate-marca-haz: marca-haz 5s linear infinite;
+  @keyframes marca-haz {
+    0%, 6% { opacity: 0.17; }
+    7% { opacity: 0.13; }
+    8% { opacity: 0.19; }
+    30% { opacity: 0.17; }
+    47% { opacity: 0.21; }
+    48% { opacity: 0.15; }
+    49.5% { opacity: 0.22; }
+    70% { opacity: 0.19; }
+    85% { opacity: 0.16; }
+    86% { opacity: 0.12; }
+    87.5% { opacity: 0.18; }
+    100% { opacity: 0.17; }
   }
 }
 
@@ -128,6 +239,83 @@ body {
   clip-path: polygon(0 0, 100% 0, 52% 100%, 48% 100%);
   background: linear-gradient(0deg, color-mix(in srgb, var(--color-app-haz) 85%, transparent), color-mix(in srgb, var(--color-app-main) 8%, transparent));
 }
+/* Marca de agua «haz del proyector» (registro y recuperar contraseña, 10 de
+   noviembre de 2026, aprobada en https://claude.ai/artifact/XirrN72rgnKGVbisSdmQyU).
+   El foco está en la esquina de abajo a la derecha y los rayos cruzan la
+   pantalla en diagonal hasta el borde de arriba. `marca-haz` es la capa: fija
+   a la pantalla (no suma alto ni se mueve al desplazarse) y con el sobrante
+   recortado. La vista que la monta lleva `isolate` para que el z-index
+   negativo quede encima de su fondo. */
+@utility marca-haz {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: -1;
+  pointer-events: none;
+  user-select: none;
+}
+/* Cada dibujo del haz (rayos y polvo, con la misma posición). Mide dos veces
+   el alto de la pantalla para que los rayos lleguen hasta arriba; el foco está
+   al 50 % de ancho y 96,9 % de alto del dibujo, y ese punto se lleva a la
+   esquina y es el eje de giro. --giro-haz: cuánto se acuesta hacia la esquina
+   contraria (28° con la pantalla de pie, 55° acostada). */
+@utility haz-esquina {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  height: 210svh;
+  width: auto;
+  max-width: none;
+  aspect-ratio: 2200 / 1910;
+  transform-origin: 50% 96.9%;
+  transform: translate(50%, 3.1%) rotate(calc(-1 * var(--giro-haz)));
+}
+:root {
+  --giro-haz: 28deg;
+}
+@media (orientation: landscape) {
+  :root {
+    --giro-haz: 55deg;
+  }
+}
+/* Mini pantalla del templo en Prédica (vista previa y «en el templo ahora»):
+   el morado del símbolo que se oscurece hacia los bordes. */
+@utility pantalla-templo {
+  background: radial-gradient(120% 90% at 50% 10%, var(--color-app-morado), var(--color-app-noche) 70%);
+}
+/* Tapete de corte (11 de noviembre de 2026, elegido por el usuario, «Fondo 6»
+   del lienzo de Prédica): la zona de las piezas en Preparar es la mesa de
+   trabajo. Cuadrícula fina cada 1.25rem (20 px) y guía dorada cada 6.25rem
+   (100 px), la medida de los números de su regla (ReglaTapete en
+   EditorPredica). Queda quieta: las piezas se desplazan encima. */
+@utility tapete {
+  background-color: var(--color-app-tapete);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-app-main) 20%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-app-main) 20%, transparent) 1px, transparent 1px),
+    linear-gradient(rgb(255 255 255 / 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.06) 1px, transparent 1px);
+  background-size: 6.25rem 6.25rem, 6.25rem 6.25rem, 1.25rem 1.25rem, 1.25rem 1.25rem;
+}
+/* El fondo de cada ítem sobre el tapete (tonosPieza.js): el color nace suave
+   a la izquierda y se desvanece hacia la derecha («más difuminado», pidió el
+   usuario el 11-11-2026). Sólido debajo, para leerse sobre la cuadrícula. */
+@utility fondo-pieza-punto {
+  background-color: var(--color-app-pieza-base);
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--color-app-violeta) 26%, transparent), color-mix(in srgb, var(--color-app-violeta) 4%, transparent) 70%);
+}
+@utility fondo-pieza-mensaje {
+  background-color: var(--color-app-pieza-base);
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--color-app-plata) 16%, transparent), color-mix(in srgb, var(--color-app-plata) 3%, transparent) 70%);
+}
+@utility fondo-pieza-versiculo {
+  background-color: var(--color-app-pieza-base);
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--color-app-agua) 20%, transparent), color-mix(in srgb, var(--color-app-agua) 3%, transparent) 70%);
+}
+@utility fondo-pieza-imagen {
+  background-color: var(--color-app-pieza-base);
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--color-app-rojo-neon) 22%, transparent), color-mix(in srgb, var(--color-app-rojo-neon) 3%, transparent) 70%);
+}
 /* Burbuja de mensaje: esquina de abajo a la izquierda en punta */
 @utility burbuja-mensaje {
   border-radius: 7px 7px 7px 2px;
@@ -137,6 +325,49 @@ body {
 @utility retraso-2 { animation-delay: 0.5s; }
 @utility retraso-3 { animation-delay: 0.9s; }
 @utility retraso-4 { animation-delay: 1.8s; }
+
+/* ---- Aviso de la pantalla del templo (AvisoPantalla) ---- */
+/* El color sale del estado: data-estado en la tarjeta fija --tono, y las
+   piezas de dentro lo usan con tono / resplandor-tono / cuenta-tono. */
+@utility aviso-templo {
+  --tono: var(--color-app-success);
+  background:
+    linear-gradient(115deg, color-mix(in srgb, var(--tono) 16%, transparent), transparent 55%),
+    var(--color-app-aviso);
+  border: 1px solid color-mix(in srgb, var(--tono) 42%, transparent);
+  box-shadow:
+    0 20px 40px -18px color-mix(in srgb, var(--tono) 55%, transparent),
+    0 8px 20px -10px rgb(0 0 0 / 0.6),
+    inset 0 1px 0 rgb(255 255 255 / 0.05);
+}
+.aviso-templo[data-estado="maximizada"] { --tono: var(--color-app-azul); }
+.aviso-templo[data-estado="ventana"] { --tono: var(--color-app-main); }
+.aviso-templo[data-estado="oculta"] { --tono: var(--color-app-error); }
+.aviso-templo[data-estado="apagada"] { --tono: var(--color-app-muted); }
+@utility tono {
+  color: var(--tono);
+}
+@utility resplandor-tono {
+  background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--tono) 30%, transparent), transparent 70%);
+}
+@utility cuenta-tono {
+  background: var(--tono);
+  box-shadow: 0 0 10px var(--tono);
+}
+@utility pista-tono {
+  background: color-mix(in srgb, var(--tono) 18%, transparent);
+}
+/* Reflejo que cruza la tarjeta */
+@utility reflejo {
+  background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.16) 50%, transparent 70%);
+}
+/* En el celular, la píldora va arriba, debajo de la cámara. */
+@utility top-aviso-isla {
+  top: calc(0.5rem + env(safe-area-inset-top, 0px));
+}
+@utility pausada {
+  animation-play-state: paused;
+}
 
 /* Botón flotante, justo encima de la barra inferior. */
 @utility bottom-flotante {

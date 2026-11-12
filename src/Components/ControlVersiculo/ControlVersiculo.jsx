@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect } from "react";
+import { useState, useRef, useLayoutEffect, useEffect } from "react";
 import { database } from "../Firebase/Firebase";
 import { ref, set, update } from "firebase/database";
 import parse from "html-react-parser";
@@ -18,19 +18,23 @@ import { useAuth } from "../../Components/Context/AuthContext";
 import ModalVisibilidad from "../ModalVisibilidad/ModalVisibilidad.jsx";
 import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
 import { useTurno } from "../Hooks/useTurno.js";
+import SelectorBiblia from "../Biblia/SelectorBiblia.jsx";
+import { librosDe, libroEnVersion } from "../Biblia/versionesBiblia";
+
+const SIN_LIBRO = { sigla: null, nombre: null, capitulo: null, capitulos: null, versiculo: null };
+
+// «14-15» → [14, 15]; «7» → [7]. La DHH junta algunos versículos en uno.
+const numerosDe = (rotulo) => {
+  const [desde, hasta = desde] = String(rotulo).split("-").map(Number);
+  return Array.from({ length: Math.max(hasta - desde + 1, 1) }, (_, i) => desde + i);
+};
 
 export default function ControlVersiculos() {
   const { userData } = useAuth();
   // Solo quien tiene el turno del cronograma (o un pastor) envía a la pantalla.
   // Buscar y leer versículos sí se puede siempre.
   const { exigirTurno } = useTurno();
-  const [libro, setLibro] = useState({
-    sigla: null,
-    nombre: null,
-    capitulo: null,
-    capitulos: null,
-    versiculo: null,
-  });
+  const [libro, setLibro] = useState(SIN_LIBRO);
   const [resultado, setResultado] = useState(null);
   const [modalActivo, setModalActivo] = useState(null);
   const [tipoLibros, setTipoLibros] = useState("antiguo");
@@ -45,10 +49,13 @@ export default function ControlVersiculos() {
     setVisibleTexto,
     isDesktop,
     showNotif,
+    versionBiblia,
   } = useAppContext();
   const [open, setOpen] = useState(false);
   const capitulosRef = useRef({});
   const versiculosRef = useRef({});
+  // Catálogo de la Biblia elegida (TEMPORAL DHH: con la Dios Habla Hoy, 75 libros).
+  const libros = librosDe(versionBiblia);
 
   const abrirModalConTipo = (tipo) => {
     setTipoLibros(tipo);
@@ -84,7 +91,8 @@ export default function ControlVersiculos() {
         capitulo,
         versiculo,
         "capitulo",
-        showNotif
+        showNotif,
+        versionBiblia
       );
       setResultado(data);
     } catch (err) {
@@ -92,6 +100,29 @@ export default function ControlVersiculos() {
       showNotif("error", err.message);
     }
   };
+
+  // TEMPORAL DHH: al cambiar de Biblia (aquí o desde otro equipo de la
+  // iglesia) se vuelve a leer el capítulo abierto en la nueva versión, con el
+  // libro tomado de su catálogo. Si esa versión no tiene el libro (un
+  // deuterocanónico al volver a la RVR1960), se vuelve al inicio.
+  const versionMostrada = useRef(versionBiblia);
+  useEffect(() => {
+    if (versionMostrada.current === versionBiblia) return;
+    versionMostrada.current = versionBiblia;
+    if (!libro.sigla) return;
+    const mismo = libroEnVersion(libro.sigla, versionBiblia);
+    if (!mismo) {
+      setLibro(SIN_LIBRO);
+      setResultado(null);
+      return;
+    }
+    const capitulo = Math.min(libro.capitulo || 1, mismo.capitulos);
+    setLibro({ ...mismo, capitulo, versiculo: libro.versiculo || 1 });
+    versiculosRef.current = {};
+    consultaVersiculo(mismo.sigla, capitulo, libro.versiculo || 1);
+    // Solo debe correr cuando cambia la versión, no con cada libro o capítulo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [versionBiblia]);
 
   const handleProjectarVersiculo = (versiculo, numero, titulo) => {
     if (!exigirTurno()) return;
@@ -101,6 +132,9 @@ export default function ControlVersiculos() {
       text: versiculo,
       cita: citaCompleta,
       display: "versiculo",
+      // La pantalla del templo muestra, abajo, el aviso de derechos de esta
+      // Biblia (11-11-2026). TEMPORAL DHH: al quitarla, siempre "RVR1960".
+      version: versionBiblia || "RVR1960",
       timestamp: Date.now(),
     });
   };
@@ -178,7 +212,8 @@ export default function ControlVersiculos() {
             <div
               key={`${numero}-${texto}`}
               ref={(el) => {
-                if (numero) versiculosRef.current[numero] = el;
+                if (!numero) return;
+                for (const n of numerosDe(numero)) versiculosRef.current[n] = el;
               }}
               onClick={() => {
                 setVersiculoNumero(numero);
@@ -329,6 +364,7 @@ export default function ControlVersiculos() {
             open={open}
             setOpen={setOpen}
             onLibroSeleccionado={LibroSeleccionado}
+            libros={libros}
           />
         </div>
 
@@ -415,6 +451,10 @@ export default function ControlVersiculos() {
       {/* FIN BLOQUE STICKY */}
       {/* RESULTADOS */}
       <div className="w-full max-w-xl mx-auto p-2">
+        {/* TEMPORAL DHH: elegir la Biblia de toda la iglesia */}
+        <div className="mt-2 mb-3">
+          <SelectorBiblia />
+        </div>
         <div className="flex flex-colborder">
           <div className="sm:mt-6 flex justify-center">
             <div className="max-w-xl w-full px-4">
@@ -442,6 +482,7 @@ export default function ControlVersiculos() {
         onClose={() => setModalActivo(false)}
         tipo={tipoLibros}
         onLibro={LibroSeleccionado}
+        libros={libros}
       />
       <CapituloModal
         open={modalActivo}

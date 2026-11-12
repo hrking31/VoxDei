@@ -14,6 +14,7 @@ import {
 import { cargarApiYouTube, TOLERANCIA_SEGUNDOS } from "../Video/YouTube";
 import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
 import { Simbolo } from "../Logo/Logo.jsx";
+import { avisoBiblia } from "../LibrosBiblia/avisosBiblia.js";
 import PantallaEspera from "../PantallaEspera/PantallaEspera.jsx";
 import { usePresenciaPantalla } from "../PantallaTemplo/usePresenciaPantalla.js";
 
@@ -28,6 +29,7 @@ export default function DisplayView() {
   const [versiculo, setVersiculo] = useState("");
   const [tituloVersiculo, setTituloVersiculo] = useState("");
   const [cita, setCita] = useState("");
+  const [versionVersiculo, setVersionVersiculo] = useState("RVR1960");
   // Imágenes: una lista (con una sola entrada si es imagen suelta) y la
   // posición que se está mostrando.
   const [imagenes, setImagenes] = useState([]);
@@ -54,9 +56,9 @@ export default function DisplayView() {
   const { userData } = useAuth();
   const groupId = userData.groupId;
 
-  // Avisa a los demás equipos que esta pantalla está encendida y si está en
-  // pantalla completa (el botón del centro solo se ve cuando no lo está).
-  usePresenciaPantalla(groupId, !visible, userData.name);
+  // Avisa a los demás equipos que esta pantalla está abierta y en qué modo
+  // (oculta, ventana, maximizada o pantalla completa). Lo detecta el hook solo.
+  usePresenciaPantalla(groupId, userData.name);
 
   // Reconexión de las suscripciones en vivo.
   //
@@ -232,6 +234,8 @@ export default function DisplayView() {
           setTituloVersiculo(data.titulo);
           setVersiculo(data.text);
           setCita(data.cita);
+          // Sin versión (envíos de antes): la RVR1960, la de siempre.
+          setVersionVersiculo(typeof data.version === "string" ? data.version : "RVR1960");
           setDisplay(data.display);
         }
       },
@@ -524,6 +528,15 @@ export default function DisplayView() {
               </div>
             ) : null}
           </div>
+        )}
+
+        {/* AVISO DE LA BIBLIA (11-11-2026, pedido del usuario): con cada
+            versículo, abajo y muy pequeño, el nombre de la Biblia y sus
+            derechos. Encima del ticker si está encendido. */}
+        {visibleTexto && !enEspera && !hayVideo && !(visibleImagen && imagenActual) && display === "versiculo" && (
+          <p data-aviso-biblia className="m-0 shrink-0 px-8 pb-2 text-center text-xs leading-snug text-app-texto/50">
+            {avisoBiblia(versionVersiculo)}
+          </p>
         )}
 
         {/* ESPACIO PARA EL TICKER */}

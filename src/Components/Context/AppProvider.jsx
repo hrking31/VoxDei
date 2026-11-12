@@ -1,10 +1,10 @@
 import { useRef, useState } from "react";
 import { ESTILOS_POR_DEFECTO } from "../Estilos/EstilosProyeccion";
 import { AppContext } from "./AppContext";
+import { VERSION_POR_DEFECTO } from "../Biblia/versionesBiblia";
 
 export function AppProvider({ children }) {
   // Estados globales iniciales
-  const [slots, setSlots] = useState([false, false, false, false, false]);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
   const [tickerItems, setTickerItems] = useState([]);
   const [messageItems, setMessageItems] = useState([]);
@@ -17,11 +17,19 @@ export function AppProvider({ children }) {
   // Pantalla de espera antes del servicio (logo + cuenta regresiva). Nodo
   // displayEspera de RTDB; se enciende desde Cronograma.
   const [visibleEspera, setVisibleEspera] = useState(false);
-  // Pantalla del templo: "apagada" | "sin-completa" | "encendida"; null
+  // Pantalla del templo: "apagada" | "oculta" | "ventana" | "maximizada" |
+  // "encendida" (ver PantallaTemplo/presencia.js); null
   // mientras no se sabe. La llena InicializarEstados con la presencia.
   const [pantallaTemplo, setPantallaTemplo] = useState(null);
+  // Aviso de un cambio de la pantalla del templo que se está mostrando:
+  // { id, antes, ahora } o null. Lo pinta AvisoPantalla.
+  const [avisoPantalla, setAvisoPantalla] = useState(null);
   // Datos de la iglesia: { nombre, sigla, logo } (iglesias/{g}/perfil/datos)
   const [iglesia, setIglesia] = useState(null);
+  // Biblia elegida por la iglesia: "RVR1960" | "DHHS94" (TEMPORAL DHH). La
+  // llena InicializarEstados desde iglesias/{g}/configuracion/biblia. Solo la
+  // usa la sección Biblia; Prédica y Orden del culto leen siempre la RVR1960.
+  const [versionBiblia, setVersionBiblia] = useState(VERSION_POR_DEFECTO);
   // Apariencia de la pantalla de proyección
   const [estilos, setEstilos] = useState(ESTILOS_POR_DEFECTO);
   const [authUser, setAuthUser] = useState(null);
@@ -49,7 +57,7 @@ export function AppProvider({ children }) {
     preguntaPendiente.current = null;
   };
 
-  // `duracion` en milisegundos; los avisos de la pantalla del templo usan 2 s.
+  // `duracion` en milisegundos (4 s de fábrica).
   const showNotif = (type, message, duracion = 4000) => {
     responderPendiente(false);
     setNotif({ open: true, type, message, duracion });
@@ -72,8 +80,6 @@ export function AppProvider({ children }) {
   return (
     <AppContext.Provider
       value={{
-        slots,
-        setSlots,
         isDesktop,
         setIsDesktop,
         tickerItems,
@@ -96,8 +102,12 @@ export function AppProvider({ children }) {
         setVisibleEspera,
         pantallaTemplo,
         setPantallaTemplo,
+        avisoPantalla,
+        setAvisoPantalla,
         iglesia,
         setIglesia,
+        versionBiblia,
+        setVersionBiblia,
         estilos,
         setEstilos,
         authUser,

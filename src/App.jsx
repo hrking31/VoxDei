@@ -29,6 +29,7 @@ import { ROLES_PASTORES, ROLES_PROYECCION } from "./Components/Roles/Roles.js";
 import { AppProvider } from "./Components/Context/AppProvider.jsx";
 import InicializarEstados from "./Components/InicializarEstados/InicializarEstados";
 import Notificaciones from "./Components/Notificaciones/Notificaciones";
+import AvisoPantalla from "./Components/PantallaTemplo/AvisoPantalla";
 import MarcoPanel from "./Components/Navegacion/MarcoPanel.jsx";
 
 export default function App() {
@@ -36,6 +37,7 @@ export default function App() {
     <AppProvider>
       <InicializarEstados />
       <Notificaciones />
+      <AvisoPantalla />
       <Routes>
         <Route path="/" element={<Navigate to="/ViewLogin" />} />
         <Route path="/ViewLogin" element={<ViewLogin />} />

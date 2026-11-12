@@ -2,7 +2,7 @@
 //
 // Todo el contenido que pertenece a una iglesia cuelga de su groupId:
 //
-//   iglesias/{groupId}/predicas/predica1..5
+//   iglesias/{groupId}/predicas/{id}   (sin límite desde el 10-11-2026; ver Predica/)
 //   iglesias/{groupId}/tickers/ticker1..6
 //   iglesias/{groupId}/messages/message1..6
 //
@@ -25,10 +25,12 @@ export const MESSAGES = "messages";
 // título: el video nunca pasa por Firebase.
 export const VIDEOS = "videos";
 
-// Ajustes de la iglesia. Por ahora solo el documento `estilos`, con la
-// apariencia de la pantalla de proyección.
+// Ajustes de la iglesia: el documento `estilos`, con la apariencia de la
+// pantalla de proyección, y `biblia` = { version }, la Biblia elegida en
+// SelectorBiblia (TEMPORAL DHH, 10-11-2026), que vale para toda la iglesia.
 export const CONFIGURACION = "configuracion";
 export const ESTILOS = "estilos";
+export const BIBLIA_ELEGIDA = "biblia";
 
 // Lista de canciones que la iglesia va a usar ese día. Es lo único del módulo
 // de canciones que es privado: el catálogo en sí es común (ver CANCIONES).

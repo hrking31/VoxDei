@@ -10,6 +10,8 @@ import {
   quitar,
   retroceder,
 } from "./utilesOrden.js";
+// TEMPORAL DHH: borrar con la DHH (y el bloque «con el catálogo de la DHH»).
+import * as librosDHH from "../LibrosBiblia/LibrosBibliaDHH.js";
 
 describe("parsearCita", () => {
   it("entiende la forma habitual y sus variantes", () => {
@@ -47,6 +49,20 @@ describe("parsearCita", () => {
     for (const texto of ["", "Juan", "Juan 3", "Libro Falso 1:1", null]) {
       expect(parsearCita(texto), String(texto)).toBeNull();
     }
+  });
+
+  // TEMPORAL DHH (11-11-2026): Prédica le pasa el catálogo de la Biblia elegida.
+  it("con el catálogo de la DHH reconoce los deuterocanónicos", () => {
+    expect(parsearCita("Tobit 4:7")).toBeNull(); // la RVR1960 no lo tiene
+    expect(parsearCita("Tobit 4:7", librosDHH)).toMatchObject({ sigla: "TOB", cita: "Tobit 4:7" });
+    expect(parsearCita("1 mac 2 1", librosDHH)?.sigla).toBe("1MA");
+    expect(parsearCita("San Juan 3:16", librosDHH)?.sigla).toBe("JHN");
+  });
+
+  it("si un libro es el comienzo de otro, el abreviado va al más corto", () => {
+    expect(parsearCita("est 4 14", librosDHH)?.sigla).toBe("EST"); // y no «Ester (dc)»
+    expect(parsearCita("dan 3 1", librosDHH)?.sigla).toBe("DAN");
+    expect(parsearCita("jo 1:1", librosDHH)).toBeNull(); // sigue siendo ambiguo
   });
 });
 
@@ -111,6 +127,7 @@ describe("escriturasDePaso", () => {
     const [versiculo] = escriturasDePaso(pasos[2], 0, 1);
     expect(versiculo.nodo).toBe("displayVersiculo");
     expect(Object.values(versiculo.datos).every((v) => v !== undefined)).toBe(true);
+    expect(versiculo.datos.version).toBe("RVR1960"); // el aviso del templo: siempre la RVR1960
   });
 
   it("enciende lo que hace falta para que se vea y quita la pantalla de espera", () => {

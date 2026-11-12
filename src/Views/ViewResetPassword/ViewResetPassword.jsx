@@ -4,7 +4,7 @@ import { auth } from "../../Components/Firebase/Firebase";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../../Components/Context/AppContext";
 import Footer from "../../Components/Footer/Footer.jsx";
-import { LogoVertical } from "../../Components/Logo/Logo.jsx";
+import { MarcaAguaHaz } from "../../Components/Logo/Logo.jsx";
 
 export default function ViewResetPassword() {
   const [email, setEmail] = useState("");
@@ -37,12 +37,14 @@ export default function ViewResetPassword() {
   };
 
   return (
-    <div className="min-h-svh flex flex-col bg-linear-to-b from-gray-900 to-gray-800">
+    <div className="isolate min-h-svh flex flex-col bg-linear-to-b from-gray-900 to-gray-800">
+      <MarcaAguaHaz />
       <div className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
         <div className="w-full max-w-md space-y-4">
           {/* Encabezado */}
           <div className="text-center mb-6">
-            <LogoVertical className="mx-auto mb-4 h-28 sm:h-36 w-auto" />
+            {/* Sin logo arriba: VOXDEI va de marca de agua, detrás de todo
+                (MarcaAguaHaz; pedido del usuario, 10 de noviembre de 2026). */}
             <h1 className="text-3xl sm:text-4xl font-extrabold text-app-main tracking-tight">
               Recuperar Contraseña
             </h1>
