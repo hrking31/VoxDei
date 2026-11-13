@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeftIcon,
+  EllipsisHorizontalIcon,
+  EyeIcon,
+  XMarkIcon,
   BookOpenIcon,
   ChatBubbleLeftRightIcon,
   CheckIcon,
@@ -15,6 +18,10 @@ import {
 import CampoPieza from "./CampoPieza.jsx";
 import ElegirImagen from "./ElegirImagen.jsx";
 import BotonesHistorial from "./BotonesHistorial.jsx";
+import BuscadorVersiculos from "./BuscadorVersiculos.jsx";
+import PantallaPrevia from "./PantallaPrevia.jsx";
+// TEMPORAL DHH (12-11-2026): el botón de las Biblias en la hoja de versículos del celular.
+import SelectorBiblia from "../Biblia/SelectorBiblia.jsx";
 import { useAppContext } from "../Context/AppContext";
 // TEMPORAL DHH (12-11-2026): el versículo base se reconoce en la Biblia elegida.
 import { librosDe, versionValida } from "../Biblia/versionesBiblia";
@@ -39,6 +46,7 @@ import {
   combinacionDe,
   datosDeCombinacion,
   etiquetaPunto,
+  textoDePunto,
   piezaCompleta,
   quitar,
   resumenPiezas,
@@ -79,8 +87,16 @@ export default function EditorPredica({
   onTituloEnfocado,
   acciones = null, // computador: ↶ ↷ Borrar Duplicar │ WhatsApp, abajo a la derecha
   historial = null, // { deshacer, rehacer, puedeDeshacer, puedeRehacer } (celular: arriba)
+  menuMas = null, // celular: lo que va en ⋯ (Duplicar, Borrar, WhatsApp, Biblia)
+  onAgregarVersiculo = null, // celular: el versículo elegido en la hoja de versículos
 }) {
   const [editando, setEditando] = useState(null); // { id, texto }
+  // Celular (12-11-2026, propuesta por pantallas): el menú ⋯, la hoja de
+  // versículos y la vista previa del ítem («Ver»), que en el celular no tienen
+  // columna propia.
+  const [masAbierto, setMasAbierto] = useState(false);
+  const [hojaVersiculos, setHojaVersiculos] = useState(false);
+  const [previa, setPrevia] = useState(null); // id del ítem que se ve
   const campoTitulo = useRef(null);
 
   // ¿Fecha, título, serie y versículo base en modo editar (línea punteada)?
@@ -137,6 +153,14 @@ export default function EditorPredica({
   const resumen = resumenPiezas(piezas);
 
   const cambiarPiezas = (nuevas) => onCambiar({ piezas: nuevas });
+
+  // La vista previa del celular: el punto como se proyecta, con su número.
+  const elegidaVista = previa ? piezas.find((p) => p.id === previa) : null;
+  const piezaVista = elegidaVista
+    ? elegidaVista.tipo === "titulo"
+      ? { ...elegidaVista, tipo: "mensaje", contenido: textoDePunto(numeros[elegidaVista.id], elegidaVista.contenido) }
+      : elegidaVista
+    : null;
 
   // La cajita del número, dentro de cada ítem, al final, después de sus
   // botones, siempre a la vista (12-11-2026, pedidos del usuario): muestra
@@ -373,6 +397,34 @@ export default function EditorPredica({
           </span>
           {/* Celular: Deshacer y Rehacer arriba (abajo está el campo). */}
           {historial && <BotonesHistorial historial={historial} className="h-10 w-10 rounded-xl" />}
+          {menuMas && (
+            <div className="relative">
+              <button
+                type="button"
+                aria-label="Más: Duplicar, Borrar, WhatsApp, Biblia"
+                aria-haspopup="menu"
+                aria-expanded={masAbierto}
+                onClick={() => setMasAbierto((si) => !si)}
+                className="grid h-10 w-10 place-items-center rounded-xl border border-app-border text-app-texto"
+              >
+                <EllipsisHorizontalIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
+              {masAbierto && (
+                <div
+                  role="menu"
+                  aria-label="Más"
+                  data-menu-mas
+                  onClick={(e) => {
+                    // Elegir una acción cierra el menú; tocar la Biblia, no.
+                    if (e.target.closest("[data-cierra-menu]")) setMasAbierto(false);
+                  }}
+                  className="absolute top-full right-0 z-40 mt-2 flex w-64 flex-col gap-2 rounded-2xl border border-app-border bg-app-light p-3 shadow-xl"
+                >
+                  {menuMas}
+                </div>
+              )}
+            </div>
+          )}
           <button
             type="button"
             onClick={onPredicar}
@@ -533,6 +585,11 @@ export default function EditorPredica({
                               </button>
                             );
                           })}
+                      {compacto && (
+                        <Accion etiqueta="Ver en la mini pantalla" onClick={() => setPrevia(pieza.id)}>
+                          <EyeIcon className="h-4 w-4" aria-hidden="true" />
+                        </Accion>
+                      )}
                       {pieza.tipo !== "versiculo" && pieza.tipo !== "imagen" && (
                         <Accion etiqueta="Corregir" onClick={() => setEditando({ id: pieza.id, texto: pieza.contenido })}>
                           <PencilIcon className="h-4 w-4" aria-hidden="true" />
@@ -576,9 +633,73 @@ export default function EditorPredica({
         </div>
       </div>
 
+      {/* Celular: la hoja de versículos (el mismo buscador de la columna
+          derecha del computador) y la vista previa del ítem. */}
+      {compacto && hojaVersiculos && (
+        <div className="fixed inset-0 z-40 flex flex-col bg-app-velo" onClick={() => setHojaVersiculos(false)}>
+          <div
+            role="dialog"
+            aria-label="Versículos"
+            className="mt-auto flex max-h-4/5 flex-col gap-3 rounded-t-3xl bg-app-dark p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <b className="text-app-texto">Versículos</b>
+              <button type="button" onClick={() => setHojaVersiculos(false)} aria-label="Cerrar" className="grid h-10 w-10 place-items-center rounded-xl text-app-muted">
+                <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
+            </div>
+            <SelectorBiblia />
+            <div className="scrollbar-custom flex min-h-0 flex-1 flex-col overflow-y-auto">
+              <BuscadorVersiculos
+                showNotif={showNotif}
+                onAgregar={(pieza) => {
+                  onAgregarVersiculo(pieza);
+                  setHojaVersiculos(false);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      {compacto && piezaVista && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-app-velo p-4" onClick={() => setPrevia(null)}>
+          <div role="dialog" aria-label="Así se verá en el templo" className="flex w-full flex-col gap-3 rounded-2xl bg-app-dark p-4" onClick={(e) => e.stopPropagation()}>
+            <PantallaPrevia pieza={piezaVista} />
+            <button type="button" onClick={() => setPrevia(null)} className="h-11 rounded-xl border border-app-border text-sm font-semibold text-app-texto">
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className={`shrink-0 border-t border-app-border bg-app-light ${compacto ? "px-2.5 py-2" : "px-8 py-4"}`}>
         {compacto ? (
-          <CampoPieza onAgregar={agregar} showNotif={showNotif} />
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <BotonPunto
+                nombre="Punto"
+                Icono={NumberedListIcon}
+                clase={tonoPieza("titulo").contorno}
+                numeracion={predica.numeracion}
+                niveles={predica.numeracionNiveles}
+                onCrear={() => crearVacia("titulo")}
+                onElegir={(combinacion) => onCambiar(datosDeCombinacion(combinacion))}
+              />
+              {onAgregarVersiculo && (
+                <button
+                  type="button"
+                  data-abrir-versiculos
+                  onClick={() => setHojaVersiculos(true)}
+                  className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-app-agua text-sm font-bold text-app-agua"
+                >
+                  <BookOpenIcon className="h-5 w-5" aria-hidden="true" />
+                  Versículo
+                </button>
+              )}
+            </div>
+            <CampoPieza onAgregar={agregar} showNotif={showNotif} />
+          </div>
         ) : (
           // Computador: sin campo de texto; cada botón crea su recuadro. El
           // versículo se agrega desde la columna derecha. Seis botones del
@@ -588,8 +709,8 @@ export default function EditorPredica({
           // pasar el mouse; una línea; a la derecha las `acciones` que pasa
           // ControlPredica (12-11-2026): «↶ ↷ Borrar Duplicar», otra línea
           // y WhatsApp.
-          <div className="flex items-stretch gap-3">
-            <div role="group" aria-label="Agregar al bosquejo" className="flex flex-3 gap-2">
+          <div className="flex flex-wrap items-stretch gap-3">
+            <div role="group" aria-label="Agregar al bosquejo" className="flex min-w-80 flex-3 gap-2">
               {TIPOS_PIEZA.map(({ tipo, nombre }) => {
                 const Icono = ICONO_TIPO[tipo];
                 // «Punto» lleva el desplegable de la numeración (12-11-2026).

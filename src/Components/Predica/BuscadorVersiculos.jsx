@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronLeftIcon, PlayIcon } from "@heroicons/react/24/solid";
+import { ChevronDownIcon, ChevronLeftIcon, ChevronUpIcon, PlayIcon } from "@heroicons/react/24/solid";
 import { PlusIcon as MasGrueso } from "@heroicons/react/24/outline";
 import { obtenerVersiculo } from "../FuncionesControlPredica/FuncionesControlPredica";
 import { useAppContext } from "../Context/AppContext";
@@ -37,7 +37,11 @@ const ACCIONES = {
   proyectar: { verbo: "Proyectar", marca: PlayIcon, ayuda: "aquí lo ves y con un clic se proyecta." },
 };
 
-export default function BuscadorVersiculos({ onAgregar, showNotif, accion = "agregar" }) {
+// `plegable` (12-11-2026, propuesta por pantallas): en pantallas bajas (un PC
+// de 1280×720) la cuadrícula de libros arranca plegada tras «Buscar por libro»,
+// para que el campo y la tarjeta quepan sin desplazar.
+export default function BuscadorVersiculos({ onAgregar, showNotif, accion = "agregar", plegable = false }) {
+  const [verLibros, setVerLibros] = useState(!plegable);
   const { verbo, marca: MarcaAgua, grosor, ayuda } = ACCIONES[accion] || ACCIONES.agregar;
   // La tarjeta dice qué hace con la marca de agua; el nombre queda en aria-label.
   const { versionBiblia } = useAppContext();
@@ -126,6 +130,20 @@ export default function BuscadorVersiculos({ onAgregar, showNotif, accion = "agr
         </label>
       </form>
 
+      {plegable && (
+        <button
+          type="button"
+          data-plegar-libros
+          aria-expanded={verLibros}
+          onClick={() => setVerLibros((si) => !si)}
+          className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-dashed border-app-border text-sm font-semibold text-app-muted transition hover:border-app-agua hover:text-app-agua"
+        >
+          Buscar por libro
+          {verLibros ? <ChevronUpIcon className="h-4 w-4" aria-hidden="true" /> : <ChevronDownIcon className="h-4 w-4" aria-hidden="true" />}
+        </button>
+      )}
+      {verLibros && (
+      <>
       <div role="group" aria-label="Testamento" className="flex rounded-lg border border-app-border p-0.5">
         {[
           ["antiguo", "Antiguo"],
@@ -198,6 +216,8 @@ export default function BuscadorVersiculos({ onAgregar, showNotif, accion = "agr
           </div>
         )}
       </div>
+      </>
+      )}
 
       {/* El versículo elegido, hasta abajo: un clic lo agrega. */}
       {elegido && !elegido.error ? (

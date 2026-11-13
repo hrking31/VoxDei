@@ -2,10 +2,14 @@ import { useRef, useState } from "react";
 import { ESTILOS_POR_DEFECTO } from "../Estilos/EstilosProyeccion";
 import { AppContext } from "./AppContext";
 import { VERSION_POR_DEFECTO } from "../Biblia/versionesBiblia";
+import { esBaja, formatoDe } from "../Hooks/formatoPantalla";
 
 export function AppProvider({ children }) {
   // Estados globales iniciales
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  // celular | tableta | escritorio, y si el escritorio es bajo (Hooks/formatoPantalla.js).
+  const [formatoPantalla, setFormatoPantalla] = useState(() => formatoDe(window.innerWidth));
+  const [pantallaBaja, setPantallaBaja] = useState(() => esBaja(window.innerWidth, window.innerHeight));
   const [tickerItems, setTickerItems] = useState([]);
   const [messageItems, setMessageItems] = useState([]);
   const [velocidadTicker, setVelocidadTicker] = useState(2);
@@ -82,6 +86,10 @@ export function AppProvider({ children }) {
       value={{
         isDesktop,
         setIsDesktop,
+        formatoPantalla,
+        setFormatoPantalla,
+        pantallaBaja,
+        setPantallaBaja,
         tickerItems,
         setTickerItems,
         velocidadTicker,

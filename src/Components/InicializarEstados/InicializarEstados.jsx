@@ -23,11 +23,14 @@ import {
 import { ref, onValue } from "firebase/database";
 import { useAppContext } from "../../Components/Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext";
+import { esBaja, formatoDe } from "../Hooks/formatoPantalla";
 
 export default function InicializarEstados() {
   const { user, userData, loading } = useAuth();
   const {
     setIsDesktop,
+    setFormatoPantalla,
+    setPantallaBaja,
     setTickerItems,
     setMessageItems,
     setVisibleTitulo,
@@ -49,7 +52,11 @@ export default function InicializarEstados() {
 
   // Detectar tamaño de pantalla
   useEffect(() => {
-    const handler = () => setIsDesktop(window.innerWidth >= 1024);
+    const handler = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+      setFormatoPantalla?.(formatoDe(window.innerWidth));
+      setPantallaBaja?.(esBaja(window.innerWidth, window.innerHeight));
+    };
     window.addEventListener("resize", handler);
     return () => window.removeEventListener("resize", handler);
   }, []);

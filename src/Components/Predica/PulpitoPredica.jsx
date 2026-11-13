@@ -1,11 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeftIcon, BookmarkIcon, ChatBubbleLeftRightIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, EyeIcon, EyeSlashIcon, ListBulletIcon, PlayIcon, TagIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { ArrowLeftIcon, BookOpenIcon, BookmarkIcon, ChatBubbleLeftRightIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, EyeIcon, EyeSlashIcon, ListBulletIcon, PlayIcon, TagIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import { useTurno } from "../Hooks/useTurno.js";
-import { obtenerVersiculo } from "../FuncionesControlPredica/FuncionesControlPredica";
-import { parsearCita } from "../OrdenCulto/utilesOrden.js";
-import { librosDe, versionValida } from "../Biblia/versionesBiblia";
 import PantallaPrevia from "./PantallaPrevia.jsx";
 import BuscadorVersiculos from "./BuscadorVersiculos.jsx";
 import { useLoQueSeVe } from "./useLoQueSeVe.js";
@@ -15,7 +12,6 @@ import SelectorBiblia from "../Biblia/SelectorBiblia.jsx";
 import { apagarImagen, cambiarVisible, encenderImagen, proyectarPieza } from "./accionesPredica.js";
 import { ALINEACION_RESUMEN, cuantosItems, partesDelResumen, nivelDe, numerosDePuntos, relojDesde, resumenDePuntos, textoDePieza, textoDePunto } from "./utilesPredica.js";
 
-const callado = () => {};
 const esCampo = (el) => el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
 
 // Predicar: lo que está en el templo, lo que sigue y un botón grande
@@ -24,12 +20,22 @@ const esCampo = (el) => el && (el.tagName === "INPUT" || el.tagName === "TEXTARE
 // predicando, los interruptores de lo que se ve, «Ocultar» / «Mostrar» (antes «en negro»: apaga título,
 // texto y anuncio) y el versículo espontáneo (antes «al vuelo»), que se proyecta sin cambiar el
 // bosquejo. Cada envío pasa por exigirTurno, como en toda la app.
-export default function PulpitoPredica({ predica, compacto = false, onSalir, onTerminar }) {
+//
+// Cómo se ordena según la pantalla (12-11-2026, propuesta aprobada por el
+// usuario: https://claude.ai/artifact/TbjJUe59Na4bgcTAMn1hd2):
+//   celular     arriba la mini pantalla, sus 4 botones y «Luego»; abajo un
+//               muelle fijo al alcance del pulgar (Bosquejo, Versículo,
+//               Resumen, Anterior, Siguiente). Las tres primeras abren una hoja
+//               que nunca tapa el muelle.
+//   tableta     la mini pantalla grande; debajo el bosquejo y, al lado, Luego,
+//               el resumen, el versículo espontáneo y Terminar; el muelle abajo.
+//   escritorio  tres columnas. En una pantalla baja (`baja`), Luego y el resumen
+//               van al lado de la mini pantalla y la cuadrícula se pliega.
+export default function PulpitoPredica({ predica, compacto = false, formato = compacto ? "celular" : "escritorio", baja = false, onSalir, onTerminar }) {
   const { userData } = useAuth();
   const { exigirTurno } = useTurno();
   const {
     showNotif,
-    versionBiblia,
     visibleTitulo,
     setVisibleTitulo,
     visibleTexto,
@@ -60,10 +66,10 @@ export default function PulpitoPredica({ predica, compacto = false, onSalir, onT
   // encender el Título solo esa vez: si después lo apagan, se respeta).
   const tituloSubido = useRef(null);
   const [alVuelo, setAlVuelo] = useState(null);
-  const [cita, setCita] = useState("");
   const [inicio] = useState(() => Date.now());
   const [ahora, setAhora] = useState(() => Date.now());
-  const [verTodo, setVerTodo] = useState(false);
+  // Celular: la hoja abierta sobre el escenario ("bosquejo" | "versiculo" | "resumen").
+  const [hoja, setHoja] = useState(null);
 
   useEffect(() => {
     const reloj = setInterval(() => setAhora(Date.now()), 1000);
@@ -188,35 +194,13 @@ export default function PulpitoPredica({ predica, compacto = false, onSalir, onT
     }
   };
 
-  const proyectarAlVuelo = async (e) => {
-    e.preventDefault();
-    // TEMPORAL DHH: con la Biblia elegida (RVR1960 o DHH).
-    const version = versionValida(versionBiblia);
-    const datos = parsearCita(cita, librosDe(version));
-    if (!datos) {
-      showNotif("warning", "No reconozco esa cita. Escríbela así: Isaías 41:10");
-      return;
-    }
-    if (!exigirTurno()) return;
-    const encontrado = await obtenerVersiculo(datos.sigla, datos.capitulo, datos.versiculo, "versiculo", callado, version);
-    if (!encontrado?.texto) {
-      showNotif("error", `No encontré ${datos.cita}.`);
-      return;
-    }
-    const pieza = { id: "al-vuelo", tipo: "versiculo", contenido: { cita: datos.cita, texto: encontrado.texto, version } };
-    setAlVuelo(pieza);
-    setCita("");
-    setVerTodo(false);
-    enviar(pieza);
-  };
-
-  // Computador: el mismo buscador de Preparar (campo, cuadrícula y tarjeta);
-  // la tarjeta proyecta el versículo sin tocar el bosquejo (12-11-2026).
+  // El mismo buscador de Preparar (campo, cuadrícula y tarjeta) en todas las
+  // pantallas; la tarjeta proyecta el versículo sin tocar el bosquejo.
   const proyectarVersiculo = (pieza) => {
     if (!exigirTurno()) return false;
     const alAire = { ...pieza, id: "al-vuelo" };
     setAlVuelo(alAire);
-    setVerTodo(false);
+    setHoja(null);
     enviar(alAire);
     return true;
   };
@@ -259,7 +243,7 @@ export default function PulpitoPredica({ predica, compacto = false, onSalir, onT
           data-portada
           onClick={() => {
             mostrarPortada();
-            setVerTodo(false);
+            setHoja(null);
           }}
           aria-current={enPortada && !alVuelo ? "true" : undefined}
           className={`flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition ${
@@ -280,7 +264,7 @@ export default function PulpitoPredica({ predica, compacto = false, onSalir, onT
             type="button"
             onClick={() => {
               proyectar(i);
-              setVerTodo(false);
+              setHoja(null);
             }}
             aria-current={i === actual && !alVuelo ? "true" : undefined}
             className={`flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition ${
@@ -303,25 +287,12 @@ export default function PulpitoPredica({ predica, compacto = false, onSalir, onT
     </ol>
   );
 
-  // Celular: el campo simple (como Preparar en el celular, sin cuadrícula).
-  const alVueloForm = (
-    <form onSubmit={proyectarAlVuelo} className="flex flex-col gap-2">
-      <h3 className="text-xs font-semibold tracking-widest text-app-muted uppercase">Versículo espontáneo</h3>
-      <div className="flex items-center gap-2 rounded-xl border border-app-border bg-app-aviso pr-1.5 pl-3 focus-within:border-app-main">
-        <label className="min-w-0 flex-1">
-          <span className="sr-only">Cita para proyectar</span>
-          <input value={cita} onChange={(e) => setCita(e.target.value)} placeholder="Ej: Isaías 41:10" className="h-11 w-full bg-transparent text-sm text-app-texto outline-none" />
-        </label>
-        <button type="submit" aria-label="Proyectar cita" disabled={!cita.trim()} className="grid h-8 w-8 place-items-center rounded-lg bg-app-cita text-app-dark disabled:opacity-40">
-          <PlayIcon className="h-4 w-4" aria-hidden="true" />
-        </button>
-      </div>
-      <p className="m-0 text-xs text-app-muted">Se proyecta sin cambiar el bosquejo.</p>
-    </form>
-  );
+  // ---------- Las piezas del púlpito, que cada pantalla ordena a su modo ----------
 
-  const interruptores = (
-    <div role="group" aria-label="Qué se ve en el templo" className="flex gap-1.5">
+  // Título, Texto, Anuncio y Ocultar/Mostrar. En el celular, una fila de 4
+  // botones con el ícono encima (más fáciles de tocar); en las demás, en línea.
+  const interruptoresDe = (cuadricula) => (
+    <div role="group" aria-label="Qué se ve en el templo" className={cuadricula ? "grid grid-cols-4 gap-1.5" : "flex gap-1.5"}>
       {visibles.map((v) => (
         <button
           key={v.clave}
@@ -329,9 +300,9 @@ export default function PulpitoPredica({ predica, compacto = false, onSalir, onT
           aria-pressed={Boolean(v.valor)}
           data-visible={v.clave}
           onClick={() => cambiar(v)}
-          className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition sm:flex-none ${
-            v.valor ? v.encendido : "border-app-border text-app-muted"
-          }`}
+          className={`flex items-center justify-center rounded-full border text-xs font-semibold transition ${
+            cuadricula ? "h-12 flex-col gap-0.5 rounded-xl" : "h-10 flex-1 gap-1.5 px-3 sm:flex-none"
+          } ${v.valor ? v.encendido : "border-app-border text-app-muted"}`}
         >
           <v.icono className="h-4 w-4 shrink-0" aria-hidden="true" />
           {v.nombre}
@@ -341,7 +312,9 @@ export default function PulpitoPredica({ predica, compacto = false, onSalir, onT
         type="button"
         onClick={alternarOculto}
         data-ocultar={enNegro ? "mostrar" : "ocultar"}
-        className={`flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full border px-3 text-xs font-semibold sm:flex-none ${
+        className={`flex items-center justify-center rounded-full border text-xs font-semibold ${
+          cuadricula ? "h-12 flex-col gap-0.5 rounded-xl" : "h-10 flex-1 gap-1.5 px-3 sm:flex-none"
+        } ${
           enNegro
             ? "border-app-error bg-app-error/15 font-bold text-app-error motion-safe:animate-palpita"
             : "border-app-border bg-app-aviso text-app-texto"
@@ -356,114 +329,146 @@ export default function PulpitoPredica({ predica, compacto = false, onSalir, onT
     </div>
   );
 
-  const botones = (
-    <div className={`flex gap-3 ${compacto ? "flex-col" : ""}`}>
-      {!compacto && (
-        <button type="button" onClick={anterior} disabled={actual < 0} className="flex h-18 w-44 items-center justify-center gap-2 rounded-2xl border border-app-border bg-app-light font-semibold text-app-texto disabled:opacity-40">
-          <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
-          Anterior
-        </button>
-      )}
+  const etiqueta = (
+    <span className="flex items-center gap-2 text-xs font-semibold tracking-widest text-app-success uppercase">
+      <span aria-hidden="true" className="h-2 w-2 rounded-full bg-app-success" />
+      {etiquetaAire} · {posicion}
+    </span>
+  );
+
+  // La guía del predicador (12-11-2026, pedido del usuario): si no se ve en el
+  // templo, la mini pantalla lo dice; y copia el título y el anuncio.
+  const pantalla = (
+    <PantallaPrevia
+      pieza={enPantalla}
+      grande={formato !== "celular"}
+      etiqueta="En el templo ahora"
+      oculta={noSeVe}
+      titulo={visibleTitulo ? loQueSeVe.titulo : ""}
+      ticker={visibleTicker ? loQueSeVe.ticker : ""}
+    />
+  );
+
+  const luegoNodo = luego && (
+    <p className="m-0 flex items-center gap-3 rounded-xl border border-app-border bg-app-light px-4 py-3">
+      <span className="text-diminuto font-semibold tracking-widest text-app-muted uppercase">Luego</span>
+      <Miniatura pieza={luego} />
+      {numeros[luego.id] && <b className="text-app-main">{numeros[luego.id]}</b>}
+      <span className="min-w-0 flex-1 truncate font-semibold text-app-texto">{textoDePieza(luego)}</span>
+    </p>
+  );
+
+  const resumenNodo = puntosVistos.length > 0 && (
+    <section aria-label="Resumen de puntos vistos">
+      <button
+        type="button"
+        data-resumen
+        onClick={proyectarResumen}
+        aria-label={`Proyectar el resumen de puntos vistos${deCuantas(parteSiguiente)}`}
+        className={`group relative isolate flex w-full flex-col gap-1.5 overflow-hidden rounded-xl border px-4 py-3 text-left transition ${
+          alVuelo?.id === "resumen" ? "border-app-main bg-app-main/10" : "border-app-border bg-app-light hover:border-app-main"
+        }`}
+      >
+        {/* Marca de agua ▶ en el centro, como la tarjeta del versículo
+            (12-11-2026, pedido del usuario). */}
+        <PlayIcon
+          data-marca-agua="proyectar"
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 m-auto h-20 w-20 text-app-main/15 transition group-hover:text-app-main/25"
+        />
+        <span className="text-diminuto font-semibold tracking-widest text-app-muted uppercase">Resumen de puntos vistos</span>
+        {partes.map((parte, p) => (
+          <ul
+            key={p}
+            data-parte={p + 1}
+            aria-current={p === parteEnPantalla ? "true" : undefined}
+            className={`m-0 flex list-none flex-col gap-0.5 p-0 text-sm ${
+              // La línea entre partes se ve siempre: clara sobre el recuadro
+              // normal y dorada sobre el encendido (12-11-2026, pedido del usuario).
+              p > 0 ? `border-t border-dashed pt-1.5 ${alVuelo?.id === "resumen" ? "border-app-main/70" : "border-app-muted/60"}` : ""
+            } ${parteEnPantalla === -1 || p === parteEnPantalla ? "text-app-texto" : "text-app-muted"}`}
+          >
+            {parte.map((linea) => (
+              <li key={linea} className="truncate whitespace-pre">
+                {linea}
+              </li>
+            ))}
+          </ul>
+        ))}
+      </button>
+    </section>
+  );
+
+  const versiculoNodo = (
+    <section aria-label="Versículo espontáneo" className="flex min-h-0 flex-1 flex-col gap-2">
+      <h3 className="m-0 text-xs font-semibold tracking-widest text-app-muted uppercase">Versículo espontáneo</h3>
+      {/* Como en Preparar: el botón de las Biblias encima del buscador. */}
+      <SelectorBiblia />
+      <BuscadorVersiculos accion="proyectar" onAgregar={proyectarVersiculo} showNotif={showNotif} plegable={baja} />
+    </section>
+  );
+
+  // Que se vean como botones, no como texto (12-11-2026, pedido del usuario):
+  // el de terminar, con el verde de «predicada».
+  const terminarBoton = (
+    <button
+      type="button"
+      data-terminar-predicada
+      onClick={onTerminar}
+      className="flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-app-success bg-app-success/10 text-sm font-bold text-app-success shadow-sm transition hover:bg-app-success/20"
+    >
+      <CheckIcon className="h-5 w-5" aria-hidden="true" />
+      Terminar y marcar como predicada
+    </button>
+  );
+  const volverBoton = (
+    <button
+      type="button"
+      data-volver-preparar
+      onClick={onSalir}
+      className="flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-app-border bg-app-aviso text-sm font-semibold text-app-texto shadow-sm transition hover:border-app-texto"
+    >
+      <ArrowLeftIcon className="h-5 w-5" aria-hidden="true" />
+      Volver a preparar
+    </button>
+  );
+
+  // Anterior y Siguiente: el tamaño cambia con la pantalla.
+  const avanzar = (alto) => (
+    <div className="flex gap-3">
+      <button
+        type="button"
+        onClick={anterior}
+        disabled={actual < 0}
+        className={`flex shrink-0 items-center justify-center gap-2 rounded-2xl border border-app-border bg-app-light font-semibold text-app-texto disabled:opacity-40 ${alto.anterior}`}
+      >
+        <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+        Anterior
+      </button>
       <button
         type="button"
         onClick={siguiente}
         disabled={actual >= piezas.length - 1}
-        className={`flex flex-1 items-center justify-center gap-3 rounded-2xl bg-app-main font-bold text-app-dark shadow-lg disabled:opacity-40 ${compacto ? "h-20 text-2xl" : "h-18 text-xl"}`}
+        className={`flex flex-1 items-center justify-center gap-3 rounded-2xl bg-app-main font-bold text-app-dark shadow-lg disabled:opacity-40 ${alto.siguiente}`}
       >
         {actual < 0 && !enPortada ? "Empezar" : "Siguiente"}
         <ChevronRightIcon className="h-6 w-6" aria-hidden="true" />
       </button>
-      {compacto && (
-        <div className="flex gap-2">
-          <button type="button" onClick={anterior} disabled={actual < 0} className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-xl border border-app-border text-sm font-semibold text-app-texto disabled:opacity-40">
-            <ChevronLeftIcon className="h-4 w-4" aria-hidden="true" />
-            Anterior
-          </button>
-          <button type="button" onClick={() => setVerTodo(true)} className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-xl border border-app-border text-sm font-semibold text-app-texto">
-            <ListBulletIcon className="h-4 w-4" aria-hidden="true" />
-            Todo el bosquejo
-          </button>
-        </div>
-      )}
     </div>
   );
 
-  const escenario = (
-    <>
-      <div className="flex items-center justify-between gap-2">
-        <span className="flex items-center gap-2 text-xs font-semibold tracking-widest text-app-success uppercase">
-          <span aria-hidden="true" className="h-2 w-2 rounded-full bg-app-success" />
-          {etiquetaAire} · {posicion}
-        </span>
-        {!compacto && interruptores}
-      </div>
-      {/* La guía del predicador (12-11-2026, pedido del usuario): si no se
-          ve en el templo, la mini pantalla lo dice. */}
-      <PantallaPrevia
-        pieza={enPantalla}
-        grande={!compacto}
-        etiqueta="En el templo ahora"
-        oculta={noSeVe}
-        titulo={visibleTitulo ? loQueSeVe.titulo : ""}
-        ticker={visibleTicker ? loQueSeVe.ticker : ""}
-      />
-      {compacto && interruptores}
-      {luego && (
-        <p className="m-0 flex items-center gap-3 rounded-xl border border-app-border bg-app-light px-4 py-3">
-          <span className="text-diminuto font-semibold tracking-widest text-app-muted uppercase">Luego</span>
-          <Miniatura pieza={luego} />
-          {numeros[luego.id] && <b className="text-app-main">{numeros[luego.id]}</b>}
-          <span className="min-w-0 flex-1 truncate font-semibold text-app-texto">{textoDePieza(luego)}</span>
-        </p>
-      )}
-      {puntosVistos.length > 0 && (
-        <section aria-label="Resumen de puntos vistos">
-          <button
-            type="button"
-            data-resumen
-            onClick={proyectarResumen}
-            aria-label={`Proyectar el resumen de puntos vistos${deCuantas(parteSiguiente)}`}
-            className={`group relative isolate flex w-full flex-col gap-1.5 overflow-hidden rounded-xl border px-4 py-3 text-left transition ${
-              alVuelo?.id === "resumen" ? "border-app-main bg-app-main/10" : "border-app-border bg-app-light hover:border-app-main"
-            }`}
-          >
-            {/* Marca de agua ▶ en el centro, como la tarjeta del versículo
-                (12-11-2026, pedido del usuario). */}
-            <PlayIcon
-              data-marca-agua="proyectar"
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 -z-10 m-auto h-20 w-20 text-app-main/15 transition group-hover:text-app-main/25"
-            />
-            <span className="text-diminuto font-semibold tracking-widest text-app-muted uppercase">
-              Resumen de puntos vistos
-            </span>
-            {partes.map((parte, p) => (
-              <ul
-                key={p}
-                data-parte={p + 1}
-                aria-current={p === parteEnPantalla ? "true" : undefined}
-                className={`m-0 flex list-none flex-col gap-0.5 p-0 text-sm ${
-                  // La línea entre partes se ve siempre: clara sobre el recuadro
-                  // normal y dorada sobre el encendido (12-11-2026, pedido del usuario).
-                  p > 0 ? `border-t border-dashed pt-1.5 ${alVuelo?.id === "resumen" ? "border-app-main/70" : "border-app-muted/60"}` : ""
-                } ${
-                  parteEnPantalla === -1 || p === parteEnPantalla ? "text-app-texto" : "text-app-muted"
-                }`}
-              >
-                {parte.map((linea) => (
-                  <li key={linea} className="truncate whitespace-pre">
-                    {linea}
-                  </li>
-                ))}
-              </ul>
-            ))}
-          </button>
-        </section>
-      )}
-    </>
+  const reloj_ = (
+    <span className="font-semibold text-app-muted tabular-nums">{reloj}</span>
   );
 
-  if (compacto) {
+  // ---------- Celular ----------
+  if (formato === "celular") {
+    const PESTANAS = [
+      { clave: "bosquejo", nombre: "Bosquejo", icono: ListBulletIcon, tono: "text-app-texto" },
+      { clave: "versiculo", nombre: "Versículo", icono: BookOpenIcon, tono: "text-app-agua" },
+      { clave: "resumen", nombre: "Resumen", icono: PlayIcon, tono: "text-app-main" },
+    ];
+    const nombreHoja = PESTANAS.find((p) => p.clave === hoja)?.nombre;
     return (
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="flex h-14 shrink-0 items-center gap-2 px-2">
@@ -471,35 +476,111 @@ export default function PulpitoPredica({ predica, compacto = false, onSalir, onT
             <XMarkIcon className="h-5 w-5" aria-hidden="true" />
           </button>
           <b className="min-w-0 flex-1 truncate text-app-texto">{predica.titulo}</b>
-          <span className="pr-2 font-semibold text-app-muted tabular-nums">{reloj}</span>
+          <span className="pr-2 text-lg">{reloj_}</span>
         </div>
-        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3.5">{escenario}</div>
-        <div className="shrink-0 px-3.5 pt-2 pb-3">{botones}</div>
 
-        {verTodo && (
-          <div role="dialog" aria-modal="true" aria-label="Todo el bosquejo" className="fixed inset-0 z-40 flex flex-col bg-app-velo" onClick={() => setVerTodo(false)}>
-            <div className="mt-auto flex max-h-4/5 flex-col gap-3 rounded-t-3xl bg-app-dark p-4" onClick={(e) => e.stopPropagation()}>
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          <div className="scrollbar-custom flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3.5 pb-3">
+            {etiqueta}
+            {pantalla}
+            {interruptoresDe(true)}
+            {luegoNodo}
+          </div>
+          {/* La hoja: se abre sobre el escenario y nunca tapa el muelle. */}
+          {hoja && (
+            <div
+              role="dialog"
+              aria-label={nombreHoja}
+              data-hoja={hoja}
+              className="absolute inset-0 z-30 flex flex-col gap-3 rounded-t-3xl border border-b-0 border-app-border bg-app-aviso p-4 shadow-2xl"
+            >
               <div className="flex items-center justify-between">
-                <b className="text-app-texto">Todo el bosquejo</b>
-                <button type="button" onClick={() => setVerTodo(false)} aria-label="Cerrar" className="grid h-10 w-10 place-items-center rounded-xl text-app-muted">
+                <b className="text-app-texto">{nombreHoja}</b>
+                <button type="button" onClick={() => setHoja(null)} aria-label="Cerrar" className="grid h-10 w-10 place-items-center rounded-xl text-app-muted">
                   <XMarkIcon className="h-5 w-5" aria-hidden="true" />
                 </button>
               </div>
-              <div className="scrollbar-custom min-h-0 flex-1 overflow-y-auto">{lista}</div>
-              {alVueloForm}
-              <button type="button" onClick={onTerminar} className="h-12 rounded-xl border border-app-border text-sm font-semibold text-app-texto">
-                Terminar y marcar como predicada
-              </button>
+              <div className="scrollbar-custom flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+                {hoja === "bosquejo" && (
+                  <>
+                    {lista}
+                    {/* Lo poco usado, lejos de Siguiente: al final del bosquejo. */}
+                    {terminarBoton}
+                  </>
+                )}
+                {hoja === "versiculo" && versiculoNodo}
+                {hoja === "resumen" && (resumenNodo || <p className="m-0 py-6 text-center text-sm text-app-muted">El resumen aparece cuando ya pasó algún punto.</p>)}
+              </div>
             </div>
+          )}
+        </div>
+
+        {/* El muelle: todo lo de predicar, al alcance del pulgar. */}
+        <div data-muelle className="flex shrink-0 flex-col gap-2.5 border-t border-app-border bg-app-light px-3.5 pt-3 pb-4">
+          <div role="group" aria-label="Herramientas" className="flex gap-1.5">
+            {PESTANAS.map(({ clave, nombre, icono: Icono, tono }) => (
+              <button
+                key={clave}
+                type="button"
+                data-pestana={clave}
+                aria-pressed={hoja === clave}
+                onClick={() => setHoja((abierta) => (abierta === clave ? null : clave))}
+                className={`flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border text-sm font-semibold transition ${tono} ${
+                  hoja === clave ? "border-current bg-app-dark" : "border-app-border bg-app-dark/40"
+                }`}
+              >
+                <Icono className="h-4 w-4" aria-hidden="true" />
+                {nombre}
+              </button>
+            ))}
           </div>
-        )}
+          {avanzar({ anterior: "h-19 w-28 text-base", siguiente: "h-19 text-2xl" })}
+        </div>
       </div>
     );
   }
 
+  // ---------- Tableta (iPad mini de pie) ----------
+  if (formato === "tableta") {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex h-15 shrink-0 items-center gap-2.5 px-3.5">
+          <button type="button" onClick={onSalir} aria-label="Salir del modo predicar" className="grid h-11 w-11 place-items-center rounded-xl border border-app-border text-app-texto">
+            <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+          </button>
+          <b className="min-w-0 flex-1 truncate text-lg text-app-texto">{predica.titulo}</b>
+          <span data-reloj className="text-2xl">{reloj_}</span>
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col gap-3 px-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            {etiqueta}
+            {interruptoresDe(false)}
+          </div>
+          {pantalla}
+          <div className="flex min-h-0 flex-1 gap-3.5 pb-3">
+            <aside aria-label="Bosquejo" className="flex min-w-0 flex-1 flex-col gap-1.5 rounded-2xl border border-app-border bg-app-light p-2.5">
+              <span className="px-1.5 text-diminuto font-semibold tracking-widest text-app-muted uppercase">Bosquejo · toca uno para proyectarlo</span>
+              <div className="scrollbar-custom min-h-0 flex-1 overflow-y-auto">{lista}</div>
+            </aside>
+            <div className="scrollbar-custom flex w-75 shrink-0 flex-col gap-2.5 overflow-y-auto">
+              {luegoNodo}
+              {resumenNodo}
+              {versiculoNodo}
+              {terminarBoton}
+            </div>
+          </div>
+        </div>
+        <div data-muelle className="shrink-0 border-t border-app-border bg-app-light px-5 pt-3 pb-5">
+          {avanzar({ anterior: "h-20 w-50 text-lg", siguiente: "h-20 text-3xl" })}
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- Escritorio: tres columnas ----------
   return (
     <div className="flex min-h-0 flex-1">
-      <aside aria-label="Bosquejo" className="flex w-80 shrink-0 flex-col gap-3 border-r border-app-border bg-app-light p-4">
+      <aside aria-label="Bosquejo" className={`flex shrink-0 flex-col gap-3 border-r border-app-border bg-app-light ${baja ? "w-60 p-3" : "w-80 p-4"}`}>
         <div className="flex justify-between text-xs text-app-muted">
           <span>{actual >= 0 ? `Ítem ${posicion}` : posicion}</span>
           <span>Toca uno para proyectarlo</span>
@@ -510,11 +591,30 @@ export default function PulpitoPredica({ predica, compacto = false, onSalir, onT
         <div className="scrollbar-custom min-h-0 flex-1 overflow-y-auto">{lista}</div>
       </aside>
 
-      <main className="flex min-w-0 flex-1 flex-col gap-4 overflow-y-auto px-8 py-6">
+      <main className={`flex min-w-0 flex-1 flex-col overflow-y-auto ${baja ? "gap-3 px-5 py-3.5" : "gap-4 px-8 py-6"}`}>
         <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4">
-          {escenario}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            {etiqueta}
+            {interruptoresDe(false)}
+          </div>
+          {baja ? (
+            // Pantalla baja: Luego y el resumen al lado, para que todo quepa.
+            <div data-escenario-bajo className="flex min-h-0 gap-3">
+              <div className="min-w-0 flex-1">{pantalla}</div>
+              <div className="flex w-56 shrink-0 flex-col gap-2.5">
+                {luegoNodo}
+                {resumenNodo}
+              </div>
+            </div>
+          ) : (
+            <>
+              {pantalla}
+              {luegoNodo}
+              {resumenNodo}
+            </>
+          )}
           <div className="flex-1" />
-          {botones}
+          {avanzar(baja ? { anterior: "h-16 w-44", siguiente: "h-16 text-xl" } : { anterior: "h-18 w-44", siguiente: "h-18 text-xl" })}
           <p className="m-0 text-center text-xs text-app-muted">También con las flechas del teclado o la barra espaciadora (sirve un control de presentaciones).</p>
         </div>
       </main>
@@ -532,32 +632,9 @@ export default function PulpitoPredica({ predica, compacto = false, onSalir, onT
           {reloj}
           <span className="self-end pb-1 text-xs font-normal text-app-muted">predicando</span>
         </p>
-        <section aria-label="Versículo espontáneo" className="flex min-h-0 flex-1 flex-col gap-2">
-          <h3 className="m-0 text-xs font-semibold tracking-widest text-app-muted uppercase">Versículo espontáneo</h3>
-          {/* Como en Preparar: el botón de las Biblias encima del buscador. */}
-          <SelectorBiblia />
-          <BuscadorVersiculos accion="proyectar" onAgregar={proyectarVersiculo} showNotif={showNotif} />
-        </section>
-        {/* Que se vean como botones, no como texto (12-11-2026, pedido del
-            usuario): el de terminar, con el verde de «predicada». */}
-        <button
-          type="button"
-          data-terminar-predicada
-          onClick={onTerminar}
-          className="flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-app-success bg-app-success/10 text-sm font-bold text-app-success shadow-sm transition hover:bg-app-success/20"
-        >
-          <CheckIcon className="h-5 w-5" aria-hidden="true" />
-          Terminar y marcar como predicada
-        </button>
-        <button
-          type="button"
-          data-volver-preparar
-          onClick={onSalir}
-          className="flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-app-border bg-app-aviso text-sm font-semibold text-app-texto shadow-sm transition hover:border-app-texto"
-        >
-          <ArrowLeftIcon className="h-5 w-5" aria-hidden="true" />
-          Volver a preparar
-        </button>
+        {versiculoNodo}
+        {terminarBoton}
+        {volverBoton}
       </aside>
     </div>
   );

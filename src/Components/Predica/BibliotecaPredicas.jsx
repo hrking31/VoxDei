@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { MagnifyingGlassIcon, PlayIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { ChevronDoubleLeftIcon, MagnifyingGlassIcon, PlayIcon, PlusIcon } from "@heroicons/react/24/solid";
 import CalendarioPredicas from "./CalendarioPredicas.jsx";
 import {
   ESTADOS,
@@ -28,7 +28,7 @@ const FILTROS = [
 // (`onElegirFecha`), que se crea al escribir. Celular: lo marca y debajo
 // ofrece «Crear para este día» (`onNueva`). Nada se crea con solo tocar
 // (12-11-2026, pedido del usuario).
-export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNueva, onPredicar, fechaVacia = null, onElegirFecha, compacta = false }) {
+export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNueva, onPredicar, fechaVacia = null, onElegirFecha, onPlegar, compacta = false }) {
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("todas");
   const [marcada, setMarcada] = useState(null); // celular: el día tocado
@@ -118,7 +118,15 @@ export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNue
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-lg font-bold text-app-texto">Mis prédicas</h2>
+        <h2 className="flex items-center gap-1 text-lg font-bold text-app-texto">
+          {/* Computador: se pliega a una franja para dar lugar al bosquejo. */}
+          {onPlegar && (
+            <button type="button" onClick={onPlegar} aria-label="Plegar Mis prédicas" title="Plegar Mis prédicas" className="grid h-8 w-8 place-items-center rounded-lg text-app-muted hover:text-app-main">
+              <ChevronDoubleLeftIcon className="h-4 w-4" aria-hidden="true" />
+            </button>
+          )}
+          Mis prédicas
+        </h2>
         {/* Computador: la entrada al púlpito de la abierta (12-11-2026, pedido
             del usuario; antes aquí iba «Nueva»: la nueva es la vacía que se ve
             al entrar, y antes «Predicar» iba encima del título). */}

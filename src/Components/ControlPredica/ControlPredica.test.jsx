@@ -1535,3 +1535,166 @@ function todayPlus(dias) {
   d.setDate(d.getDate() + dias);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
+
+// ---------- Por pantalla (12-11-2026, propuesta aprobada por el usuario) ----------
+
+describe("celular: Predicar con el muelle al alcance del pulgar", () => {
+  const alPulpito = () => {
+    abrir({ isDesktop: false });
+    fireEvent.click(boton("Preparar"));
+    fireEvent.click(boton("Predicar"));
+  };
+
+  it("abajo, fijo: Bosquejo, Versículo, Resumen, Anterior y Siguiente; arriba, los 4 botones en cuadrícula", () => {
+    alPulpito();
+    const muelle = document.querySelector("[data-muelle]");
+    expect([...muelle.querySelectorAll("[data-pestana]")].map((b) => b.textContent)).toEqual(["Bosquejo", "Versículo", "Resumen"]);
+    expect(within(muelle).getByRole("button", { name: /Empezar/ })).toBeTruthy();
+    expect(within(muelle).getByRole("button", { name: /Anterior/ })).toBeTruthy();
+    const interruptores = screen.getByRole("group", { name: "Qué se ve en el templo" });
+    expect(interruptores.className).toContain("grid-cols-4");
+    expect(interruptores.querySelectorAll("button")).toHaveLength(4);
+  });
+
+  it("la hoja se abre sobre el escenario y el muelle sigue a la vista; Terminar va al final del bosquejo", () => {
+    alPulpito();
+    fireEvent.click(document.querySelector('[data-pestana="bosquejo"]'));
+    const hoja = screen.getByRole("dialog", { name: "Bosquejo" });
+    expect(within(hoja).getByText("La fe que se atreve")).toBeTruthy();
+    expect(within(hoja).getByRole("button", { name: /Terminar y marcar como predicada/ })).toBeTruthy();
+    // El muelle no queda dentro de la hoja: Siguiente sigue a mano.
+    expect(hoja.contains(document.querySelector("[data-muelle]"))).toBe(false);
+    expect(within(document.querySelector("[data-muelle]")).getByRole("button", { name: /Empezar/ })).toBeTruthy();
+    // Otra pestaña cambia la hoja; la misma la cierra.
+    fireEvent.click(document.querySelector('[data-pestana="versiculo"]'));
+    const versiculo = screen.getByRole("dialog", { name: "Versículo" });
+    expect(within(versiculo).getByLabelText("Buscar versículo")).toBeTruthy();
+    fireEvent.click(document.querySelector('[data-pestana="versiculo"]'));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    fireEvent.click(document.querySelector('[data-pestana="resumen"]'));
+    expect(screen.getByRole("dialog", { name: "Resumen" }).textContent).toContain("cuando ya pasó algún punto");
+  });
+
+  it("tocar un ítem del bosquejo lo proyecta y cierra la hoja", async () => {
+    alPulpito();
+    fireEvent.click(document.querySelector('[data-pestana="bosquejo"]'));
+    fireEvent.click(within(screen.getByRole("dialog", { name: "Bosquejo" })).getByText("La fe ve lo invisible"));
+    await waitFor(() => expect(fb.proyectado.at(-1)?.datos.text).toBe("I. La fe ve lo invisible"));
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+});
+
+describe("celular: Preparar con todo a mano", () => {
+  const alBosquejo = () => {
+    abrir({ isDesktop: false });
+    fireEvent.click(boton("Preparar"));
+  };
+
+  it("el menú ⋯ trae Duplicar, WhatsApp, Borrar y la Biblia (antes faltaban en el celular)", async () => {
+    alBosquejo();
+    fireEvent.click(boton("Más: Duplicar, Borrar, WhatsApp, Biblia"));
+    const menu = screen.getByRole("menu", { name: "Más" });
+    expect(within(menu).getByRole("button", { name: /Duplicar/ })).toBeTruthy();
+    expect(within(menu).getByTitle("Compartir por WhatsApp")).toBeTruthy();
+    expect(within(menu).getByRole("button", { name: /Borrar/ })).toBeTruthy();
+    expect(within(menu).getByRole("group", { name: "Biblia" })).toBeTruthy();
+    fireEvent.click(within(menu).getByRole("button", { name: /Duplicar/ }));
+    await waitFor(() => expect(fb.creados).toHaveLength(1));
+    expect(screen.queryByRole("menu", { name: "Más" })).toBeNull();
+  });
+
+  it("«Ver» muestra el ítem en la mini pantalla, el punto con su número", () => {
+    alBosquejo();
+    fireEvent.click(document.querySelector('[data-pieza="titulo"] button'));
+    fireEvent.click(boton("Ver en la mini pantalla"));
+    const vista = screen.getByRole("dialog", { name: "Así se verá en el templo" });
+    expect(vista.textContent).toContain("I. La fe ve lo invisible");
+    fireEvent.click(within(vista).getByRole("button", { name: "Cerrar" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("abajo, Punto (con su numeración) y Versículo, que abre el buscador y agrega al final", async () => {
+    alBosquejo();
+    expect(screen.getByRole("button", { name: /Numeración de los puntos/ })).toBeTruthy();
+    fireEvent.click(document.querySelector("[data-abrir-versiculos]"));
+    const hoja = screen.getByRole("dialog", { name: "Versículos" });
+    fireEvent.change(within(hoja).getByLabelText("Buscar versículo"), { target: { value: "Juan 3 16" } });
+    fireEvent.click(await within(hoja).findByRole("button", { name: "Agregar Juan 3:16" }));
+    expect(screen.queryByRole("dialog", { name: "Versículos" })).toBeNull();
+    await waitFor(() => expect(fb.guardados.at(-1)?.datos.piezas.at(-1)).toMatchObject({ tipo: "versiculo", contenido: { cita: "Juan 3:16" } }), { timeout: 3000 });
+  });
+});
+
+describe("tableta (iPad mini de pie)", () => {
+  const tableta = () => abrir({ isDesktop: false, app: { formatoPantalla: "tableta" } });
+
+  it("arranca con el bosquejo vacío a todo el ancho; Mis prédicas en un cajón; los versículos en un panel", () => {
+    tableta();
+    expect(screen.getByLabelText("Título de la prédica").value).toBe("");
+    expect(screen.queryByRole("complementary", { name: "Mis prédicas" })).toBeNull();
+    fireEvent.click(document.querySelector("[data-abrir-cajon]"));
+    const cajon = screen.getByRole("complementary", { name: "Mis prédicas" });
+    fireEvent.click(within(cajon).getByText("La fe que se atreve"));
+    expect(screen.queryByRole("complementary", { name: "Mis prédicas" })).toBeNull();
+    expect(screen.getByLabelText("Título de la prédica").value).toBe("La fe que se atreve");
+    fireEvent.click(document.querySelector("[data-abrir-versiculos]"));
+    const panel = screen.getByRole("complementary", { name: "Versículos" });
+    expect(within(panel).getByLabelText("Buscar versículo")).toBeTruthy();
+    expect(within(panel).getByRole("figure")).toBeTruthy(); // la vista previa
+    // La barra de abajo completa, como en el computador.
+    expect(screen.getByRole("group", { name: "Agregar al bosquejo" })).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Cambios" })).toBeTruthy();
+  });
+
+  it("Predicar: la mini pantalla grande, el bosquejo y al lado el versículo y Terminar; el muelle abajo", () => {
+    tableta();
+    fireEvent.click(document.querySelector("[data-abrir-cajon]"));
+    fireEvent.click(within(screen.getByRole("complementary", { name: "Mis prédicas" })).getByText("La fe que se atreve"));
+    fireEvent.click(boton("Predicar"));
+    expect(screen.getByRole("complementary", { name: "Bosquejo" })).toBeTruthy();
+    expect(screen.getByRole("region", { name: "Versículo espontáneo" })).toBeTruthy();
+    expect(document.querySelector("[data-terminar-predicada]")).not.toBeNull();
+    expect(within(document.querySelector("[data-muelle]")).getByRole("button", { name: /Empezar/ })).toBeTruthy();
+    expect(document.querySelector("[data-franja-turno]")).not.toBeNull();
+  });
+});
+
+describe("computador con pantalla baja (1280×720)", () => {
+  const bajo = () => abrir({ app: { pantallaBaja: true } });
+
+  it("Mis prédicas arranca plegada en una franja, con abrir y Predicar; se puede volver a plegar", () => {
+    bajo();
+    const plegada = document.querySelector("[data-mis-plegada]");
+    expect(within(plegada).getByRole("button", { name: "Predicar" })).toBeTruthy();
+    fireEvent.click(within(plegada).getByRole("button", { name: "Abrir Mis prédicas" }));
+    expect(document.querySelector("[data-mis-plegada]")).toBeNull();
+    expect(screen.getByText("La fe que se atreve")).toBeTruthy();
+    fireEvent.click(boton("Plegar Mis prédicas"));
+    expect(document.querySelector("[data-mis-plegada]")).not.toBeNull();
+  });
+
+  it("la cuadrícula de libros arranca plegada tras «Buscar por libro»", () => {
+    bajo();
+    const derecha = screen.getByRole("complementary", { name: "Así se verá en el templo" });
+    expect(derecha.querySelector("[data-cuadricula-biblia]")).toBeNull();
+    fireEvent.click(derecha.querySelector("[data-plegar-libros]"));
+    expect(derecha.querySelector("[data-cuadricula-biblia]")).not.toBeNull();
+  });
+
+  it("al predicar, Luego y el resumen van al lado de la mini pantalla para que todo quepa", () => {
+    bajo();
+    fireEvent.click(boton("Abrir Mis prédicas"));
+    fireEvent.click(screen.getByText("La fe que se atreve"));
+    fireEvent.click(within(screen.getByRole("complementary", { name: "Mis prédicas" })).getByRole("button", { name: "Predicar" }));
+    fireEvent.click(boton(/Empezar$/));
+    const escenario = document.querySelector("[data-escenario-bajo]");
+    expect(escenario.querySelector("[data-pantalla-previa]")).not.toBeNull();
+    expect(escenario.textContent).toContain("Luego");
+  });
+
+  it("con pantalla alta, nada se pliega", () => {
+    abrir();
+    expect(document.querySelector("[data-mis-plegada]")).toBeNull();
+    expect(document.querySelector("[data-plegar-libros]")).toBeNull();
+  });
+});

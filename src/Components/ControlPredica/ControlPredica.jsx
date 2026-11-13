@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { DocumentDuplicateIcon, TrashIcon } from "@heroicons/react/24/solid";
+import { Bars3Icon, BookOpenIcon, DocumentDuplicateIcon, PlayIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { useFormato } from "../Hooks/formatoPantalla";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
@@ -41,7 +42,17 @@ const tieneAlgo = (p) =>
 // lado; en el celular y el iPad vertical, una pantalla a la vez.
 export default function ControlPredica() {
   const { userData } = useAuth();
-  const { isDesktop, showNotif, confirmAction } = useAppContext();
+  const { showNotif, confirmAction } = useAppContext();
+  // celular | tableta | escritorio, y si el escritorio es bajo (12-11-2026,
+  // propuesta por pantallas: https://claude.ai/artifact/TbjJUe59Na4bgcTAMn1hd2).
+  const { formato, baja } = useFormato();
+  const celular = formato === "celular";
+  const tableta = formato === "tableta";
+  // Tableta: el cajón de Mis prédicas y el panel de versículos.
+  const [cajonAbierto, setCajonAbierto] = useState(false);
+  const [versiculosAbierto, setVersiculosAbierto] = useState(false);
+  // Escritorio: Mis prédicas plegada a una franja (arranca plegada si la pantalla es baja).
+  const [misPlegada, setMisPlegada] = useState(baja);
   const groupId = userData?.groupId;
   const predicas = usePredicas(groupId);
 
@@ -180,7 +191,7 @@ export default function ControlPredica() {
   // Dentro de un campo de texto manda el del navegador (deshace en el campo).
   const atajos = useRef(null);
   atajos.current = { deshacer, rehacer };
-  const conAtajos = isDesktop && Boolean(borrador) && modo === "preparar";
+  const conAtajos = !celular && Boolean(borrador) && modo === "preparar";
   useEffect(() => {
     if (!conAtajos) return undefined;
     const alTeclear = (e) => {
@@ -320,9 +331,17 @@ export default function ControlPredica() {
   const listado = (predicas || []).map((p) => (borrador && p.id === borrador.id ? borrador : p));
 
   // En el computador, sin prédica abierta (ni una cargándose), la vacía.
-  const conVacia = isDesktop && !abiertaId && !borrador;
+  const conVacia = !celular && !abiertaId && !borrador;
   const enEditor = borrador || (conVacia ? vacia : null);
   const piezaElegida = enEditor?.piezas.find((p) => p.id === seleccionada) || null;
+
+  // El buscador de versículos de la columna derecha (computador, 11-11-2026; también la hoja del celular y el panel de la tableta):
+  // agrega el versículo al final (12-11-2026: antes, debajo del elegido).
+  const agregarVersiculo = (pieza) => {
+    const cambio = (actual) => ({ piezas: [...actual.piezas, pieza] });
+    (borrador ? cambiar : cambiarVacia)(cambio);
+    setSeleccionada(pieza.id);
+  };
 
   const editor = enEditor && (
     <EditorPredica
@@ -330,7 +349,7 @@ export default function ControlPredica() {
       onCambiar={borrador ? cambiar : cambiarVacia}
       seleccionada={seleccionada}
       onSeleccionar={setSeleccionada}
-      compacto={!isDesktop}
+      compacto={celular}
       onVolver={cerrar}
       onPredicar={predicar}
       onTerminar={marcarTerminada}
@@ -341,6 +360,31 @@ export default function ControlPredica() {
         setEnfocarVacia(false);
       }}
       historial={controlHistorial}
+      onAgregarVersiculo={celular ? agregarVersiculo : null}
+      menuMas={
+        // Celular: lo que en las otras pantallas va en la barra de abajo.
+        celular && (
+          <>
+            <button type="button" data-cierra-menu onClick={duplicar} disabled={!borrador} className="flex h-11 items-center gap-2 rounded-xl border border-app-border px-3 text-sm font-semibold text-app-texto disabled:opacity-30">
+              <DocumentDuplicateIcon className="h-5 w-5" aria-hidden="true" />
+              Duplicar
+            </button>
+            <WhatsAppButton
+              message={enEditor.piezas}
+              title="Compartir por WhatsApp"
+              className="flex h-11 items-center gap-2 rounded-xl border border-app-border px-3 text-sm font-semibold text-app-texto"
+            >
+              WhatsApp
+            </WhatsAppButton>
+            <button type="button" data-cierra-menu onClick={borrar} disabled={!borrador} className="flex h-11 items-center gap-2 rounded-xl border border-app-border px-3 text-sm font-semibold text-app-error disabled:opacity-30">
+              <TrashIcon className="h-5 w-5" aria-hidden="true" />
+              Borrar
+            </button>
+            <span className="h-px bg-app-border" />
+            <SelectorBiblia />
+          </>
+        )
+      }
       acciones={
         // Tres tramos en la barra de abajo (12-11-2026, pedido del usuario):
         // [Punto Mensaje Imagen] │ [↶ ↷ Borrar Duplicar] │ [WhatsApp].
@@ -374,19 +418,12 @@ export default function ControlPredica() {
   const pulpito = borrador && (
     <PulpitoPredica
       predica={{ ...borrador, piezas: borrador.piezas.filter(piezaCompleta) }}
-      compacto={!isDesktop}
+      formato={formato}
+      baja={baja}
       onSalir={() => setModo("preparar")}
       onTerminar={terminar}
     />
   );
-
-  // El buscador de versículos de la columna derecha (computador, 11-11-2026):
-  // agrega el versículo al final (12-11-2026: antes, debajo del elegido).
-  const agregarVersiculo = (pieza) => {
-    const cambio = (actual) => ({ piezas: [...actual.piezas, pieza] });
-    (borrador ? cambiar : cambiarVacia)(cambio);
-    setSeleccionada(pieza.id);
-  };
 
   // La franja del turno solo al predicar, que es cuando se envía a la pantalla;
   // en Mis prédicas y Preparar no hace falta (pedido del usuario, 11-11-2026).
@@ -400,8 +437,8 @@ export default function ControlPredica() {
     );
   }
 
-  // ---------- Celular y iPad vertical: una pantalla a la vez ----------
-  if (!isDesktop) {
+  // ---------- Celular: una pantalla a la vez ----------
+  if (celular) {
     return (
       <div className="h-pantalla flex flex-col bg-app-dark">
         {predicando && <FranjaTurno />}
@@ -419,6 +456,84 @@ export default function ControlPredica() {
     );
   }
 
+  // ---------- Tableta (iPad mini de pie): el bosquejo a todo el ancho ----------
+  // Mis prédicas en un cajón desde la izquierda y los versículos en un panel
+  // que se desliza desde la derecha, encima del bosquejo.
+  if (tableta) {
+    const abrirDesdeCajon = (id, enModo) => {
+      setCajonAbierto(false);
+      abrir(id, enModo);
+    };
+    return (
+      <div className="h-pantalla flex flex-col bg-app-dark">
+        {predicando && <FranjaTurno />}
+        {predicando ? (
+          pulpito
+        ) : (
+          <div className="relative flex min-h-0 flex-1 flex-col">
+            <div className="flex h-16 shrink-0 items-center gap-2 border-b border-app-main bg-app-light px-3.5">
+              <button type="button" data-abrir-cajon onClick={() => setCajonAbierto(true)} className="flex h-11 items-center gap-2 rounded-xl border border-app-border px-3.5 text-sm font-semibold text-app-texto">
+                <Bars3Icon className="h-5 w-5" aria-hidden="true" />
+                Mis prédicas
+              </button>
+              <span className="flex-1" />
+              {enEditor && (
+                <button
+                  type="button"
+                  data-abrir-versiculos
+                  aria-pressed={versiculosAbierto}
+                  onClick={() => setVersiculosAbierto((si) => !si)}
+                  className={`flex h-11 items-center gap-2 rounded-xl border px-3.5 text-sm font-semibold transition ${
+                    versiculosAbierto ? "border-app-agua bg-app-agua/15 text-app-agua" : "border-app-border text-app-texto"
+                  }`}
+                >
+                  <BookOpenIcon className="h-5 w-5" aria-hidden="true" />
+                  Versículos
+                </button>
+              )}
+              <button type="button" onClick={predicar} className="flex h-11 items-center gap-2 rounded-xl bg-app-main px-4.5 text-sm font-extrabold text-app-dark">
+                <PlayIcon className="h-4 w-4" aria-hidden="true" />
+                Predicar
+              </button>
+            </div>
+            <main className="flex min-h-0 flex-1 flex-col">{editor}</main>
+
+            {cajonAbierto && (
+              <div className="absolute inset-0 z-30 flex bg-app-velo" onClick={() => setCajonAbierto(false)}>
+                <aside aria-label="Mis prédicas" className="flex w-80 flex-col border-r border-app-border bg-app-light p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                  <BibliotecaPredicas
+                    predicas={listado}
+                    abiertaId={abiertaId}
+                    onAbrir={abrirDesdeCajon}
+                    onPredicar={predicar}
+                    fechaVacia={conVacia ? vacia.fecha : null}
+                    onElegirFecha={(fecha) => {
+                      setCajonAbierto(false);
+                      elegirFecha(fecha);
+                    }}
+                  />
+                </aside>
+              </div>
+            )}
+            {versiculosAbierto && enEditor && (
+              <aside aria-label="Versículos" className="absolute top-16 right-0 bottom-0 z-20 flex w-96 flex-col gap-3 border-l border-app-border bg-app-light p-4 shadow-2xl">
+                <div className="flex items-center justify-between">
+                  <b className="text-app-texto">Versículos</b>
+                  <button type="button" onClick={() => setVersiculosAbierto(false)} aria-label="Cerrar" className="grid h-9 w-9 place-items-center rounded-xl text-app-muted">
+                    <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </div>
+                <PantallaPrevia pieza={piezaElegida} />
+                <SelectorBiblia />
+                <BuscadorVersiculos onAgregar={agregarVersiculo} showNotif={showNotif} />
+              </aside>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // ---------- Computador: lado a lado ----------
   return (
     <div className="h-pantalla flex flex-col bg-app-dark">
@@ -431,18 +546,31 @@ export default function ControlPredica() {
         pulpito
       ) : (
         <div className="flex min-h-0 flex-1">
-          <aside aria-label="Mis prédicas" className="flex w-80 shrink-0 flex-col border-r border-app-border bg-app-light p-4">
-            {/* «Predicar» va arriba de esta lista; no hay botón «Nueva»: la
-                nueva es la vacía, y un día libre del calendario le pone fecha. */}
-            <BibliotecaPredicas
-              predicas={listado}
-              abiertaId={abiertaId}
-              onAbrir={abrir}
-              onPredicar={predicar}
-              fechaVacia={conVacia ? vacia.fecha : null}
-              onElegirFecha={elegirFecha}
-            />
-          </aside>
+          {misPlegada ? (
+            // Plegada: una franja con lo esencial (12-11-2026, para pantallas bajas).
+            <aside aria-label="Mis prédicas" data-mis-plegada className="flex w-16 shrink-0 flex-col items-center gap-2.5 border-r border-app-border bg-app-light py-3">
+              <button type="button" onClick={() => setMisPlegada(false)} aria-label="Abrir Mis prédicas" title="Abrir Mis prédicas" className="grid h-10 w-10 place-items-center rounded-xl border border-app-border text-app-texto">
+                <Bars3Icon className="h-5 w-5" aria-hidden="true" />
+              </button>
+              <button type="button" onClick={predicar} aria-label="Predicar" title="Predicar" className="grid h-10 w-10 place-items-center rounded-xl bg-app-main text-app-dark">
+                <PlayIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
+            </aside>
+          ) : (
+            <aside aria-label="Mis prédicas" className="flex w-80 shrink-0 flex-col border-r border-app-border bg-app-light p-4">
+              {/* «Predicar» va arriba de esta lista; no hay botón «Nueva»: la
+                  nueva es la vacía, y un día libre del calendario le pone fecha. */}
+              <BibliotecaPredicas
+                predicas={listado}
+                abiertaId={abiertaId}
+                onAbrir={abrir}
+                onPredicar={predicar}
+                fechaVacia={conVacia ? vacia.fecha : null}
+                onElegirFecha={elegirFecha}
+                onPlegar={() => setMisPlegada(true)}
+              />
+            </aside>
+          )}
 
           <main className="flex min-w-0 flex-1 flex-col">{editor}</main>
 
@@ -455,7 +583,7 @@ export default function ControlPredica() {
               {/* El buscador de versículos vive aquí desde el 11-11-2026 (antes,
                   en el campo de abajo del bosquejo), con la cuadrícula de
                   libros; ocupa el alto que queda. */}
-              <BuscadorVersiculos onAgregar={agregarVersiculo} showNotif={showNotif} />
+              <BuscadorVersiculos onAgregar={agregarVersiculo} showNotif={showNotif} plegable={baja} />
             </aside>
           )}
         </div>
