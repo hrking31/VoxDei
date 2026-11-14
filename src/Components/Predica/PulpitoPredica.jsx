@@ -69,7 +69,7 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
   const [alVuelo, setAlVuelo] = useState(null);
   const [inicio] = useState(() => Date.now());
   const [ahora, setAhora] = useState(() => Date.now());
-  // Celular: la hoja abierta sobre el escenario ("bosquejo" | "versiculo" | "resumen").
+  // Celular: la ventana de versículos abierta ("versiculo"); el resumen tiene su propio estado.
   const [hoja, setHoja] = useState(null);
 
   useEffect(() => {

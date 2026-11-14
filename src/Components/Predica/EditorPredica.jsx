@@ -21,7 +21,7 @@ import ElegirImagen from "./ElegirImagen.jsx";
 import BotonesHistorial from "./BotonesHistorial.jsx";
 import BuscadorVersiculos from "./BuscadorVersiculos.jsx";
 import PantallaPrevia from "./PantallaPrevia.jsx";
-// TEMPORAL DHH (12-11-2026): el botón de las Biblias en la hoja de versículos del celular.
+// TEMPORAL DHH (12-11-2026): la Biblia elegida, para reconocer el versículo base.
 import { useAppContext } from "../Context/AppContext";
 // TEMPORAL DHH (12-11-2026): el versículo base se reconoce en la Biblia elegida.
 import { librosDe, versionValida } from "../Biblia/versionesBiblia";

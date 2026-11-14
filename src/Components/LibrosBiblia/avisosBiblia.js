@@ -7,7 +7,7 @@
 // Vive aquí, fuera de Biblia/ (que se borra entera con la DHH), porque el
 // aviso de la RVR1960 se queda: al quitar la DHH solo se borra su entrada.
 
-export const BIBLIA_POR_DEFECTO = "RVR1960";
+const BIBLIA_POR_DEFECTO = "RVR1960";
 
 export const AVISOS_BIBLIA = {
   RVR1960: {

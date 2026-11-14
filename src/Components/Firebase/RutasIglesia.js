@@ -15,7 +15,7 @@
 import { collection, doc } from "firebase/firestore";
 import { db } from "./Firebase";
 
-export const COLECCION_IGLESIAS = "iglesias";
+const COLECCION_IGLESIAS = "iglesias";
 
 export const PREDICAS = "predicas";
 export const TICKERS = "tickers";

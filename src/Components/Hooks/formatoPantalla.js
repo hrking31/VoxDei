@@ -7,9 +7,9 @@ import { useAppContext } from "../Context/AppContext";
 //   escritorio  1024 o más (iPad Pro acostado, PC); es lo mismo que isDesktop
 // `baja`: escritorio con menos de 800 px de alto (un PC de 1280×720 o
 // 1366×768): ahí se pliegan cosas para que todo quepa sin desplazar.
-export const ANCHO_TABLETA = 744;
-export const ANCHO_ESCRITORIO = 1024;
-export const ALTO_BAJO = 800;
+const ANCHO_TABLETA = 744;
+const ANCHO_ESCRITORIO = 1024;
+const ALTO_BAJO = 800;
 
 export function formatoDe(ancho) {
   if (ancho >= ANCHO_ESCRITORIO) return "escritorio";

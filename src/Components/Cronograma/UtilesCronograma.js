@@ -50,7 +50,7 @@ export function fechaISO(fecha) {
 }
 
 // ¿El servicio ocurre ese día (sin mirar la hora)?
-export function ocurreEl(servicio, fecha) {
+function ocurreEl(servicio, fecha) {
   if (servicio.activo === false) return false;
   if (servicio.dias?.length) return servicio.dias.includes(fecha.getDay());
   return servicio.fecha === fechaISO(fecha);
