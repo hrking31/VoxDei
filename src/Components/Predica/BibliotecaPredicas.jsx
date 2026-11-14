@@ -1,5 +1,14 @@
-import { useMemo, useState } from "react";
-import { ChevronDoubleLeftIcon, MagnifyingGlassIcon, PlayIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { useEffect, useMemo, useState } from "react";
+import {
+  CheckCircleIcon,
+  MagnifyingGlassIcon,
+  MicrophoneIcon,
+  PencilSquareIcon,
+  PlayIcon,
+  PlusIcon,
+  Squares2X2Icon,
+  XMarkIcon,
+} from "@heroicons/react/24/solid";
 import CalendarioPredicas from "./CalendarioPredicas.jsx";
 import {
   ESTADOS,
@@ -14,21 +23,23 @@ import {
 } from "./utilesPredica.js";
 import { tonoDe } from "./tonosPredica.js";
 
+// Los filtros son botones con ícono y el nombre debajo, en una fila, en todos los
+// tamaños (13-11-2026, pedido del usuario; antes, chips de dos por fila).
 const FILTROS = [
-  { clave: "todas", nombre: "Todas" },
-  { clave: "borrador", nombre: "Borradores" },
-  { clave: "terminada", nombre: "Terminadas" },
-  { clave: "predicada", nombre: "Predicadas" },
+  { clave: "todas", nombre: "Todas", Icono: Squares2X2Icon },
+  { clave: "borrador", nombre: "Borradores", Icono: PencilSquareIcon },
+  { clave: "terminada", nombre: "Terminadas", Icono: CheckCircleIcon },
+  { clave: "predicada", nombre: "Predicadas", Icono: MicrophoneIcon },
 ];
 
 // Mis prédicas: todas las que el pastor quiera (sin el límite de 5 de antes),
 // con buscador, filtros y calendario. En el computador es la columna de la
-// izquierda; en el celular, la pantalla de entrada, con la más próxima al frente.
+// izquierda; en el celular, la pantalla de entrada.
 // Computador: un día libre del calendario pone su fecha en la vacía
 // (`onElegirFecha`), que se crea al escribir. Celular: lo marca y debajo
 // ofrece «Crear para este día» (`onNueva`). Nada se crea con solo tocar
 // (12-11-2026, pedido del usuario).
-export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNueva, onPredicar, fechaVacia = null, onElegirFecha, onPlegar, compacta = false }) {
+export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNueva, onPredicar, fechaVacia = null, onElegirFecha, compacta = false }) {
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("todas");
   const [marcada, setMarcada] = useState(null); // celular: el día tocado
@@ -45,8 +56,17 @@ export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNue
     () => ordenarPredicas(filtrarPredicas(predicas, busqueda, filtro), hoy),
     [predicas, busqueda, filtro, hoy]
   );
-  const destacada = compacta && !busqueda && filtro === "todas" ? proximas[0] : null;
   const abierta = predicas.find((p) => p.id === abiertaId);
+
+  // Celular: el diálogo del día elegido se cierra con Escape.
+  useEffect(() => {
+    if (!compacta || !marcada) return;
+    const alPulsarTecla = (e) => {
+      if (e.key === "Escape") setMarcada(null);
+    };
+    document.addEventListener("keydown", alPulsarTecla);
+    return () => document.removeEventListener("keydown", alPulsarTecla);
+  }, [compacta, marcada]);
 
   // Línea de tiempo (11 de noviembre de 2026, «Lista 2» del lienzo, elegida
   // por el usuario): una línea vertical, un punto del color del estado por
@@ -118,15 +138,7 @@ export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNue
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="flex items-center gap-1 text-lg font-bold text-app-texto">
-          {/* Computador: se pliega a una franja para dar lugar al bosquejo. */}
-          {onPlegar && (
-            <button type="button" onClick={onPlegar} aria-label="Plegar Mis prédicas" title="Plegar Mis prédicas" className="grid h-8 w-8 place-items-center rounded-lg text-app-muted hover:text-app-main">
-              <ChevronDoubleLeftIcon className="h-4 w-4" aria-hidden="true" />
-            </button>
-          )}
-          Mis prédicas
-        </h2>
+        <h2 className="text-lg leading-none font-bold text-app-texto">Mis prédicas</h2>
         {/* Computador: la entrada al púlpito de la abierta (12-11-2026, pedido
             del usuario; antes aquí iba «Nueva»: la nueva es la vacía que se ve
             al entrar, y antes «Predicar» iba encima del título). */}
@@ -140,9 +152,25 @@ export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNue
             Predicar
           </button>
         )}
+        {/* Celular: «Nueva» a la derecha del título (13-11-2026, pedido del
+            usuario; antes ahí iba «Predicar», y antes un botón flotante abajo).
+            Crea con la fecha de fábrica, el próximo domingo. */}
+        {compacta && (
+          <button
+            type="button"
+            data-nueva-predica
+            onClick={() => onNueva()}
+            className="flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-app-main px-4 text-sm font-bold text-app-dark"
+          >
+            <PlusIcon className="h-4 w-4" aria-hidden="true" />
+            Nueva
+          </button>
+        )}
       </div>
 
-      <label className="flex h-10 items-center gap-2 rounded-xl border border-app-border bg-app-aviso px-3 text-app-muted focus-within:border-app-main">
+      {/* Un poco más alto en el celular (`compacta`), pedido del usuario
+          (13-11-2026); en tableta y computador sigue en h-10. */}
+      <label className={`flex items-center gap-2 rounded-xl border border-app-border bg-app-aviso px-3 text-app-muted focus-within:border-app-main ${compacta ? "h-12" : "h-10"}`}>
         <MagnifyingGlassIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
         <span className="sr-only">Buscar prédica</span>
         <input
@@ -154,56 +182,31 @@ export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNue
         />
       </label>
 
-      {/* Chips del mismo ancho, dos por fila, con el color de su estado
-          (pedidos del usuario, 11-11-2026). */}
-      <div role="group" aria-label="Filtrar" className="grid grid-cols-2 gap-1.5">
-        {FILTROS.map(({ clave, nombre }) => (
+      {/* Cuatro botones del mismo ancho en una fila, con el color de su estado,
+          ícono y el nombre debajo (13-11-2026, pedido del usuario; los chips de
+          dos por fila eran del 11-11-2026). */}
+      <div role="group" aria-label="Filtrar" className="grid grid-cols-4 gap-1.5">
+        {FILTROS.map(({ clave, nombre, Icono }) => (
           <button
             key={clave}
             type="button"
             aria-pressed={filtro === clave}
             onClick={() => setFiltro(clave)}
-            className={`h-7 truncate rounded-full border px-2 text-center text-chip font-semibold transition ${
+            className={`flex h-11 flex-col items-center justify-center gap-0.5 rounded-xl border px-1 text-pie leading-none font-semibold transition ${
               filtro === clave ? tonoDe(clave).chip : `border-app-border ${tonoDe(clave).letra} hover:border-current`
             }`}
           >
-            {nombre}
+            <Icono className="h-5 w-5 shrink-0" aria-hidden="true" />
+            <span className="max-w-full truncate">{nombre}</span>
           </button>
         ))}
       </div>
-
-      {destacada && (
-        <section aria-labelledby="pred-destacada" className="flex flex-col gap-2 rounded-2xl border border-app-main/60 bg-app-light p-4">
-          <span className="text-diminuto font-semibold tracking-widest text-app-main uppercase">
-            {destacada.fecha === hoy ? "Hoy" : "La próxima"} · {fechaCorta(destacada.fecha)}
-          </span>
-          <h3 id="pred-destacada" className="text-xl leading-tight font-bold text-app-texto">
-            {destacada.titulo}
-          </h3>
-          <span className="text-xs text-app-muted">
-            {[destacada.base, cuantosItems(destacada.piezas.length)].filter(Boolean).join(" · ")}
-          </span>
-          <div className="mt-1 flex gap-2">
-            <button type="button" onClick={() => onAbrir(destacada.id)} className="h-11 flex-1 rounded-xl border border-app-border text-sm font-semibold text-app-texto">
-              Preparar
-            </button>
-            <button
-              type="button"
-              onClick={() => onAbrir(destacada.id, "predicar")}
-              className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-app-main text-sm font-bold text-app-dark"
-            >
-              <PlayIcon className="h-3.5 w-3.5" aria-hidden="true" />
-              Predicar
-            </button>
-          </div>
-        </section>
-      )}
 
       <div className="scrollbar-custom -mx-1 min-h-0 flex-1 overflow-y-auto px-1">
         {proximas.length > 0 && (
           <>
             <Titulo>Próximas</Titulo>
-            {linea(proximas.filter((p) => p !== destacada))}
+            {linea(proximas)}
           </>
         )}
         {anteriores.length > 0 && (
@@ -217,7 +220,7 @@ export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNue
             {predicas.length
               ? "Ninguna coincide con la búsqueda."
               : compacta
-                ? "Aún no tienes prédicas. Crea la primera con «Nueva prédica»."
+                ? "Aún no tienes prédicas. Toca «Nueva» o un día del calendario para crear la primera."
                 : "Aún no tienes prédicas. Escribe la primera en el bosquejo."}
           </p>
         )}
@@ -230,71 +233,81 @@ export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNue
         marcada={compacta ? marcada : fechaVacia}
         onTocarDia={tocarDia}
         hoy={hoy}
+        compacto={compacta}
       />
 
+      {/* Celular: lo que se hace con el día tocado sale en un diálogo, no en un
+          recuadro debajo del calendario (13-11-2026, pedido del usuario). Se
+          cierra con la X, con Escape o tocando fuera. */}
       {compacta && marcada && (
-        <section aria-label="Día elegido" data-dia-elegido className="flex flex-col gap-2.5 rounded-2xl border border-app-border bg-app-light p-3">
-          {delMarcado.length ? (
-            delMarcado.map((p) => (
-              <div key={p.id} className="flex flex-col gap-2">
-                <span className="flex flex-col">
-                  <b className="truncate text-sm text-app-texto">{p.titulo}</b>
-                  <span className="text-xs text-app-muted">
-                    {fechaLarga(marcada)} · <span className={tonoDe(estadoVisible(p, hoy)).letra}>{ESTADOS[estadoVisible(p, hoy)]}</span>
-                  </span>
-                </span>
-                <div className="flex gap-2">
-                  <button type="button" onClick={() => onAbrir(p.id)} className="h-11 flex-1 rounded-xl border border-app-border text-sm font-semibold text-app-texto">
-                    Preparar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onAbrir(p.id, "predicar")}
-                    className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-app-main text-sm font-bold text-app-dark"
-                  >
-                    <PlayIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                    Predicar
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <>
-              <span className="flex flex-col">
-                <b className="text-sm text-app-texto">{fechaLarga(marcada)}</b>
-                <span className="text-xs text-app-muted">Sin prédica</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => onNueva(marcada)}
-                className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-app-main text-sm font-bold text-app-dark"
-              >
-                <PlusIcon className="h-4 w-4" aria-hidden="true" />
-                Crear para este día
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-app-velo p-4" onClick={() => setMarcada(null)}>
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pred-dia-elegido"
+            data-dia-elegido
+            className="flex w-full max-w-sm flex-col gap-3 rounded-2xl border border-app-border bg-app-light p-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <h3 id="pred-dia-elegido" className="text-base font-bold text-app-texto">
+                {fechaLarga(marcada)}
+              </h3>
+              <button type="button" onClick={() => setMarcada(null)} aria-label="Cerrar" className="-mt-1 -mr-1 grid h-9 w-9 shrink-0 place-items-center rounded-xl text-app-muted hover:text-app-texto">
+                <XMarkIcon className="h-5 w-5" aria-hidden="true" />
               </button>
-            </>
-          )}
-        </section>
+            </div>
+            {delMarcado.length ? (
+              delMarcado.map((p) => (
+                <div key={p.id} className="flex flex-col gap-2">
+                  <span className="flex flex-col">
+                    <b className="truncate text-sm text-app-texto">{p.titulo}</b>
+                    <span className={`text-xs ${tonoDe(estadoVisible(p, hoy)).letra}`}>{ESTADOS[estadoVisible(p, hoy)]}</span>
+                  </span>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => onAbrir(p.id)} className="h-11 flex-1 rounded-xl border border-app-border text-sm font-semibold text-app-texto">
+                      Preparar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onAbrir(p.id, "predicar")}
+                      className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-app-main text-sm font-bold text-app-dark"
+                    >
+                      <PlayIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                      Predicar
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <>
+                <span className="text-xs text-app-muted">Sin prédica</span>
+                <button
+                  type="button"
+                  onClick={() => onNueva(marcada)}
+                  className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-app-main text-sm font-bold text-app-dark"
+                >
+                  <PlusIcon className="h-4 w-4" aria-hidden="true" />
+                  Crear para este día
+                </button>
+              </>
+            )}
+          </section>
+        </div>
       )}
 
       {/* Hoy solo informa; si algún día se cobra por cantidad, aquí va el plan. */}
-      <p className="flex justify-between border-t border-app-border pt-2.5 text-xs text-app-muted">
+      {/* Sin la línea de arriba en ningún tamaño (13-11-2026, pedido del usuario: el
+          calendario ya tiene su borde). Celular: letra más pequeña y menos alto. */}
+      <p
+        data-contador-predicas
+        className={`flex justify-between text-app-muted ${compacta ? "text-pie leading-none" : "text-xs"}`}
+      >
         <span>
           <b className="text-app-texto">{predicas.length}</b> {predicas.length === 1 ? "prédica guardada" : "prédicas guardadas"}
         </span>
         <span>Sin límite</span>
       </p>
-
-      {compacta && (
-        <button
-          type="button"
-          onClick={() => onNueva()}
-          className="bottom-flotante fixed right-4 z-20 flex h-14 items-center gap-2 rounded-2xl bg-app-main px-5 font-bold text-app-dark shadow-xl"
-        >
-          <PlusIcon className="h-5 w-5" aria-hidden="true" />
-          Nueva prédica
-        </button>
-      )}
     </div>
   );
 }

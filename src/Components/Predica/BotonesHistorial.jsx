@@ -3,7 +3,8 @@ import { ArrowUturnLeftIcon, ArrowUturnRightIcon } from "@heroicons/react/24/sol
 // Deshacer y Rehacer del bosquejo (12-11-2026, pedido del usuario: en vez de
 // un «Cancelar», que con el guardado automático borraría todo de golpe). Solo
 // el ícono; el nombre va en `title` y `aria-label`. En el computador van en la
-// barra de abajo, antes de Borrar y Duplicar; en el celular, arriba.
+// barra de abajo, antes de Borrar y Duplicar; en el celular, los pinta EditorPredica
+// en su barra de abajo (14-11-2026).
 export default function BotonesHistorial({ historial, className = "h-11 w-11 rounded-xl" }) {
   const { deshacer, rehacer, puedeDeshacer, puedeRehacer } = historial;
   const boton = (nombre, atajo, Icono, alTocar, activo) => (

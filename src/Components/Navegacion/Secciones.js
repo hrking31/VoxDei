@@ -16,9 +16,9 @@ import {
 } from "@heroicons/react/24/solid";
 import { esPastor } from "../Roles/Roles.js";
 
-// Lista única de las secciones del panel. La usan la barra lateral
-// (computador) y la barra inferior con «Más» (celular): una sección nueva se
-// agrega aquí y aparece en los dos sitios, con el mismo filtro de roles.
+// Lista única de las secciones del panel. La usa la barra lateral, fija en el
+// computador y desplegable con el botón de menú en el celular: una sección
+// nueva se agrega aquí y aparece en los dos sitios, con el mismo filtro de roles.
 //
 // `tambien`: prefijos de otras rutas que pertenecen a la sección y deben dejar
 // su ícono encendido. Dentro de una canción la dirección es /ViewCancion/…, no
@@ -39,7 +39,7 @@ export const INICIO = {
 };
 
 // La entrada (Proyectar / Administrar). Está fuera del panel: se llega con el
-// logo de la barra lateral y, en el celular, desde «Más».
+// logo de la barra lateral, también en el celular.
 export const MENU_INICIAL = {
   ruta: "/ViewSelector",
   nombre: "Menú inicial",
@@ -47,7 +47,7 @@ export const MENU_INICIAL = {
 };
 
 // Cómo preparar la pantalla del servicio. No es una sección de trabajo: va
-// abajo en la barra lateral y dentro de «Más» en el celular.
+// abajo en la barra lateral.
 export const AYUDA = {
   ruta: "/ViewAyuda",
   nombre: "Ayuda",
@@ -55,12 +55,10 @@ export const AYUDA = {
 };
 
 // En el orden en que se muestran, grupo por grupo.
-// `corto`: nombre para la barra inferior del celular, donde no cabe el largo.
 export const SECCIONES = [
   {
     ruta: "/ViewCulto",
     nombre: "Orden del culto",
-    corto: "Culto",
     Icono: QueueListIcon,
     grupo: "organizar",
   },
@@ -94,19 +92,6 @@ export const SECCIONES = [
   { ruta: "/ViewStylos", nombre: "Estilos y colores", Icono: PaintBrushIcon, grupo: "administrar" },
 ];
 
-// Barra inferior del celular: estas cuatro, en este orden, con el Orden del
-// culto en el centro (más grande). Las demás van en «Más».
-export const EN_BARRA_INFERIOR = ["/ViewVersiculo", "/ViewCanciones", "/ViewCulto", "/ViewMessage"];
-export const CENTRO_BARRA_INFERIOR = "/ViewCulto";
-
-export function reparto(userData) {
-  const todas = seccionesPara(userData);
-  return {
-    enBarra: EN_BARRA_INFERIOR.map((ruta) => todas.find((s) => s.ruta === ruta)).filter(Boolean),
-    enMas: todas.filter((s) => !EN_BARRA_INFERIOR.includes(s.ruta)),
-  };
-}
-
 // Prédica es solo de pastor y pastora: se oculta en vez de dejar que el
 // operador entre y choque con la pantalla de acceso denegado.
 export function seccionesPara(userData) {
@@ -114,7 +99,7 @@ export function seccionesPara(userData) {
 }
 
 // A qué entrada del panel pertenece una dirección (sección, Inicio o Ayuda).
-// La usan el título de la pestaña y el botón de volver a la anterior.
+// La usan el título de la pestaña y la barra de arriba del celular.
 export function seccionDeRuta(pathname) {
   return [INICIO, ...SECCIONES, AYUDA].find((s) => estaActiva(s, pathname));
 }

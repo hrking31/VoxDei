@@ -131,14 +131,41 @@ describe("Mis prédicas", () => {
     expect(within(lista).getByRole("button", { name: "Predicar" })).toBeTruthy();
   });
 
-  it("«Nueva prédica» (celular) crea una con la fecha del próximo domingo", async () => {
+  it("celular: ya no hay botón flotante «Nueva prédica»; se crea desde un día del calendario", async () => {
     abrir({ isDesktop: false });
-    fireEvent.click(boton("Nueva prédica"));
+    expect(screen.queryByRole("button", { name: "Nueva prédica" })).toBeNull();
+    fireEvent.click(document.querySelector('[data-fecha="2026-11-21"]'));
+    fireEvent.click(within(document.querySelector("[data-dia-elegido]")).getByRole("button", { name: "Crear para este día" }));
+    // Abre el bosquejo vacío; no crea nada hasta que se escribe (14-11-2026).
+    const titulo = screen.getByLabelText("Título de la prédica");
+    expect(fb.creados).toHaveLength(0);
+    fireEvent.change(titulo, { target: { value: "Mi prédica" } });
     await waitFor(() => expect(fb.creados).toHaveLength(1));
     const { ruta, datos } = fb.creados[0];
     expect(ruta).toBe("iglesias/g1/predicas");
-    expect(datos).toMatchObject({ titulo: "Nueva prédica", estado: "borrador", piezas: [] });
-    expect(new Date(`${datos.fecha}T12:00`).getDay()).toBe(0);
+    expect(datos).toMatchObject({ titulo: "Mi prédica", estado: "borrador", fecha: "2026-11-21" });
+  });
+
+  it("«N prédicas guardadas» al pie, sin línea en ningún tamaño; en el celular, con letra más pequeña y menos alto", () => {
+    abrir({ isDesktop: false });
+    const pie = document.querySelector("[data-contador-predicas]");
+    expect(pie.textContent).toContain("guardad");
+    expect(pie.className).toContain("text-pie");
+    expect(pie.className).toContain("leading-none");
+    expect(pie.className).not.toContain("border-t");
+    cleanup();
+    abrir({ isDesktop: true });
+    const pieAncho = document.querySelector("[data-contador-predicas]");
+    expect(pieAncho.className).toContain("text-xs");
+    expect(pieAncho.className).not.toContain("border-t");
+    expect(pieAncho.className).not.toContain("text-pie");
+  });
+
+  it("celular: la fila «Mis prédicas» + Predicar es compacta (título sin interlineado extra, botón h-9)", () => {
+    abrir({ isDesktop: false });
+    const titulo = screen.getByRole("heading", { name: "Mis prédicas" });
+    expect(titulo.className).toContain("leading-none");
+    expect(document.querySelector("[data-nueva-predica]").className).toContain("h-9");
   });
 
   it("cada prédica y cada filtro llevan el color de su estado, con su etiqueta", () => {
@@ -310,6 +337,9 @@ describe("Calendario", () => {
     expect(elegido.textContent).toContain("Sin prédica");
     expect(fb.creados).toHaveLength(0);
     fireEvent.click(within(elegido).getByRole("button", { name: "Crear para este día" }));
+    // Abre el bosquejo vacío con ese día; se crea al escribir (14-11-2026).
+    expect(fb.creados).toHaveLength(0);
+    fireEvent.change(screen.getByLabelText("Título de la prédica"), { target: { value: "Sábado" } });
     await waitFor(() => expect(fb.creados).toHaveLength(1));
     expect(fb.creados[0].datos.fecha).toBe("2026-11-21");
   });
@@ -408,13 +438,16 @@ describe("Deshacer y Rehacer", () => {
     expect(boton("Deshacer").disabled).toBe(true);
   });
 
-  it("celular: los dos botones van en la barra de arriba", () => {
+  it("celular: los dos botones van en la barra de abajo, al final (ya no arriba)", () => {
     abrir({ isDesktop: false });
-    // En el celular sale como la próxima, con su «Preparar».
-    fireEvent.click(boton("Preparar"));
+    // En el celular se abre tocándola en la lista.
+    fireEvent.click(screen.getByText("La fe que se atreve"));
+    const abajo = screen.getByRole("group", { name: "Agregar al bosquejo" });
+    const botones = within(abajo).getAllByRole("button").map((b) => b.getAttribute("aria-label"));
+    expect(botones.slice(-2)).toEqual(["Deshacer", "Rehacer"]);
     const arriba = screen.getByRole("button", { name: "Volver a mis prédicas" }).parentElement;
-    expect(within(arriba).getByRole("button", { name: "Deshacer" })).toBeTruthy();
-    expect(within(arriba).getByRole("button", { name: "Rehacer" })).toBeTruthy();
+    expect(within(arriba).queryByRole("button", { name: "Deshacer" })).toBeNull();
+    expect(within(arriba).queryByRole("button", { name: "Rehacer" })).toBeNull();
   });
 });
 
@@ -445,7 +478,7 @@ describe("Preparar", () => {
 
   it("celular: al marcarla terminada vuelve a la lista", async () => {
     abrir({ isDesktop: false });
-    fireEvent.click(boton("Preparar"));
+    fireEvent.click(screen.getByText("La fe que se atreve"));
     fireEvent.click(cambiarEst());
     await waitFor(() => expect(fb.guardados.at(-1)?.datos.estado).toBe("terminada"));
     expect(screen.queryByLabelText("Título de la prédica")).toBeNull();
@@ -668,17 +701,15 @@ describe("Preparar", () => {
     expect(document.querySelector("[data-estado-predica]").textContent).toBe("Borrador");
   });
 
-  it("el título se ve como campo y, al crear una nueva, queda listo para escribir el nombre", async () => {
-    fb.docs = [LA_FE, { id: "nueva", data: { titulo: "Nueva prédica", fecha: "", serie: "", estado: "borrador", piezas: [] } }];
+  it("el título se ve como campo y, al abrir una nueva en el celular, queda vacío y listo para escribir el nombre", async () => {
     abrir({ isDesktop: false });
-    fireEvent.click(boton("Nueva prédica"));
-    // Se espera a que se abra la creada.
-    await waitFor(() => expect(screen.getByLabelText("Título de la prédica").value).toBe("Nueva prédica"));
+    fireEvent.click(document.querySelector('[data-fecha="2026-11-21"]'));
+    fireEvent.click(within(document.querySelector("[data-dia-elegido]")).getByRole("button", { name: "Crear para este día" }));
     const titulo = screen.getByLabelText("Título de la prédica");
     await waitFor(() => expect(document.activeElement).toBe(titulo));
-    expect(titulo.value).toBe("Nueva prédica");
-    expect([titulo.selectionStart, titulo.selectionEnd]).toEqual([0, "Nueva prédica".length]);
+    expect(titulo.value).toBe("");
     expect(titulo.className).toContain("border-dashed");
+    expect(fb.creados).toHaveLength(0);
   });
 
   it("las piezas van sobre el tapete; el título, los botones de abajo y el buscador, no", () => {
@@ -1110,13 +1141,50 @@ describe("Predicar", () => {
     expect(franja().className).not.toContain("rounded");
   });
 
-  it("celular: la franja del turno sigue arriba, de todo el ancho", () => {
+  it("celular: ya no hay franja del turno al predicar (va en la barra de arriba de la app)", () => {
     abrir({ isDesktop: false });
+    fireEvent.click(screen.getByText("La fe que se atreve"));
     fireEvent.click(boton("Predicar"));
-    const franja = document.querySelector("[data-franja-turno]");
-    expect(franja).not.toBeNull();
-    expect(franja.closest("aside")).toBeNull();
-    expect(franja.className).toContain("border-b");
+    expect(screen.getByRole("button", { name: "Volver a preparar" })).toBeTruthy();
+    expect(document.querySelector("[data-franja-turno]")).toBeNull();
+    // La etiqueta de la mini pantalla dice «En vivo» con el punto pulsante.
+    const punto = document.querySelector("[data-punto-vivo]");
+    expect(punto.className).toContain("animate-pulse");
+    expect(punto.parentElement.textContent).toContain("En vivo");
+    expect(punto.parentElement.textContent).not.toContain("En el templo ahora");
+  });
+
+  it("celular: el bosquejo entero está en la pantalla, sin «Luego», y se mueve solo al avanzar", () => {
+    abrir({ isDesktop: false });
+    fireEvent.click(screen.getByText("La fe que se atreve"));
+    fireEvent.click(boton("Predicar"));
+    expect(screen.queryByText("Luego")).toBeNull();
+    const recuadro = document.querySelector("[data-bosquejo-vivo]");
+    expect(recuadro.className).toContain("overflow-y-auto");
+    // Toda la lista: el nombre de la prédica y cada ítem y «Terminar» al final.
+    expect(within(recuadro).getByText("La fe que se atreve")).toBeTruthy();
+    expect(within(recuadro).getByText("La fe ve lo invisible")).toBeTruthy();
+    expect(recuadro.lastElementChild.textContent).toMatch(/Terminar y marcar como predicada/);
+    // Al avanzar, se centra el ítem que está al aire (scrollTo sobre el recuadro).
+    const scrollTo = vi.fn();
+    recuadro.scrollTo = scrollTo;
+    fireEvent.click(boton(/Empezar$/));
+    fireEvent.click(boton(/Siguiente/));
+    expect(scrollTo).toHaveBeenCalled();
+    expect(recuadro.querySelector('[aria-current="true"]')).not.toBeNull();
+  });
+
+  it("celular: con todo oculto la etiqueta dice «Oculto», con el punto rojo y quieto", () => {
+    abrir({ isDesktop: false, app: { visibleTitulo: false, visibleTexto: false, visibleTicker: false, visibleImagen: false } });
+    fireEvent.click(screen.getByText("La fe que se atreve"));
+    fireEvent.click(boton("Predicar"));
+    const etiqueta = document.querySelector("[data-etiqueta-aire]");
+    expect(etiqueta.getAttribute("data-etiqueta-aire")).toBe("oculto");
+    expect(etiqueta.textContent).toContain("Oculto");
+    expect(etiqueta.textContent).not.toContain("En vivo");
+    expect(etiqueta.className).toContain("text-app-error");
+    expect(etiqueta.querySelector("[data-punto-vivo]").className).not.toContain("animate-pulse");
+    expect(etiqueta.querySelector("[data-punto-vivo]").className).toContain("bg-app-error");
   });
 
   it("sin la barra de arriba: se entra y se sale con los botones del bosquejo y del púlpito", () => {
@@ -1209,7 +1277,9 @@ describe("Predicar", () => {
     expect(document.querySelector("[data-portada]").getAttribute("aria-current")).toBe("true");
   });
 
-  it("resumen de puntos vistos: aparece debajo de «Luego» y al tocarlo los proyecta como un mensaje", async () => {
+  const botonesPunto = () => [...screen.getByRole("region", { name: "Resumen de puntos" }).querySelectorAll("[data-punto-resumen]")];
+
+  it("resumen de puntos: muestra TODOS los puntos como botones y al tocar uno lo proyecta como mensaje", async () => {
     const DOS_PUNTOS = [
       { id: "p1", tipo: "titulo", contenido: "La fe ve" },
       { id: "p2", tipo: "mensaje", contenido: "Hola" },
@@ -1217,57 +1287,72 @@ describe("Predicar", () => {
     ];
     fb.docs = [{ ...LA_FE, data: { ...LA_FE.data, piezas: DOS_PUNTOS } }];
     empezar();
-    fireEvent.click(boton(/Empezar$/));
-    expect(screen.queryByRole("region", { name: "Resumen de puntos vistos" })).toBeNull();
-    fireEvent.click(boton(/Siguiente/)); // punto I
-    fireEvent.click(boton(/Siguiente/)); // mensaje
-    fireEvent.click(boton(/Siguiente/)); // punto II
-    const resumen = screen.getByRole("region", { name: "Resumen de puntos vistos" });
-    expect(within(resumen).getByText("Resumen de puntos vistos")).toBeTruthy();
+    // Desde antes de empezar: están todos, aunque no haya pasado ninguno.
+    const resumen = screen.getByRole("region", { name: "Resumen de puntos" });
+    expect(within(resumen).getByText(/Resumen de puntos · en pantalla 0 de 6/)).toBeTruthy();
     // La marca de agua ▶ en el centro del recuadro, como en la tarjeta del versículo.
     expect(resumen.querySelector("[data-marca-agua=\"proyectar\"]").getAttribute("class")).toContain("m-auto");
-    expect([...resumen.querySelectorAll("li")].map((li) => li.textContent)).toEqual(["I. La fe ve", "II. La fe obedece"]);
-    // Va debajo de «Luego» si lo hay; aquí ya no queda nada después.
+    expect(botonesPunto().map((b) => b.textContent)).toEqual(["I. La fe ve", "II. La fe obedece"]);
+    // Tocar el segundo primero: se proyecta ese, numerado como «I.» (cada pantalla empieza de nuevo).
     fb.proyectado = [];
-    fireEvent.click(within(resumen).getByRole("button", { name: "Proyectar el resumen de puntos vistos" }));
+    fireEvent.click(botonesPunto()[1]);
     await waitFor(() => expect(fb.proyectado).toHaveLength(1));
-    expect(fb.proyectado[0]).toMatchObject({ ruta: "displayMessage/g1", datos: { text: "I. La fe ve\nII. La fe obedece", display: "mensajePredica", alineacion: "izquierda" } });
+    expect(fb.proyectado[0]).toMatchObject({ ruta: "displayMessage/g1", datos: { text: "I. La fe obedece", display: "mensajePredica", alineacion: "izquierda" } });
+    // Después el primero: se suma debajo, en el orden en que se tocaron.
+    fb.proyectado = [];
+    fireEvent.click(botonesPunto()[0]);
+    await waitFor(() => expect(fb.proyectado).toHaveLength(1));
+    expect(fb.proyectado[0].datos.text).toBe("I. La fe obedece\nII. La fe ve");
+    expect(within(resumen).getByText(/en pantalla 2 de 6/)).toBeTruthy();
     expect(screen.getByText(/Resumen ·/)).toBeTruthy();
-    // La mini pantalla: la misma lista del templo, con sangría francesa
-    // (número en su columna, texto en la suya), no un párrafo centrado.
+    // La mini pantalla: la misma lista del templo, con sangría francesa.
     const lista = screen.getByRole("figure", { name: "En el templo ahora" }).querySelector("[data-lista-resumen]");
     expect(lista.className).toContain("lista-resumen");
-    expect([...lista.querySelectorAll("[data-renglon='punto']")].map((r) => r.textContent)).toEqual(["I.La fe ve", "II.La fe obedece"]);
+    expect([...lista.querySelectorAll("[data-renglon='punto']")].map((r) => r.textContent)).toEqual(["I.La fe obedece", "II.La fe ve"]);
     expect(lista.className).not.toContain("text-center");
+    // Los tocados llevan su marca; tocar uno que ya está en la pantalla la vuelve a enviar igual (no suma otro).
+    expect(botonesPunto().every((b) => b.getAttribute("aria-pressed") === "true")).toBe(true);
+    fb.proyectado = [];
+    fireEvent.click(botonesPunto()[0]);
+    await waitFor(() => expect(fb.proyectado).toHaveLength(1));
+    expect(fb.proyectado[0].datos.text).toBe("I. La fe obedece\nII. La fe ve");
   });
 
-  it("con muchos puntos, el resumen va por partes de 6 renglones; cada toque proyecta la siguiente", async () => {
+  it("aunque ya hayan salido todos, se puede volver a proyectar cualquiera: empieza una pantalla nueva con él", async () => {
     const OCHO = Array.from({ length: 8 }, (_, i) => ({ id: `p${i}`, tipo: "titulo", contenido: `Punto ${i + 1}` }));
     fb.docs = [{ ...LA_FE, data: { ...LA_FE.data, piezas: OCHO } }];
     empezar();
-    fireEvent.click(boton(/Empezar$/));
-    for (let i = 0; i < 8; i++) fireEvent.click(boton(/Siguiente/));
-    const resumen = screen.getByRole("region", { name: "Resumen de puntos vistos" });
-    const partes = () => [...resumen.querySelectorAll("[data-parte]")].map((ul) => ul.querySelectorAll("li").length);
-    expect(partes()).toEqual([6, 2]);
-    expect(resumen.querySelector("[data-parte=\"2\"]").className).toContain("border-app-muted/60");
-    // Sin el texto «toca para la parte…» (el usuario pidió quitarlo).
-    expect(resumen.textContent).not.toContain("toca para");
-    // Primer toque: la parte 1 (6 renglones).
-    fb.proyectado = [];
-    fireEvent.click(within(resumen).getByRole("button", { name: /parte 1 de 2/ }));
-    await waitFor(() => expect(fb.proyectado).toHaveLength(1));
-    expect(fb.proyectado[0].datos.text.split("\n")).toHaveLength(6);
-    expect(screen.getByText(/Resumen · parte 1 de 2/)).toBeTruthy();
-    expect(resumen.querySelector("[data-parte=\"1\"]").getAttribute("aria-current")).toBe("true");
-    // La línea entre partes no se pierde con el recuadro encendido: va dorada.
-    expect(resumen.querySelector("[data-parte=\"2\"]").className).toContain("border-app-main/70");
-    // Segundo toque: la parte 2; tercero: vuelve a la 1.
-    fb.proyectado = [];
-    fireEvent.click(within(resumen).getByRole("button", { name: /parte 2 de 2/ }));
-    await waitFor(() => expect(fb.proyectado).toHaveLength(1));
-    expect(fb.proyectado[0].datos.text).toBe("VII. Punto 7\nVIII. Punto 8");
-    expect(within(resumen).getByRole("button", { name: /parte 1 de 2/ })).toBeTruthy();
+    // Se puede empezar por el que se quiera: el 3.º.
+    fireEvent.click(botonesPunto()[2]);
+    await waitFor(() => expect(fb.proyectado.at(-1)?.datos.text).toBe("I. Punto 3"));
+    for (let i = 0; i < 8; i++) if (i !== 2) fireEvent.click(botonesPunto()[i]);
+    await waitFor(() => expect(botonesPunto().every((b) => b.getAttribute("aria-pressed") === "true")).toBe(true));
+    // Ya salieron los 8: tocar el 1.º no se bloquea y sale solo, como el primero de una pantalla nueva.
+    fireEvent.click(botonesPunto()[0]);
+    await waitFor(() => expect(fb.proyectado.at(-1).datos.text).toBe("I. Punto 1"));
+    expect(within(screen.getByRole("region", { name: "Resumen de puntos" })).getByText(/en pantalla 1 de 6/)).toBeTruthy();
+    // Y sigue: tocar otro, el 7.º, suma debajo.
+    fireEvent.click(botonesPunto()[6]);
+    await waitFor(() => expect(fb.proyectado.at(-1).datos.text).toBe("I. Punto 1\nII. Punto 7"));
+  });
+
+  it("la pantalla muestra 6 puntos como máximo: el séptimo abre una pantalla nueva y sale como el primero", async () => {
+    const OCHO = Array.from({ length: 8 }, (_, i) => ({ id: `p${i}`, tipo: "titulo", contenido: `Punto ${i + 1}` }));
+    fb.docs = [{ ...LA_FE, data: { ...LA_FE.data, piezas: OCHO } }];
+    empezar();
+    expect(botonesPunto()).toHaveLength(8);
+    for (let i = 0; i < 6; i++) fireEvent.click(botonesPunto()[i]);
+    await waitFor(() => expect(fb.proyectado.at(-1).datos.text.split("\n")).toHaveLength(6));
+    expect(fb.proyectado.at(-1).datos.text.split("\n").at(-1)).toBe("VI. Punto 6");
+    // El séptimo: pantalla nueva, solo él, como «I.».
+    fireEvent.click(botonesPunto()[6]);
+    await waitFor(() => expect(fb.proyectado.at(-1).datos.text).toBe("I. Punto 7"));
+    expect(within(screen.getByRole("region", { name: "Resumen de puntos" })).getByText(/en pantalla 1 de 6/)).toBeTruthy();
+    // El octavo se suma debajo.
+    fireEvent.click(botonesPunto()[7]);
+    await waitFor(() => expect(fb.proyectado.at(-1).datos.text).toBe("I. Punto 7\nII. Punto 8"));
+    // Solo los dos de la pantalla actual van marcados en dorado.
+    expect(botonesPunto().filter((b) => b.getAttribute("aria-current") === "true").map((b) => b.textContent)).toEqual(["VII. Punto 7", "VIII. Punto 8"]);
   });
 
   it("el resumen va debajo de «Luego»", () => {
@@ -1276,11 +1361,11 @@ describe("Predicar", () => {
     fireEvent.click(boton(/Siguiente/)); // versículo
     fireEvent.click(boton(/Siguiente/)); // punto I (luego queda el mensaje)
     const luego = screen.getByText("Luego").parentElement;
-    const resumen = screen.getByRole("region", { name: "Resumen de puntos vistos" });
+    const resumen = screen.getByRole("region", { name: "Resumen de puntos" });
     expect(luego.compareDocumentPosition(resumen) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("un subpunto se proyecta con su letra y se ve con sangría en la lista del púlpito", async () => {
+  it("un subpunto se proyecta con su letra y se ve con sangría en la lista del púlpito y en el resumen", async () => {
     const PIEZAS_SUB = [
       { id: "p1", tipo: "titulo", contenido: "La fe ve" },
       { id: "s1", tipo: "titulo", contenido: "Ve lo invisible", nivel: 1 },
@@ -1293,8 +1378,9 @@ describe("Predicar", () => {
     fireEvent.click(boton(/Siguiente/)); // a)
     await waitFor(() => expect(fb.proyectado).toHaveLength(1));
     expect(fb.proyectado[0].datos.text).toBe("a) Ve lo invisible");
-    const resumen = screen.getByRole("region", { name: "Resumen de puntos vistos" });
-    expect([...resumen.querySelectorAll("li")].map((li) => li.textContent)).toEqual(["I. La fe ve", "    a) Ve lo invisible"]);
+    // En el resumen, cada punto es un botón y el subpunto va con sangría.
+    expect(botonesPunto().map((b) => b.textContent)).toEqual(["I. La fe ve", "a) Ve lo invisible"]);
+    expect(botonesPunto()[1].closest("li").className).toContain("ml-4");
   });
 
   it("la mini pantalla copia el templo: el título en pequeño arriba y el anuncio pasando abajo", () => {
@@ -1520,10 +1606,12 @@ describe("Predicar", () => {
 });
 
 describe("en el celular", () => {
-  it("la próxima va al frente y se abre en una pantalla propia, con volver", () => {
+  it("sin recuadro destacado: se abre desde la lista en una pantalla propia, con volver", () => {
     abrir({ isDesktop: false });
-    expect(screen.getByText(/La próxima/)).toBeTruthy();
-    fireEvent.click(boton("Preparar"));
+    // Ya no hay recuadro «Hoy» / «La próxima» con Preparar y Predicar (13-11-2026).
+    expect(screen.queryByText(/La próxima/)).toBeNull();
+    expect(screen.queryByText(/^Hoy ·/)).toBeNull();
+    fireEvent.click(screen.getByText("La fe que se atreve"));
     expect(screen.getByLabelText("Título de la prédica").value).toBe("La fe que se atreve");
     fireEvent.click(boton("Volver a mis prédicas"));
     expect(screen.getByText("Mis prédicas")).toBeTruthy();
@@ -1540,15 +1628,24 @@ function todayPlus(dias) {
 
 describe("celular: Predicar con el muelle al alcance del pulgar", () => {
   const alPulpito = () => {
-    abrir({ isDesktop: false });
-    fireEvent.click(boton("Preparar"));
+    const montado = abrir({ isDesktop: false });
+    fireEvent.click(screen.getByText("La fe que se atreve"));
     fireEvent.click(boton("Predicar"));
+    return montado;
   };
 
-  it("abajo, fijo: Bosquejo, Versículo, Resumen, Anterior y Siguiente; arriba, los 4 botones en cuadrícula", () => {
+  it("abajo, fijo: una fila de 3 botones (íconos y «Puntos») y, debajo, Anterior y Siguiente; arriba, los 4 interruptores", () => {
     alPulpito();
     const muelle = document.querySelector("[data-muelle]");
-    expect([...muelle.querySelectorAll("[data-pestana]")].map((b) => b.textContent)).toEqual(["Bosquejo", "Versículo", "Resumen"]);
+    const fila = within(muelle).getByRole("group", { name: "Herramientas" });
+    const botones = within(fila).getAllByRole("button");
+    // Íconos (volver y versículos) y la palabra «Puntos», todos de h-7 (más baja que la de Preparar).
+    expect(botones.map((b) => b.getAttribute("aria-label") || b.textContent)).toEqual(["Volver a preparar", "Versículos", "Puntos"]);
+    expect(botones[2].querySelector("svg")).toBeNull();
+    botones.slice(0, 2).forEach((b) => expect(b.querySelector("svg")).not.toBeNull());
+    botones.forEach((b) => expect(b.className).toContain("h-7"));
+    // «Terminar» ya no está en la fila: va al final del bosquejo.
+    expect(within(fila).queryByRole("button", { name: /Terminar/ })).toBeNull();
     expect(within(muelle).getByRole("button", { name: /Empezar/ })).toBeTruthy();
     expect(within(muelle).getByRole("button", { name: /Anterior/ })).toBeTruthy();
     const interruptores = screen.getByRole("group", { name: "Qué se ve en el templo" });
@@ -1556,51 +1653,545 @@ describe("celular: Predicar con el muelle al alcance del pulgar", () => {
     expect(interruptores.querySelectorAll("button")).toHaveLength(4);
   });
 
-  it("la hoja se abre sobre el escenario y el muelle sigue a la vista; Terminar va al final del bosquejo", () => {
+  it("Volver a preparar sale del púlpito", () => {
     alPulpito();
-    fireEvent.click(document.querySelector('[data-pestana="bosquejo"]'));
-    const hoja = screen.getByRole("dialog", { name: "Bosquejo" });
-    expect(within(hoja).getByText("La fe que se atreve")).toBeTruthy();
-    expect(within(hoja).getByRole("button", { name: /Terminar y marcar como predicada/ })).toBeTruthy();
-    // El muelle no queda dentro de la hoja: Siguiente sigue a mano.
-    expect(hoja.contains(document.querySelector("[data-muelle]"))).toBe(false);
-    expect(within(document.querySelector("[data-muelle]")).getByRole("button", { name: /Empezar/ })).toBeTruthy();
-    // Otra pestaña cambia la hoja; la misma la cierra.
-    fireEvent.click(document.querySelector('[data-pestana="versiculo"]'));
-    const versiculo = screen.getByRole("dialog", { name: "Versículo" });
-    expect(within(versiculo).getByLabelText("Buscar versículo")).toBeTruthy();
-    fireEvent.click(document.querySelector('[data-pestana="versiculo"]'));
-    expect(screen.queryByRole("dialog")).toBeNull();
-    fireEvent.click(document.querySelector('[data-pestana="resumen"]'));
-    expect(screen.getByRole("dialog", { name: "Resumen" }).textContent).toContain("cuando ya pasó algún punto");
+    fireEvent.click(screen.getByRole("button", { name: "Volver a preparar" }));
+    expect(document.querySelector("[data-muelle]")).toBeNull();
   });
 
-  it("tocar un ítem del bosquejo lo proyecta y cierra la hoja", async () => {
+  it("Terminar pregunta antes: si dice que no, no guarda; si dice que sí, la marca predicada", async () => {
+    const { app } = alPulpito();
+    app.confirmAction.mockResolvedValueOnce(false);
+    fireEvent.click(screen.getByRole("button", { name: "Terminar y marcar como predicada" }));
+    await waitFor(() => expect(app.confirmAction).toHaveBeenCalledWith("¿Terminar y marcar como predicada?"));
+    expect(fb.guardados.at(-1)?.datos?.estado).not.toBe("predicada");
+    fireEvent.click(screen.getByRole("button", { name: "Terminar y marcar como predicada" }));
+    await waitFor(() => expect(fb.guardados.at(-1)?.datos.estado).toBe("predicada"), { timeout: 3000 });
+  });
+
+  it("Versículos abre el diálogo de pantalla completa de Preparar (con las Biblias) y proyecta", async () => {
     alPulpito();
-    fireEvent.click(document.querySelector('[data-pestana="bosquejo"]'));
-    fireEvent.click(within(screen.getByRole("dialog", { name: "Bosquejo" })).getByText("La fe ve lo invisible"));
-    await waitFor(() => expect(fb.proyectado.at(-1)?.datos.text).toBe("I. La fe ve lo invisible"));
+    fireEvent.click(screen.getByRole("button", { name: "Versículos" }));
+    const dialogo = screen.getByRole("dialog", { name: "Versículos" });
+    expect(dialogo.className).toContain("h-full");
+    expect(dialogo.parentElement.className).toContain("inset-0");
+    // El muelle queda debajo, fuera del diálogo.
+    expect(dialogo.contains(document.querySelector("[data-muelle]"))).toBe(false);
+    expect(within(dialogo).getByRole("group", { name: "Testamento" })).toBeTruthy();
+    expect(within(dialogo).getByRole("group", { name: "Biblia" })).toBeTruthy();
+    fireEvent.change(within(dialogo).getByLabelText("Buscar versículo"), { target: { value: "Juan 3 16" } });
+    fireEvent.click(await within(dialogo).findByRole("button", { name: "Proyectar Juan 3:16" }));
+    await waitFor(() => expect(fb.proyectado.some((p) => p.ruta === "displayVersiculo/g1")).toBe(true));
+    expect(screen.queryByRole("dialog", { name: "Versículos" })).toBeNull();
+  });
+
+  it("Puntos sin puntos en la prédica avisa en vez de abrir un diálogo vacío", () => {
+    fb.docs = [{ ...LA_FE, data: { ...LA_FE.data, piezas: [{ id: "m", tipo: "mensaje", contenido: "Hola" }] } }];
+    const { app } = alPulpito();
+    fireEvent.click(screen.getByRole("button", { name: "Puntos" }));
+    expect(app.showNotif).toHaveBeenCalledWith("info", "Esta prédica aún no tiene puntos.");
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("Puntos abre un diálogo hasta el borde de abajo, bajo la mini pantalla, con todos los puntos como botones", async () => {
+    const DOCE = Array.from({ length: 12 }, (_, i) => ({ id: `p${i + 1}`, tipo: "titulo", contenido: `Punto ${i + 1}` }));
+    fb.docs = [{ ...LA_FE, data: { ...LA_FE.data, piezas: DOCE } }];
+    alPulpito();
+    const vivo = () => document.querySelector("[data-resumen-vivo]");
+    // No sale solo.
+    expect(vivo()).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Puntos" }));
+    expect(vivo().getAttribute("role")).toBe("dialog");
+    // Del final de la mini pantalla hasta el borde de abajo de la pantalla (también sobre el muelle).
+    expect(vivo().className).toContain("fixed");
+    expect(vivo().className).toContain("bottom-0");
+    expect(vivo().className).toContain("inset-x-0");
+    expect(vivo().style.top).not.toBe("");
+    expect(vivo().querySelector(".overflow-y-auto")).not.toBeNull();
+    // La mini pantalla queda fuera del diálogo (a la vista).
+    const mini = document.querySelector("[data-pantalla-previa]");
+    expect(mini.contains(vivo())).toBe(false);
+    // Todos los puntos, cada uno un botón; tocar uno lo proyecta y el diálogo sigue abierto.
+    const botones = () => [...vivo().querySelectorAll("[data-punto-resumen]")];
+    expect(botones()).toHaveLength(12);
+    fireEvent.click(botones()[0]);
+    await waitFor(() => expect(fb.proyectado.at(-1)?.datos.text).toBe("I. Punto 1"));
+    expect(vivo()).not.toBeNull();
+    // Se cierra solo con la X.
+    fireEvent.click(within(vivo()).getByRole("button", { name: "Cerrar" }));
+    expect(vivo()).toBeNull();
+  });
+
+  it("tocar un ítem del bosquejo de la pantalla lo proyecta", async () => {
+    alPulpito();
+    fireEvent.click(within(document.querySelector("[data-bosquejo-vivo]")).getByText("La fe ve lo invisible"));
+    await waitFor(() => expect(fb.proyectado.at(-1)?.datos.text).toBe("I. La fe ve lo invisible"));
+  });
+});
+
+describe("celular: sin el botón de las Biblias (13-11-2026, pendiente de ubicar)", () => {
+  it("Mis prédicas no lo trae, y en el computador sigue en su sitio", () => {
+    abrir({ isDesktop: false });
+    expect(screen.queryByRole("group", { name: "Biblia" })).toBeNull();
+    cleanup();
+    abrir({ isDesktop: true });
+    expect(screen.getByRole("group", { name: "Biblia" })).toBeTruthy();
+  });
+});
+
+describe("celular: el buscador de Mis prédicas", () => {
+  const campo = () => screen.getByLabelText("Buscar prédica").closest("label");
+
+  it("mide un poco más de alto en el celular (h-12) y sigue en h-10 en el computador", () => {
+    abrir({ isDesktop: false });
+    expect(campo().className).toContain("h-12");
+    cleanup();
+    abrir({ isDesktop: true });
+    expect(campo().className).toContain("h-10");
+    expect(campo().className).not.toContain("h-12");
+  });
+});
+
+describe("los filtros de Mis prédicas (iguales en todos los tamaños)", () => {
+  const grupo = () => screen.getByRole("group", { name: "Filtrar" });
+  const chips = () => [...grupo().querySelectorAll("button")];
+
+  it("en el celular son cuatro botones en una fila, con ícono y el nombre debajo", () => {
+    abrir({ isDesktop: false });
+    expect(grupo().className).toContain("grid-cols-4");
+    expect(chips().map((c) => c.textContent)).toEqual(["Todas", "Borradores", "Terminadas", "Predicadas"]);
+    for (const c of chips()) {
+      expect(c.className).toContain("flex-col");
+      expect(c.className).toContain("h-11");
+      expect(c.querySelector("svg")).not.toBeNull();
+    }
+  });
+
+  it("el botón elegido queda marcado y filtra; con el mismo color de su estado", () => {
+    abrir({ isDesktop: false });
+    const terminadas = chips()[2];
+    expect(terminadas.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(terminadas);
+    expect(terminadas.getAttribute("aria-pressed")).toBe("true");
+    expect(chips()[0].getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("en el computador son los mismos cuatro botones con ícono, en una fila", () => {
+    abrir({ isDesktop: true });
+    expect(grupo().className).toContain("grid-cols-4");
+    expect(chips().map((c) => c.textContent)).toEqual(["Todas", "Borradores", "Terminadas", "Predicadas"]);
+    for (const c of chips()) {
+      expect(c.className).toContain("h-11");
+      expect(c.className).toContain("flex-col");
+      expect(c.querySelector("svg")).not.toBeNull();
+    }
+  });
+});
+
+describe("celular: «Nueva» a la derecha de «Mis prédicas»", () => {
+  it("va en la fila del título, solo en el celular, y abre una vacía que se crea al escribir, con la fecha del próximo domingo", async () => {
+    abrir({ isDesktop: false });
+    const nueva = document.querySelector("[data-nueva-predica]");
+    expect(nueva.textContent).toContain("Nueva");
+    expect(document.querySelector("[data-predicar-proxima]")).toBeNull();
+    // Misma fila que el texto «Mis prédicas», a su derecha.
+    const titulo = screen.getByRole("heading", { name: "Mis prédicas" });
+    expect(nueva.parentElement).toBe(titulo.parentElement);
+    expect(titulo.compareDocumentPosition(nueva) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    fireEvent.click(nueva);
+
+    // Abre el bosquejo vacío; todavía no hay documento ni punto en la línea de tiempo.
+    const campoTitulo = screen.getByLabelText("Título de la prédica");
+    expect(campoTitulo.value).toBe("");
+    expect(fb.creados).toHaveLength(0);
+
+    fireEvent.change(campoTitulo, { target: { value: "Mi prédica" } });
+    await waitFor(() => expect(fb.creados).toHaveLength(1));
+    const { ruta, datos } = fb.creados[0];
+    expect(ruta).toBe("iglesias/g1/predicas");
+    expect(datos).toMatchObject({ titulo: "Mi prédica", estado: "borrador" });
+    expect(new Date(`${datos.fecha}T12:00`).getDay()).toBe(0);
+  });
+
+  it("si se vuelve sin escribir nada, no se crea ninguna y la lista queda como estaba", () => {
+    abrir({ isDesktop: false });
+    fireEvent.click(document.querySelector("[data-nueva-predica]"));
+    expect(screen.getByLabelText("Título de la prédica")).toBeTruthy();
+    fireEvent.click(boton("Volver a mis prédicas"));
+    expect(fb.creados).toHaveLength(0);
+    expect(screen.queryByLabelText("Título de la prédica")).toBeNull();
+    expect(screen.getByText("La fe que se atreve")).toBeTruthy();
+    expect(screen.getByText(/prédicas guardadas/).textContent).toContain("2");
+  });
+
+  it("en el computador no está este botón (ahí es «Predicar», sobre la abierta)", () => {
+    abrir({ isDesktop: true });
+    expect(document.querySelector("[data-nueva-predica]")).toBeNull();
+    expect(within(screen.getByRole("complementary", { name: "Mis prédicas" })).getByRole("button", { name: "Predicar" })).toBeTruthy();
+  });
+});
+
+describe("celular: el día del calendario sale en un diálogo", () => {
+  const abrirDia = (fecha = "2026-11-21") => {
+    abrir({ isDesktop: false });
+    fireEvent.click(document.querySelector(`[data-fecha="${fecha}"]`));
+    return screen.getByRole("dialog");
+  };
+
+  it("es un diálogo modal con el día como título, no un recuadro debajo", () => {
+    const dialogo = abrirDia();
+    expect(dialogo.getAttribute("aria-modal")).toBe("true");
+    expect(within(dialogo).getByRole("heading").textContent).toContain("Sábado 21 de noviembre");
+    expect(dialogo.hasAttribute("data-dia-elegido")).toBe(true);
+    // Flota sobre un velo que cubre la pantalla.
+    expect(dialogo.parentElement.className).toContain("fixed");
+    expect(dialogo.parentElement.className).toContain("inset-0");
+  });
+
+  it("se cierra con la X, con Escape y tocando fuera; tocar dentro no lo cierra", () => {
+    let dialogo = abrirDia();
+    fireEvent.click(dialogo);
+    expect(screen.queryByRole("dialog")).not.toBeNull();
+
+    fireEvent.click(within(dialogo).getByRole("button", { name: "Cerrar" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    fireEvent.click(document.querySelector('[data-fecha="2026-11-21"]'));
+    expect(screen.queryByRole("dialog")).not.toBeNull();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    fireEvent.click(document.querySelector('[data-fecha="2026-11-21"]'));
+    dialogo = screen.getByRole("dialog");
+    fireEvent.click(dialogo.parentElement);
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("un día con prédica ofrece Preparar y Predicar en el diálogo", () => {
+    fb.docs = [{ ...LA_FE, data: { ...LA_FE.data, fecha: "2026-11-22" } }];
+    const dialogo = abrirDia("2026-11-22");
+    expect(within(dialogo).getByText("La fe que se atreve")).toBeTruthy();
+    expect(within(dialogo).getByRole("button", { name: "Predicar" })).toBeTruthy();
+    fireEvent.click(within(dialogo).getByRole("button", { name: "Preparar" }));
+    expect(screen.getByLabelText("Título de la prédica").value).toBe("La fe que se atreve");
+  });
+
+  it("en el computador no hay diálogo: tocar un día con prédica la abre", () => {
+    fb.docs = [{ ...LA_FE, data: { ...LA_FE.data, fecha: "2026-11-22" } }];
+    abrir({ isDesktop: true });
+    fireEvent.click(document.querySelector('[data-fecha="2026-11-22"]'));
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+});
+
+describe("celular: el calendario compacto", () => {
+  const dia = () => document.querySelector("[data-fecha]");
+  const calendario = () => screen.getByRole("region", { name: "Calendario de prédicas" });
+
+  it("en el celular los días miden 24 px (h-6) y el calendario lleva menos relleno; en PC, como antes", () => {
+    abrir({ isDesktop: false });
+    expect(dia().className).toContain("h-6");
+    expect(dia().className).not.toContain("h-7");
+    expect(calendario().className).toContain("p-1.5");
+    cleanup();
+    abrir({ isDesktop: true });
+    expect(dia().className).toContain("h-7");
+    expect(dia().className).not.toContain("h-6");
+    expect(calendario().className).toContain("p-2.5");
   });
 });
 
 describe("celular: Preparar con todo a mano", () => {
   const alBosquejo = () => {
     abrir({ isDesktop: false });
-    fireEvent.click(boton("Preparar"));
+    fireEvent.click(screen.getByText("La fe que se atreve"));
   };
 
-  it("el menú ⋯ trae Duplicar, WhatsApp, Borrar y la Biblia (antes faltaban en el celular)", async () => {
+  it("la barra de arriba: atrás, WhatsApp, Duplicar, Eliminar y Predicar, sin el nombre de la prédica, del alto de la de abajo", () => {
     alBosquejo();
-    fireEvent.click(boton("Más: Duplicar, Borrar, WhatsApp, Biblia"));
-    const menu = screen.getByRole("menu", { name: "Más" });
-    expect(within(menu).getByRole("button", { name: /Duplicar/ })).toBeTruthy();
-    expect(within(menu).getByTitle("Compartir por WhatsApp")).toBeTruthy();
-    expect(within(menu).getByRole("button", { name: /Borrar/ })).toBeTruthy();
-    expect(within(menu).getByRole("group", { name: "Biblia" })).toBeTruthy();
-    fireEvent.click(within(menu).getByRole("button", { name: /Duplicar/ }));
+    const arriba = screen.getByRole("button", { name: "Volver a mis prédicas" }).parentElement;
+    expect(arriba.className).toContain("h-11"); // el alto de la barra de abajo (h-9 + py-1)
+    expect(arriba.textContent).toBe("Predicar"); // ni el nombre ni textos sueltos
+    expect(arriba.textContent).not.toContain("La fe que se atreve");
+    // El orden: atrás, Duplicar, Eliminar, WhatsApp y Predicar, repartidos en todo el ancho.
+    expect(arriba.className).toContain("justify-between");
+    expect([...arriba.children].map((el) => el.getAttribute("aria-label") || el.getAttribute("title") || el.textContent)).toEqual([
+      "Volver a mis prédicas",
+      "Duplicar",
+      "Eliminar",
+      "Compartir por WhatsApp",
+      "Predicar",
+    ]);
+    // Sin el menú ⋯: WhatsApp a la vista.
+    expect(screen.queryByRole("button", { name: "Más: WhatsApp" })).toBeNull();
+    expect(within(arriba).getByTitle("Compartir por WhatsApp")).toBeTruthy();
+    // Duplicar y Eliminar pasaron de la barra de abajo a esta.
+    expect(within(arriba).getByRole("button", { name: "Duplicar" })).toBeTruthy();
+    expect(within(arriba).getByRole("button", { name: "Eliminar" })).toBeTruthy();
+    expect(within(arriba).getByRole("button", { name: /Predicar/ })).toBeTruthy();
+    // Íconos de 36 px de alto, como los de abajo.
+    for (const b of within(arriba).getAllByRole("button")) expect(b.className).toContain("h-9");
+  });
+
+  it("la barra de abajo: seis botones solo con ícono, de 36 px, sin recuadro ni línea divisoria y sin campo de texto", () => {
+    alBosquejo();
+    const barra = screen.getByRole("group", { name: "Agregar al bosquejo" });
+    const nombres = within(barra).getAllByRole("button").map((b) => b.getAttribute("aria-label"));
+    expect(nombres).toEqual(["Punto", "Mensaje", "Imagen", "Versículo", "Deshacer", "Rehacer"]);
+    for (const b of within(barra).getAllByRole("button")) {
+      expect(b.className).toContain("h-9");
+      expect(b.classList.contains("border")).toBe(false);
+      expect(b.textContent).toBe("");
+      expect(b.querySelector("svg")).not.toBeNull();
+    }
+    expect(barra.querySelector(".w-px")).toBeNull(); // sin línea divisoria
+    // El campo de texto de abajo ya no existe: se escribe dentro de cada ítem.
+    expect(screen.queryByPlaceholderText(/Juan 3:16/)).toBeNull();
+  });
+
+  it("los botones del ítem elegido van apilados en vertical, con su número arriba de la columna; en el computador, en fila", () => {
+    alBosquejo();
+    fireEvent.click(document.querySelector('[data-pieza="mensaje"] button'));
+    const mensaje = document.querySelector('[data-pieza="mensaje"]');
+    const columna = within(mensaje).getByRole("button", { name: "Quitar" }).parentElement;
+    expect(columna.className).toContain("flex-col");
+    expect(columna.firstElementChild.hasAttribute("data-numero")).toBe(true);
+    // Un solo número por ítem.
+    expect(mensaje.querySelectorAll("[data-numero]")).toHaveLength(1);
+    cleanup();
+    abrir({ isDesktop: true });
+    fireEvent.click(screen.getByText("La fe que se atreve"));
+    fireEvent.click(document.querySelector('[data-pieza="mensaje"] button'));
+    const fila = within(document.querySelector('[data-pieza="mensaje"]')).getByRole("button", { name: "Quitar" }).parentElement;
+    expect(fila.className).not.toContain("flex-col");
+  });
+
+  it("recuadro de arriba: el chip del estado va a la derecha, al nivel del nombre, más pequeño, sin ícono y sin ancho fijo", () => {
+    fb.docs = [LA_FE, { id: "lista", data: { ...LA_FE.data, titulo: "Ya preparada", estado: "predicada" } }];
+    abrir({ isDesktop: false });
+    fireEvent.click(screen.getByText("Ya preparada"));
+    const chip = document.querySelector("[data-estado-predica]");
+    expect(chip.textContent).toBe("Predicada"); // el estado más largo
+    expect(chip.querySelector("svg")).toBeNull(); // sin el ✓ en el celular
+    expect(chip.className).toContain("h-6");
+    expect(chip.className).toContain("text-pie");
+    expect(chip.className).toContain("shrink-0");
+    expect(chip.className).not.toMatch(/(^|\s)w-\d/); // sin ancho fijo: cabe cualquier texto
+    // Misma fila que el nombre, el chip a su derecha.
+    const titulo = screen.getByLabelText("Título de la prédica");
+    const filaTitulo = document.querySelector("[data-fila-titulo]");
+    expect(filaTitulo.contains(titulo)).toBe(true);
+    expect(filaTitulo.lastElementChild).toBe(chip);
+    cleanup();
+    // En el computador conserva su ✓.
+    fb.docs = [LA_FE, { id: "lista", data: { ...LA_FE.data, titulo: "Ya preparada", estado: "predicada" } }];
+    abrir({ isDesktop: true });
+    fireEvent.click(screen.getByText("Ya preparada"));
+    expect(document.querySelector("[data-estado-predica]").querySelector("svg")).not.toBeNull();
+  });
+
+  it("recuadro de arriba: nombre de lado a lado y, después, la fecha │ serie y versículo uno encima del otro, cada uno con su lápiz", () => {
+    alBosquejo();
+    const titulo = screen.getByLabelText("Título de la prédica");
+    // El nombre ocupa todo el ancho que deja el lápiz y el chip, en su misma fila.
+    expect(titulo.className).toContain("w-full");
+    // Sin ancho propio (size 1): mide lo que su texto, para que el lápiz quede pegado.
+    expect(titulo.getAttribute("size")).toBe("1");
+    // El nombre mide 22 px de alto: 2 px menos que el chip de al lado (24 px).
+    expect(titulo.className).toContain("h-5.5");
+    expect(document.querySelector("[data-estado-predica]").className).toContain("h-6");
+    const filaTitulo = titulo.closest("[data-fila-titulo]");
+    expect(within(filaTitulo).getByRole("button", { name: "Editar el nombre" })).toBeTruthy();
+    // Después: la fecha y, a su derecha, la serie y el versículo base.
+    const fila = filaTitulo.nextElementSibling;
+    expect(fila.hasAttribute("data-fila-fecha")).toBe(true);
+    expect(fila.firstElementChild.querySelector("[data-hoja-fecha]")).not.toBeNull();
+    // Ya no hay botón de editar general.
+    expect(document.querySelector("[data-editar-datos]")).toBeNull();
+    // La fecha se puede tocar siempre (sin botón de editar).
+    expect(fila.querySelector("[data-hoja-fecha]").className).toContain("cursor-pointer");
+    // Serie y versículo base: uno encima del otro, sin el punto «·», cada uno con su lápiz al final.
+    const lapizSerie = fila.querySelector('[data-editar-campo="serie"]');
+    const lapizBase = fila.querySelector('[data-editar-campo="base"]');
+    expect(lapizSerie).not.toBeNull();
+    expect(lapizBase).not.toBeNull();
+    expect(lapizSerie.parentElement.parentElement).toBe(lapizBase.parentElement.parentElement);
+    expect(lapizSerie.parentElement.parentElement.className).toContain("flex-col");
+    expect(lapizSerie.parentElement.lastElementChild).toBe(lapizSerie);
+    // El lápiz va justo después del texto (no pegado al borde): el texto no se estira.
+    for (const lapiz of [lapizSerie, lapizBase]) expect(lapiz.previousElementSibling.className).not.toContain("flex-1");
+    const lapizNombre = filaTitulo.querySelector('[data-editar-campo="titulo"]');
+    expect(lapizNombre.previousElementSibling.contains(titulo)).toBe(true);
+    expect(lapizNombre.previousElementSibling.className).not.toContain("flex-1");
+    expect([...fila.querySelectorAll("span")].some((s) => s.textContent === "·")).toBe(false);
+    expect(fila.textContent).toContain("Serie · Héroes de la fe");
+    expect(fila.querySelector("[data-texto-base]").textContent).toBe("Hebreos 11:1");
+    // El resumen cierra el recuadro.
+    expect(fila.nextElementSibling.textContent).toMatch(/punto/i);
+    // Misma letra que el texto de los ítems.
+    expect(titulo.className).toContain("text-sm");
+    expect(titulo.className).not.toMatch(/text-(lg|xl|2xl|3xl)/);
+    expect(document.querySelector('[data-pieza="mensaje"] button > span:last-child').className).toContain("text-sm");
+    cleanup();
+    // En el computador, dentro del bloque del centro y grande, como siempre.
+    abrir({ isDesktop: true });
+    fireEvent.click(screen.getByText("La fe que se atreve"));
+    const tituloAncho = screen.getByLabelText("Título de la prédica");
+    expect(tituloAncho.className).toContain("text-3xl");
+    expect(tituloAncho.parentElement.textContent).toMatch(/punto/i); // el resumen está en el mismo bloque
+  });
+
+  it("en una prédica nueva, la serie y el versículo base vacíos lo dicen, para que su lápiz tenga dónde estar", () => {
+    abrir({ isDesktop: false });
+    fireEvent.click(document.querySelector("[data-nueva-predica]"));
+    const fila = document.querySelector("[data-fila-fecha]");
+    expect(fila.textContent).toContain("Sin serie");
+    expect(fila.textContent).toContain("Sin versículo base");
+    // Una nueva arranca editando el nombre.
+    expect(screen.getByLabelText("Título de la prédica").readOnly).toBe(false);
+  });
+
+  it("cada lápiz edita solo su texto: el nombre, la serie y el versículo base", async () => {
+    alBosquejo();
+    const titulo = screen.getByLabelText("Título de la prédica");
+    expect(titulo.readOnly).toBe(true);
+    // El nombre.
+    fireEvent.click(document.querySelector('[data-editar-campo="titulo"]'));
+    await waitFor(() => expect(titulo.readOnly).toBe(false));
+    expect(titulo.className).toContain("border-dashed");
+    expect(screen.queryByLabelText("Serie")).toBeNull(); // los otros siguen quietos
+    fireEvent.keyDown(titulo, { key: "Enter" });
+    expect(titulo.readOnly).toBe(true);
+    // La serie.
+    fireEvent.click(document.querySelector('[data-editar-campo="serie"]'));
+    const serie = screen.getByLabelText("Serie");
+    expect(titulo.readOnly).toBe(true);
+    expect(screen.queryByLabelText("Versículo base")).toBeNull();
+    fireEvent.change(serie, { target: { value: "Héroes" } });
+    fireEvent.keyDown(serie, { key: "Enter" });
+    fireEvent.blur(serie);
+    expect(screen.queryByLabelText("Serie")).toBeNull();
+    // El versículo base: se reconoce al salir.
+    fireEvent.click(document.querySelector('[data-editar-campo="base"]'));
+    const base = screen.getByLabelText("Versículo base");
+    fireEvent.change(base, { target: { value: "juan 3 16" } });
+    fireEvent.blur(base);
+    expect(screen.queryByLabelText("Versículo base")).toBeNull();
+    expect(document.querySelector("[data-texto-base]").textContent).toBe("Juan 3:16");
+    await waitFor(() => expect(fb.guardados.at(-1)?.datos).toMatchObject({ serie: "Héroes", base: "Juan 3:16" }), { timeout: 3000 });
+  });
+
+  it("las reglas del tapete son más angostas en el celular (arriba h-4, lateral w-5); en el computador, como siempre", () => {
+    alBosquejo();
+    const arriba = () => document.querySelector('[data-regla="arriba"]');
+    const izquierda = () => document.querySelector('[data-regla="izquierda"]');
+    expect(arriba().className).toContain("h-4");
+    expect(izquierda().className).toContain("w-5");
+    // La esquina de la regla de arriba mide lo mismo que la lateral.
+    expect(arriba().firstElementChild.className).toContain("w-5");
+    cleanup();
+    abrir({ isDesktop: true });
+    fireEvent.click(screen.getByText("La fe que se atreve"));
+    expect(arriba().className).toContain("h-5");
+    expect(izquierda().className).toContain("w-6");
+    expect(arriba().firstElementChild.className).toContain("w-6");
+  });
+
+  it("los textos de los ítems van al mismo tamaño en el celular (text-sm); el punto solo se distingue por la negrita", () => {
+    alBosquejo();
+    const punto = document.querySelector('[data-pieza="titulo"]');
+    const textoPunto = punto.querySelector("b");
+    const numeroPunto = punto.querySelector("button > span");
+    const textoMensaje = document.querySelector('[data-pieza="mensaje"] button > span:last-child');
+    const textoVersiculo = document.querySelector('[data-pieza="versiculo"] button > span:last-child > span:last-child');
+    for (const el of [textoPunto, numeroPunto, textoMensaje, textoVersiculo]) {
+      expect(el.className).toContain("text-sm");
+      expect(el.className).not.toMatch(/text-(lg|xl)/);
+    }
+    expect(textoPunto.className).toContain("leading-snug");
+    cleanup();
+    // En el computador, el punto sigue más grande.
+    abrir({ isDesktop: true });
+    fireEvent.click(screen.getByText("La fe que se atreve"));
+    const puntoAncho = document.querySelector('[data-pieza="titulo"]');
+    expect(puntoAncho.querySelector("b").className).toContain("text-lg");
+    expect(puntoAncho.querySelector("button > span").className).toContain("text-xl");
+  });
+
+  it("Punto: la primera vez pregunta la numeración, crea el punto al escoger y después crea sin preguntar", async () => {
+    // Firestore avisa de la nueva antes de que addDoc termine; el falso solo si se le dice.
+    fb.docs = [LA_FE, ANTIGUA, { id: "nueva", data: { titulo: "Nueva prédica", fecha: "", serie: "", estado: "borrador", piezas: [] } }];
+    abrir({ isDesktop: false });
+    fireEvent.click(document.querySelector("[data-nueva-predica]"));
+    fireEvent.click(boton("Punto"));
+    const hoja = screen.getByRole("dialog", { name: "Numeración de los puntos" });
+    expect(fb.creados).toHaveLength(0);
+    fireEvent.click(within(hoja).getAllByRole("menuitemradio")[0]);
+    expect(screen.queryByRole("dialog", { name: "Numeración de los puntos" })).toBeNull();
+    // El punto nace en blanco, listo para escribir adentro.
+    fireEvent.change(screen.getByPlaceholderText("Escribe el punto…"), { target: { value: "La fe" } });
+    fireEvent.click(boton("Guardar"));
     await waitFor(() => expect(fb.creados).toHaveLength(1));
-    expect(screen.queryByRole("menu", { name: "Más" })).toBeNull();
+    // Elegida la numeración, otro toque crea otro punto sin preguntar.
+    fireEvent.click(boton("Punto"));
+    expect(screen.queryByRole("dialog", { name: "Numeración de los puntos" })).toBeNull();
+    expect(screen.getByPlaceholderText("Escribe el punto…")).toBeTruthy();
+  });
+
+  it("Punto en una prédica que ya tiene puntos crea directo, sin preguntar", () => {
+    alBosquejo();
+    fireEvent.click(boton("Punto"));
+    expect(screen.queryByRole("dialog", { name: "Numeración de los puntos" })).toBeNull();
+    expect(screen.getByPlaceholderText("Escribe el punto…")).toBeTruthy();
+  });
+
+  it("Mensaje: el texto se escribe dentro del ítem; Enter es salto de línea y ✓ lo guarda", async () => {
+    alBosquejo();
+    fireEvent.click(boton("Mensaje"));
+    const campo = screen.getByPlaceholderText("Escribe el mensaje…");
+    fireEvent.change(campo, { target: { value: "Dios es fiel" } });
+    fireEvent.keyDown(campo, { key: "Enter" });
+    expect(screen.getByPlaceholderText("Escribe el mensaje…")).toBeTruthy(); // sigue escribiendo
+    const guardar = boton("Guardar");
+    expect(guardar.textContent).toBe("");
+    fireEvent.click(guardar);
+    expect(screen.queryByPlaceholderText("Escribe el mensaje…")).toBeNull();
+    expect(screen.getByText("Dios es fiel")).toBeTruthy();
+    await waitFor(() => expect(fb.guardados.at(-1)?.datos.piezas.at(-1)).toMatchObject({ tipo: "mensaje", contenido: "Dios es fiel" }), { timeout: 3000 });
+  });
+
+  it("Imagen crea el recuadro con «Subir imagen» y «Mis imágenes» adentro, solo con ícono en el celular", () => {
+    alBosquejo();
+    fireEvent.click(boton("Imagen"));
+    const recuadro = document.querySelector("[data-sin-foto]");
+    expect(recuadro).not.toBeNull();
+    for (const nombre of ["Subir imagen", "Mis imágenes"]) {
+      const b = within(recuadro).getByRole("button", { name: nombre });
+      expect(b.textContent).toBe("");
+      expect(b.querySelector("svg")).not.toBeNull();
+      expect(b.getAttribute("title")).toBe(nombre);
+    }
+    cleanup();
+    // En el computador, con su texto.
+    abrir({ isDesktop: true });
+    fireEvent.click(screen.getByText("La fe que se atreve"));
+    fireEvent.click(boton("Imagen"));
+    const ancho = document.querySelector("[data-sin-foto]");
+    expect(within(ancho).getByRole("button", { name: "Subir imagen" }).textContent).toBe("Subir imagen");
+    expect(within(ancho).getByRole("button", { name: "Mis imágenes" }).textContent).toBe("Mis imágenes");
+  });
+
+  it("Duplicar crea una copia y Eliminar borra la prédica abierta", async () => {
+    alBosquejo();
+    fireEvent.click(boton("Duplicar"));
+    await waitFor(() => expect(fb.creados).toHaveLength(1));
+    expect(fb.creados[0].datos.titulo).toContain("(copia)");
+    cleanup();
+    alBosquejo();
+    fireEvent.click(boton("Eliminar"));
+    await waitFor(() => expect(fb.borrados).toHaveLength(1));
+    expect(fb.borrados[0]).toContain("fe");
   });
 
   it("«Ver» muestra el ítem en la mini pantalla, el punto con su número", () => {
@@ -1613,11 +2204,23 @@ describe("celular: Preparar con todo a mano", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("abajo, Punto (con su numeración) y Versículo, que abre el buscador y agrega al final", async () => {
+  it("abajo, Versículo abre el buscador (como antes) y agrega al final", async () => {
     alBosquejo();
-    expect(screen.getByRole("button", { name: /Numeración de los puntos/ })).toBeTruthy();
     fireEvent.click(document.querySelector("[data-abrir-versiculos]"));
     const hoja = screen.getByRole("dialog", { name: "Versículos" });
+    // A pantalla completa: ocupa todo el alto y no es una hoja a medias.
+    expect(hoja.className).toContain("h-full");
+    expect(hoja.className).not.toContain("rounded-t-3xl");
+    expect(hoja.className).not.toContain("max-h-4/5");
+    expect(hoja.parentElement.className).toContain("inset-0");
+    // Dos grupos que se reparten la fila: Antiguo | Nuevo y RVR1960 | DHH.
+    const biblia = within(hoja).getByRole("group", { name: "Biblia" });
+    const testamento = within(hoja).getByRole("group", { name: "Testamento" });
+    expect(biblia.parentElement).toBe(testamento.parentElement);
+    expect(biblia.className).toContain("flex-1");
+    expect(testamento.className).toContain("flex-1");
+    expect(within(biblia).getByRole("button", { name: "RVR1960", pressed: true })).toBeTruthy();
+    expect(within(biblia).getByRole("button", { name: "DHH", pressed: false })).toBeTruthy();
     fireEvent.change(within(hoja).getByLabelText("Buscar versículo"), { target: { value: "Juan 3 16" } });
     fireEvent.click(await within(hoja).findByRole("button", { name: "Agregar Juan 3:16" }));
     expect(screen.queryByRole("dialog", { name: "Versículos" })).toBeNull();
@@ -1662,15 +2265,14 @@ describe("tableta (iPad mini de pie)", () => {
 describe("computador con pantalla baja (1280×720)", () => {
   const bajo = () => abrir({ app: { pantallaBaja: true } });
 
-  it("Mis prédicas arranca plegada en una franja, con abrir y Predicar; se puede volver a plegar", () => {
+  it("Mis prédicas no se pliega: está siempre a la vista, con su «Predicar» y sin botón de plegar", () => {
     bajo();
-    const plegada = document.querySelector("[data-mis-plegada]");
-    expect(within(plegada).getByRole("button", { name: "Predicar" })).toBeTruthy();
-    fireEvent.click(within(plegada).getByRole("button", { name: "Abrir Mis prédicas" }));
+    const lista = screen.getByRole("complementary", { name: "Mis prédicas" });
     expect(document.querySelector("[data-mis-plegada]")).toBeNull();
-    expect(screen.getByText("La fe que se atreve")).toBeTruthy();
-    fireEvent.click(boton("Plegar Mis prédicas"));
-    expect(document.querySelector("[data-mis-plegada]")).not.toBeNull();
+    expect(within(lista).getByRole("button", { name: "Predicar" })).toBeTruthy();
+    expect(within(lista).getByText("La fe que se atreve")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Plegar Mis prédicas" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Abrir Mis prédicas" })).toBeNull();
   });
 
   it("la cuadrícula de libros arranca plegada tras «Buscar por libro»", () => {
@@ -1683,7 +2285,6 @@ describe("computador con pantalla baja (1280×720)", () => {
 
   it("al predicar, Luego y el resumen van al lado de la mini pantalla para que todo quepa", () => {
     bajo();
-    fireEvent.click(boton("Abrir Mis prédicas"));
     fireEvent.click(screen.getByText("La fe que se atreve"));
     fireEvent.click(within(screen.getByRole("complementary", { name: "Mis prédicas" })).getByRole("button", { name: "Predicar" }));
     fireEvent.click(boton(/Empezar$/));
@@ -1692,9 +2293,8 @@ describe("computador con pantalla baja (1280×720)", () => {
     expect(escenario.textContent).toContain("Luego");
   });
 
-  it("con pantalla alta, nada se pliega", () => {
+  it("con pantalla alta, la cuadrícula de libros no se pliega", () => {
     abrir();
-    expect(document.querySelector("[data-mis-plegada]")).toBeNull();
     expect(document.querySelector("[data-plegar-libros]")).toBeNull();
   });
 });

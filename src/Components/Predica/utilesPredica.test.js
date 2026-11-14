@@ -18,12 +18,13 @@ import {
   nivelPermitido,
   NIVEL_MAXIMO,
   SANGRIA_RESUMEN,
-  partesDelResumen,
+  paginaDelResumen,
+  lineasDelResumen,
+  puntosDelBosquejo,
   RENGLONES_RESUMEN,
   etiquetaPunto,
   NUMERACIONES,
   numeracionValida,
-  resumenDePuntos,
   textoDePunto,
   documentoDePredica,
   fechaCorta,
@@ -129,9 +130,8 @@ describe("bosquejo", () => {
     expect(textoDePunto("b)", "La fe obedece")).toBe("b) La fe obedece");
     expect(textoDePunto("", "La fe obedece")).toBe("La fe obedece");
     // PIEZAS: a versículo, b punto, c mensaje, d punto.
-    expect(resumenDePuntos(PIEZAS, 0)).toEqual([]);
-    expect(resumenDePuntos(PIEZAS, 2).length).toBe(1);
-    expect(resumenDePuntos(PIEZAS, 3, "numeros").map((t) => t.slice(0, 3))).toEqual(["1. ", "2. "]);
+    expect(puntosDelBosquejo(PIEZAS).map((p) => p.id)).toEqual(["b", "d"]);
+    expect(lineasDelResumen(puntosDelBosquejo(PIEZAS), "numeros").map((t) => t.slice(0, 3))).toEqual(["1. ", "2. "]);
     expect(normalizarPredica("x", { piezas: [] }).numeracion).toBe("romanos");
     expect(normalizarPredica("x", { numeracion: "letras", piezas: [] }).numeracion).toBe("letras");
     expect(numeracionValida("otra")).toBe("romanos");
@@ -168,7 +168,7 @@ describe("bosquejo", () => {
     expect(doc.piezas.find((p) => p.id === "s1")).toEqual({ id: "s1", tipo: "titulo", contenido: "Ve lo invisible", nivel: 1 });
     expect("nivel" in doc.piezas.find((p) => p.id === "p1")).toBe(false);
     // El resumen: los subpuntos con sangría bajo su punto.
-    expect(resumenDePuntos(BOSQUEJO, 5)).toEqual([
+    expect(lineasDelResumen(puntosDelBosquejo(BOSQUEJO))).toEqual([
       "I. La fe ve",
       SANGRIA_RESUMEN + "a) Ve lo invisible",
       SANGRIA_RESUMEN + "b) Ve lo que viene",
@@ -198,9 +198,7 @@ describe("bosquejo", () => {
     // Se guarda su nivel; el resumen lleva dos sangrías en el tercer nivel.
     const doc = documentoDePredica({ titulo: "x", fecha: "", serie: "", base: "", estado: "borrador", piezas: TRES });
     expect(doc.piezas.find((p) => p.id === "t1").nivel).toBe(2);
-    expect(resumenDePuntos(TRES, 3)).toEqual(["I. La fe ve", SANGRIA_RESUMEN + "a) Ve lo invisible", SANGRIA_RESUMEN + SANGRIA_RESUMEN + "1. Como Moisés", SANGRIA_RESUMEN + SANGRIA_RESUMEN + "2. Como Abraham"]);
-    // Por partes, el sub-subpunto va con su punto.
-    expect(partesDelResumen(resumenDePuntos(TRES, 6), 6).map((p) => p.length)).toEqual([6, 1]);
+    expect(lineasDelResumen(puntosDelBosquejo(TRES).slice(0, 4))).toEqual(["I. La fe ve", SANGRIA_RESUMEN + "a) Ve lo invisible", SANGRIA_RESUMEN + SANGRIA_RESUMEN + "1. Como Moisés", SANGRIA_RESUMEN + SANGRIA_RESUMEN + "2. Como Abraham"]);
   });
 
   it("cada nivel con su propia numeración; sin elegir, sigue al de arriba", () => {
@@ -217,7 +215,7 @@ describe("bosquejo", () => {
     expect(nivelesValidos(["letras", "rara"])).toEqual(["letras", null]);
     expect(nivelesValidos(undefined)).toEqual([null, null]);
     expect(normalizarPredica("x", { numeracionNiveles: ["numeros"], piezas: [] }).numeracionNiveles).toEqual(["numeros", null]);
-    expect(resumenDePuntos(TRES, 2, "romanos", ["numeros", "letras"])).toEqual(["I. La fe ve", SANGRIA_RESUMEN + "1. Ve lo invisible", SANGRIA_RESUMEN + SANGRIA_RESUMEN + "A. Como Moisés"]);
+    expect(lineasDelResumen(puntosDelBosquejo(TRES), "romanos", ["numeros", "letras"])).toEqual(["I. La fe ve", SANGRIA_RESUMEN + "1. Ve lo invisible", SANGRIA_RESUMEN + SANGRIA_RESUMEN + "A. Como Moisés"]);
   });
 
   it("combinaciones ya hechas para los tres niveles, y cuál tiene la prédica", () => {
@@ -230,19 +228,24 @@ describe("bosquejo", () => {
     expect(datosDeCombinacion(COMBINACIONES[0])).toEqual({ numeracion: "romanos", numeracionNiveles: ["letras", "numeros"] });
   });
 
-  it("el resumen por partes de 6 renglones, sin separar un punto de sus subpuntos", () => {
-    const S = SANGRIA_RESUMEN;
-    const ocho = ["I. a", "II. b", "III. c", "IV. d", "V. e", "VI. f", "VII. g", "VIII. h"];
-    expect(partesDelResumen(ocho)).toEqual([ocho.slice(0, 6), ocho.slice(6)]);
-    expect(partesDelResumen(ocho.slice(0, 6))).toHaveLength(1);
-    expect(partesDelResumen([])).toEqual([]);
-    // El punto V con sus dos subpuntos no cabe en la primera parte: pasa entero.
-    const conSub = ["I. a", "II. b", "III. c", "IV. d", "V. e", S + "a) x", S + "b) y"];
-    expect(partesDelResumen(conSub)).toEqual([["I. a", "II. b", "III. c", "IV. d"], ["V. e", S + "a) x", S + "b) y"]]);
-    // Un punto que solo ya no cabe se parte (no hay otra forma).
-    const largo = ["I. a", ...Array.from({ length: 7 }, (_, i) => S + i)];
-    expect(partesDelResumen(largo).map((p) => p.length)).toEqual([6, 2]);
+  it("el resumen de puntos: la pantalla muestra 6 y el séptimo abre una pantalla nueva como el primero", () => {
+    const P = Array.from({ length: 8 }, (_, i) => ({ id: `p${i + 1}`, tipo: "titulo", contenido: `Punto ${i + 1}` }));
     expect(RENGLONES_RESUMEN).toBe(6);
+    expect(paginaDelResumen([])).toEqual([]);
+    // Hasta 6, todos en la misma pantalla y en el orden tocado.
+    expect(paginaDelResumen(P.slice(0, 1))).toEqual([P[0]]);
+    expect(paginaDelResumen(P.slice(0, 6))).toEqual(P.slice(0, 6));
+    // El 7.º: pantalla nueva, solo él; el 8.º se suma debajo.
+    expect(paginaDelResumen(P.slice(0, 7))).toEqual([P[6]]);
+    expect(paginaDelResumen(P.slice(0, 8))).toEqual([P[6], P[7]]);
+    // Se numera de nuevo en cada pantalla: el séptimo sale como «I.».
+    expect(lineasDelResumen(paginaDelResumen(P.slice(0, 7)))).toEqual(["I. Punto 7"]);
+    expect(lineasDelResumen(paginaDelResumen(P.slice(0, 8)))).toEqual(["I. Punto 7", "II. Punto 8"]);
+    // El orden es el de los toques, no el del bosquejo.
+    expect(lineasDelResumen([P[2], P[0]])).toEqual(["I. Punto 3", "II. Punto 1"]);
+    // Los subpuntos conservan su sangría.
+    const S = SANGRIA_RESUMEN;
+    expect(lineasDelResumen([P[0], { id: "s", tipo: "titulo", contenido: "x", nivel: 1 }])).toEqual(["I. Punto 1", S + "a) x"]);
   });
 
   it("numeración: escribir otro número lleva el ítem a ese lugar y los demás se corren", () => {

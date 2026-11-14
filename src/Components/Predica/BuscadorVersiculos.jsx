@@ -3,7 +3,9 @@ import { ChevronDownIcon, ChevronLeftIcon, ChevronUpIcon, PlayIcon } from "@hero
 import { PlusIcon as MasGrueso } from "@heroicons/react/24/outline";
 import { obtenerVersiculo } from "../FuncionesControlPredica/FuncionesControlPredica";
 import { useAppContext } from "../Context/AppContext";
-import { librosDe, versionValida } from "../Biblia/versionesBiblia";
+import { useAuth } from "../Context/AuthContext";
+import { VERSIONES, librosDe, versionValida } from "../Biblia/versionesBiblia";
+import { guardarVersionBiblia } from "../Biblia/elegirBiblia";
 import { siglaBiblia } from "../LibrosBiblia/avisosBiblia.js";
 import { citaDeLibro, interpretarEntrada, nombreCorto, nombreSinSan, nuevaPieza } from "./utilesPredica.js";
 
@@ -40,13 +42,29 @@ const ACCIONES = {
 // `plegable` (12-11-2026, propuesta por pantallas): en pantallas bajas (un PC
 // de 1280×720) la cuadrícula de libros arranca plegada tras «Buscar por libro»,
 // para que el campo y la tarjeta quepan sin desplazar.
-export default function BuscadorVersiculos({ onAgregar, showNotif, accion = "agregar", plegable = false }) {
+// `cambiarBiblia` (14-11-2026, pedido del usuario): en el diálogo de versículos
+// del celular, un tercer botón junto a Antiguo | Nuevo alterna entre las Biblias.
+export default function BuscadorVersiculos({ onAgregar, showNotif, accion = "agregar", plegable = false, cambiarBiblia = false }) {
   const [verLibros, setVerLibros] = useState(!plegable);
   const { verbo, marca: MarcaAgua, grosor, ayuda } = ACCIONES[accion] || ACCIONES.agregar;
   // La tarjeta dice qué hace con la marca de agua; el nombre queda en aria-label.
-  const { versionBiblia } = useAppContext();
+  const { versionBiblia, setVersionBiblia } = useAppContext();
+  const { userData } = useAuth();
   const version = versionValida(versionBiblia);
   const libros = librosDe(version);
+
+  // Elige la Biblia: se ve al instante y Firestore lo confirma.
+  const elegirBiblia = async (siguiente) => {
+    if (siguiente === version) return;
+    setVersionBiblia(siguiente);
+    try {
+      await guardarVersionBiblia(userData.groupId, siguiente);
+    } catch (error) {
+      console.error("No se pudo guardar la Biblia elegida:", error);
+      setVersionBiblia(version);
+      showNotif("error", "No se pudo cambiar la Biblia. Inténtalo de nuevo.");
+    }
+  };
 
   const [texto, setTexto] = useState("");
   // { cita, texto, version, numero? } | { cita, error: true } | null
@@ -144,7 +162,10 @@ export default function BuscadorVersiculos({ onAgregar, showNotif, accion = "agr
       )}
       {verLibros && (
       <>
-      <div role="group" aria-label="Testamento" className="flex rounded-lg border border-app-border p-0.5">
+      {/* En el diálogo del celular (cambiarBiblia), dos grupos que se reparten
+          la fila: libros (Antiguo | Nuevo) y Biblias (RVR1960 | DHH). */}
+      <div className={cambiarBiblia ? "flex gap-2" : "contents"}>
+      <div role="group" aria-label="Testamento" className={`flex rounded-lg border border-app-border p-0.5 ${cambiarBiblia ? "flex-1" : ""}`}>
         {[
           ["antiguo", "Antiguo"],
           ["nuevo", "Nuevo"],
@@ -165,6 +186,25 @@ export default function BuscadorVersiculos({ onAgregar, showNotif, accion = "agr
             {nombre}
           </button>
         ))}
+      </div>
+      {cambiarBiblia && (
+        <div role="group" aria-label="Biblia" data-cambiar-biblia className="flex flex-1 rounded-lg border border-app-border p-0.5">
+          {Object.values(VERSIONES).map(({ clave, corto, nombre }) => (
+            <button
+              key={clave}
+              type="button"
+              title={nombre}
+              aria-pressed={clave === version}
+              onClick={() => elegirBiblia(clave)}
+              className={`flex-1 rounded-md px-1 py-1 text-sm font-semibold transition ${
+                clave === version ? "bg-app-agua text-app-dark" : "text-app-muted hover:text-app-agua"
+              }`}
+            >
+              {corto}
+            </button>
+          ))}
+        </div>
+      )}
       </div>
 
       {/* Alto fijo: el de los 39 libros del Antiguo Testamento de la RVR1960

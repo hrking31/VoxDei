@@ -13,21 +13,31 @@ import { AYUDA, GRUPOS, INICIO, MENU_INICIAL, estaActiva, seccionesPara } from "
 //
 // Ocupa su sitio con un hueco del ancho encogido y se pinta `fixed`, para
 // que al abrirse tape el contenido en vez de empujarlo.
-export default function BarraLateral() {
-  const [abierta, setAbierta] = useState(false);
+//
+// En el celular (`movil`) es la misma barra, pero no ocupa sitio ni existe
+// encogida: aparece solo mientras `abierta` (que decide el botón de menú de
+// `BarraSuperior`, vía MarcoPanel), siempre con los nombres, y se cierra con
+// `onCerrar`.
+export default function BarraLateral({ movil = false, abierta: abiertaMovil = false, onCerrar }) {
+  const [abiertaPropia, setAbiertaPropia] = useState(false);
   const { userData, logout } = useAuth();
   const { confirmAction } = useAppContext();
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
+  const abierta = movil ? abiertaMovil : abiertaPropia;
+  const setAbierta = (valor) => (movil ? !valor && onCerrar?.() : setAbiertaPropia(valor));
+
   useEffect(() => {
     if (!abierta) return;
     const alPulsarTecla = (e) => {
-      if (e.key === "Escape") setAbierta(false);
+      if (e.key !== "Escape") return;
+      if (movil) onCerrar?.();
+      else setAbiertaPropia(false);
     };
     document.addEventListener("keydown", alPulsarTecla);
     return () => document.removeEventListener("keydown", alPulsarTecla);
-  }, [abierta]);
+  }, [abierta, movil, onCerrar]);
 
   const ir = (ruta) => {
     setAbierta(false);
@@ -42,23 +52,26 @@ export default function BarraLateral() {
 
   const secciones = seccionesPara(userData);
 
+  // Cerrada en el celular no hay nada que pintar.
+  if (movil && !abierta) return null;
+
   return (
     <>
-      <div className="w-barra shrink-0" aria-hidden="true" />
+      {!movil && <div className="w-barra shrink-0" aria-hidden="true" />}
 
       {abierta && (
         <div
           data-testid="velo-barra"
-          className="fixed inset-0 z-30 bg-app-velo"
+          className={`fixed inset-0 bg-app-velo ${movil ? "z-40" : "z-30"}`}
           onClick={() => setAbierta(false)}
         />
       )}
 
       <nav
         aria-label="Secciones del panel"
-        className={`fixed inset-y-0 left-0 z-40 flex flex-col gap-1 overflow-y-auto border-r border-app-border bg-app-light p-2 transition-[width] duration-200 ${
-          abierta ? "w-barra-abierta shadow-barra" : "w-barra"
-        }`}
+        className={`fixed inset-y-0 left-0 flex flex-col gap-1 overflow-y-auto border-r border-app-border bg-app-light p-2 transition-[width] duration-200 ${
+          movil ? "z-50" : "z-40"
+        } ${abierta ? "w-barra-abierta max-w-full shadow-barra" : "w-barra"}`}
       >
         {/* El logo vuelve al menú inicial (Proyectar / Administrar), como en
             casi todas las apps. Abrir y cerrar la barra va en la flecha. */}
@@ -124,18 +137,22 @@ export default function BarraLateral() {
           abierta={abierta}
           onClick={cerrarSesion}
         />
-        <button
-          type="button"
-          onClick={() => setAbierta(!abierta)}
-          aria-expanded={abierta}
-          aria-label={abierta ? "Encoger la barra" : "Mostrar los nombres de las secciones"}
-          title={abierta ? "Encoger la barra" : "Mostrar los nombres"}
-          className={`flex h-8 shrink-0 items-center rounded-lg px-3.5 text-app-muted hover:bg-app-dark hover:text-app-texto ${
-            abierta ? "justify-end" : "justify-start"
-          }`}
-        >
-          <IconoEncoger abierta={abierta} />
-        </button>
+        {/* En el celular no hay flecha: el menú se cierra al elegir algo, con
+            Escape o tocando fuera. */}
+        {!movil && (
+          <button
+            type="button"
+            onClick={() => setAbierta(!abierta)}
+            aria-expanded={abierta}
+            aria-label={abierta ? "Encoger la barra" : "Mostrar los nombres de las secciones"}
+            title={abierta ? "Encoger la barra" : "Mostrar los nombres"}
+            className={`flex h-8 shrink-0 items-center rounded-lg px-3.5 text-app-muted hover:bg-app-dark hover:text-app-texto ${
+              abierta ? "justify-end" : "justify-start"
+            }`}
+          >
+            <IconoEncoger abierta={abierta} />
+          </button>
+        )}
       </nav>
     </>
   );

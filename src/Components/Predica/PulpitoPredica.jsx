@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeftIcon, BookOpenIcon, BookmarkIcon, ChatBubbleLeftRightIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, EyeIcon, EyeSlashIcon, ListBulletIcon, PlayIcon, TagIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { ArrowLeftIcon, BookOpenIcon, BookmarkIcon, ChatBubbleLeftRightIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, EyeIcon, EyeSlashIcon, PlayIcon, TagIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import { useTurno } from "../Hooks/useTurno.js";
@@ -10,7 +10,7 @@ import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
 // TEMPORAL DHH (12-11-2026): el botón RVR1960 / DHH también al predicar.
 import SelectorBiblia from "../Biblia/SelectorBiblia.jsx";
 import { apagarImagen, cambiarVisible, encenderImagen, proyectarPieza } from "./accionesPredica.js";
-import { ALINEACION_RESUMEN, cuantosItems, partesDelResumen, nivelDe, numerosDePuntos, relojDesde, resumenDePuntos, textoDePieza, textoDePunto } from "./utilesPredica.js";
+import { ALINEACION_RESUMEN, cuantosItems, lineasDelResumen, nivelDe, numerosDePuntos, paginaDelResumen, puntosDelBosquejo, RENGLONES_RESUMEN, relojDesde, textoDePieza, textoDePunto } from "./utilesPredica.js";
 
 const esCampo = (el) => el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
 
@@ -36,6 +36,7 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
   const { exigirTurno } = useTurno();
   const {
     showNotif,
+    confirmAction,
     visibleTitulo,
     setVisibleTitulo,
     visibleTexto,
@@ -213,27 +214,57 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
   const noSeVe = enNegro || !seVe;
   const luego = actual === -1 && !enPortada ? portada : piezas[actual + 1];
 
-  // Resumen de los puntos ya vistos (12-11-2026, pedido del usuario): al
-  // tocarlo se proyectan todos juntos como un mensaje, uno por renglón.
-  const puntosVistos = actual >= 0 ? resumenDePuntos(piezas, actual, predica.numeracion, predica.numeracionNiveles) : [];
-  // Por partes de RENGLONES_RESUMEN, para que nunca quede cortado: cada toque
-  // proyecta la parte siguiente y, después de la última, vuelve a la primera.
-  // La parte en pantalla vale mientras no se avance de ítem (`hasta`).
-  const partes = partesDelResumen(puntosVistos);
-  const [resumenEnPantalla, setResumenEnPantalla] = useState({ hasta: -1, parte: -1 });
-  const parteEnPantalla = alVuelo?.id === "resumen" && resumenEnPantalla.hasta === actual ? resumenEnPantalla.parte : -1;
-  const parteSiguiente = partes.length ? (parteEnPantalla + 1) % partes.length : 0;
-  const proyectarResumen = () => {
-    if (!exigirTurno() || !partes.length) return;
-    const pieza = { id: "resumen", tipo: "mensaje", contenido: partes[parteSiguiente].join("\n"), alineacion: ALINEACION_RESUMEN };
-    setResumenEnPantalla({ hasta: actual, parte: parteSiguiente });
+  // Resumen de puntos (14-11-2026, pedido del usuario; antes, «puntos vistos»
+  // por partes): se muestran TODOS los puntos y cada uno es un botón que el
+  // predicador toca al ir recordándolo; los tocados se proyectan juntos, en el
+  // orden tocado. La pantalla muestra 6 como máximo: el séptimo la limpia y
+  // sale como el primero de una nueva. Los tocados duran mientras el púlpito
+  // esté abierto. Nada se bloquea (pedido del usuario): se puede empezar por
+  // el punto que se quiera, y tocar uno que ya salió, aunque ya hayan salido
+  // todos, empieza una pantalla nueva con él como el primero.
+  const puntos = puntosDelBosquejo(piezas);
+  const numerosPuntos = numerosDePuntos(piezas, predica.numeracion, predica.numeracionNiveles);
+  const [tocados, setTocados] = useState([]); // ids, en el orden tocado
+  const piezasTocadas = tocados.map((id) => piezas.find((p) => p.id === id)).filter(Boolean);
+  const paginaResumen = paginaDelResumen(piezasTocadas);
+  // Celular: el resumen es el diálogo «Puntos», debajo de la mini pantalla y
+  // hasta el borde de abajo; se abre con su botón y se cierra con la X.
+  const [resumenAbierto, setResumenAbierto] = useState(false);
+  const tocarPunto = (punto) => {
+    if (!exigirTurno()) return;
+    // Uno que ya está en la pantalla actual solo vuelve a enviarla tal cual (por
+    // si se había ocultado); uno que ya salió antes empieza una ronda nueva con
+    // él como el primero.
+    const yaEnPantalla = paginaResumen.some((p) => p.id === punto.id);
+    const siguientes = tocados.includes(punto.id) && !yaEnPantalla ? [punto.id] : yaEnPantalla ? tocados : [...tocados, punto.id];
+    const pagina = paginaDelResumen(siguientes.map((id) => piezas.find((p) => p.id === id)).filter(Boolean));
+    const pieza = { id: "resumen", tipo: "mensaje", contenido: lineasDelResumen(pagina, predica.numeracion, predica.numeracionNiveles).join("\n"), alineacion: ALINEACION_RESUMEN };
+    setTocados(siguientes);
     setAlVuelo(pieza);
     enviar(pieza);
   };
-  const deCuantas = (i) => (partes.length > 1 ? ` · parte ${i + 1} de ${partes.length}` : "");
-  const etiquetaAire = alVuelo?.id === "resumen" ? `Resumen${deCuantas(parteEnPantalla)}` : alVuelo ? "Espontáneo" : enPortada ? "Título de la prédica" : "En el templo ahora";
+  const etiquetaAire = alVuelo?.id === "resumen" ? "Resumen" : alVuelo ? "Espontáneo" : enPortada ? "Título de la prédica" : formato === "celular" ? (noSeVe ? "Oculto" : "En vivo") : "En el templo ahora";
   const reloj = relojDesde(ahora - inicio);
   const posicion = actual >= 0 ? `${actual + 1} de ${piezas.length}` : cuantosItems(piezas.length);
+
+  // Colores de cada fila de la lista. En el celular (14-11-2026, pedido del
+  // usuario) todas las filas se ven por igual (los puntos sin negrita ni
+  // número dorado): lo ya pasado se oscurece, el que está al aire va sin
+  // resaltar (ya se sabe que está en pantalla) y el que sigue lleva el recuadro
+  // en amarillo, flotando y brillando, como por encima de los demás (la sección
+  // lleva margen y relleno a los lados para que el recuadro no se corte).
+  const celularLista = formato === "celular";
+  const colorFila = (estado) => {
+    if (!celularLista) return null;
+    return {
+      actual: "border-transparent text-app-texto hover:bg-app-border/40",
+      pasado: "border-transparent text-app-border hover:bg-app-border/40",
+      proximo: "relative z-10 border-app-main bg-app-main/10 text-app-texto shadow-lg shadow-black/50 motion-safe:animate-siguiente",
+      futuro: "border-transparent text-app-muted hover:bg-app-border/40",
+    }[estado];
+  };
+  const estadoPortada = enPortada && !alVuelo ? "actual" : actual >= 0 ? "pasado" : "proximo";
+  const estadoItem = (i) => (i === actual && !alVuelo ? "actual" : i < actual ? "pasado" : i === actual + 1 ? "proximo" : "futuro");
 
   const lista = (
     <ol className="m-0 flex list-none flex-col gap-0.5 p-0">
@@ -247,13 +278,15 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
           }}
           aria-current={enPortada && !alVuelo ? "true" : undefined}
           className={`flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition ${
-            enPortada && !alVuelo ? "border-app-main bg-app-border/60 text-app-texto" : "border-transparent hover:bg-app-border/40"
-          } ${actual >= 0 ? "text-app-border" : "text-app-muted"}`}
+            celularLista
+              ? colorFila(estadoPortada)
+              : `${enPortada && !alVuelo ? "border-app-main bg-app-border/60 text-app-texto" : "border-transparent hover:bg-app-border/40"} ${actual >= 0 ? "text-app-border" : "text-app-muted"}`
+          }`}
         >
           <BookmarkIcon className="mt-0.5 h-4 w-4 shrink-0 text-app-accent" aria-hidden="true" />
           <span className="min-w-0 flex-1">
             <span className="block text-diminuto font-semibold tracking-widest uppercase">Título de la prédica</span>
-            <b className="text-app-texto">{predica.titulo}</b>
+            <b className={celularLista ? "" : "text-app-texto"}>{predica.titulo}</b>
           </span>
           {actual >= 0 && <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-app-success" aria-hidden="true" />}
         </button>
@@ -268,16 +301,18 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
             }}
             aria-current={i === actual && !alVuelo ? "true" : undefined}
             className={`flex w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition ${
-              i === actual && !alVuelo ? "border-app-main bg-app-border/60 text-app-texto" : "border-transparent hover:bg-app-border/40"
-            } ${i < actual ? "text-app-border" : "text-app-muted"}`}
+              celularLista
+                ? colorFila(estadoItem(i))
+                : `${i === actual && !alVuelo ? "border-app-main bg-app-border/60 text-app-texto" : "border-transparent hover:bg-app-border/40"} ${i < actual ? "text-app-border" : "text-app-muted"}`
+            }`}
           >
             <span className="w-5 shrink-0 pt-0.5 text-xs font-semibold">{i + 1}</span>
             <span className="flex min-w-0 flex-1 items-start gap-2">
               <Miniatura pieza={pieza} />
               <span className="min-w-0 flex-1">
                 {nivelDe(pieza) > 0 && <span className={`inline-block ${nivelDe(pieza) === 2 ? "w-8" : "w-4"}`} aria-hidden="true" />}
-                {numeros[pieza.id] && <b className="mr-1 text-app-main">{numeros[pieza.id]}</b>}
-                <span className={pieza.tipo === "titulo" ? "font-semibold text-app-texto" : ""}>{textoDePieza(pieza)}</span>
+                {numeros[pieza.id] && <b className={`mr-1 ${celularLista ? "" : "text-app-main"}`}>{numeros[pieza.id]}</b>}
+                <span className={pieza.tipo === "titulo" && !celularLista ? "font-semibold text-app-texto" : ""}>{textoDePieza(pieza)}</span>
               </span>
             </span>
             {i < actual && <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-app-success" aria-hidden="true" />}
@@ -286,6 +321,29 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
       ))}
     </ol>
   );
+
+  // El bosquejo del celular (14-11-2026, pedido del usuario; en lugar de
+  // «Luego» y de la pestaña «Bosquejo»): toda la lista a la vista, en su propio
+  // recuadro con desplazamiento, y a medida que se avanza se mueve sola para
+  // dejar el ítem al aire en el centro. «Terminar» va al final de la lista.
+  const recuadroBosquejo = useRef(null);
+  // Dónde termina la mini pantalla: de ahí hacia abajo se abre el diálogo «Puntos».
+  const pantallaRef = useRef(null);
+  const [topResumen, setTopResumen] = useState(0);
+  useLayoutEffect(() => {
+    if (!resumenAbierto) return undefined;
+    const medir = () => setTopResumen(Math.round((pantallaRef.current?.getBoundingClientRect().bottom ?? 0) + 8));
+    medir();
+    window.addEventListener("resize", medir);
+    return () => window.removeEventListener("resize", medir);
+  }, [resumenAbierto]);
+  useEffect(() => {
+    const recuadro = recuadroBosquejo.current;
+    const fila = recuadro?.querySelector('[aria-current="true"]');
+    if (!recuadro || !fila) return;
+    const arriba = fila.offsetTop - (recuadro.clientHeight - fila.offsetHeight) / 2;
+    recuadro.scrollTo?.({ top: Math.max(0, arriba), behavior: "smooth" });
+  }, [actual, enPortada, alVuelo, formato]);
 
   // ---------- Las piezas del púlpito, que cada pantalla ordena a su modo ----------
 
@@ -301,7 +359,7 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
           data-visible={v.clave}
           onClick={() => cambiar(v)}
           className={`flex items-center justify-center rounded-full border text-xs font-semibold transition ${
-            cuadricula ? "h-12 flex-col gap-0.5 rounded-xl" : "h-10 flex-1 gap-1.5 px-3 sm:flex-none"
+            cuadricula ? "h-11 flex-col gap-0 rounded-xl" : "h-10 flex-1 gap-1.5 px-3 sm:flex-none"
           } ${v.valor ? v.encendido : "border-app-border text-app-muted"}`}
         >
           <v.icono className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -313,7 +371,7 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
         onClick={alternarOculto}
         data-ocultar={enNegro ? "mostrar" : "ocultar"}
         className={`flex items-center justify-center rounded-full border text-xs font-semibold ${
-          cuadricula ? "h-12 flex-col gap-0.5 rounded-xl" : "h-10 flex-1 gap-1.5 px-3 sm:flex-none"
+          cuadricula ? "h-11 flex-col gap-0 rounded-xl" : "h-10 flex-1 gap-1.5 px-3 sm:flex-none"
         } ${
           enNegro
             ? "border-app-error bg-app-error/15 font-bold text-app-error motion-safe:animate-palpita"
@@ -330,8 +388,17 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
   );
 
   const etiqueta = (
-    <span className="flex items-center gap-2 text-xs font-semibold tracking-widest text-app-success uppercase">
-      <span aria-hidden="true" className="h-2 w-2 rounded-full bg-app-success" />
+    <span
+      data-etiqueta-aire={formato === "celular" ? (noSeVe ? "oculto" : "vivo") : undefined}
+      className={`flex items-center gap-2 text-xs font-semibold tracking-widest uppercase ${formato === "celular" && noSeVe ? "text-app-error" : "text-app-success"}`}
+    >
+      {/* En el celular (14-11-2026, pedido del usuario): «En vivo» y el punto
+          pulsante; si no se ve en el templo, «Oculto» con el punto rojo y quieto. */}
+      <span
+        aria-hidden="true"
+        data-punto-vivo={formato === "celular" || undefined}
+        className={`h-2 w-2 rounded-full ${formato === "celular" && noSeVe ? "bg-app-error" : "bg-app-success"} ${formato === "celular" && !noSeVe ? "motion-safe:animate-pulse" : ""}`}
+      />
       {etiquetaAire} · {posicion}
     </span>
   );
@@ -350,7 +417,7 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
   );
 
   const luegoNodo = luego && (
-    <p className="m-0 flex items-center gap-3 rounded-xl border border-app-border bg-app-light px-4 py-3">
+    <p className="m-0 flex items-center gap-3 rounded-xl border border-app-border bg-app-light px-4 py-2">
       <span className="text-diminuto font-semibold tracking-widest text-app-muted uppercase">Luego</span>
       <Miniatura pieza={luego} />
       {numeros[luego.id] && <b className="text-app-main">{numeros[luego.id]}</b>}
@@ -358,52 +425,55 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
     </p>
   );
 
-  const resumenNodo = puntosVistos.length > 0 && (
-    <section aria-label="Resumen de puntos vistos">
-      <button
-        type="button"
-        data-resumen
-        onClick={proyectarResumen}
-        aria-label={`Proyectar el resumen de puntos vistos${deCuantas(parteSiguiente)}`}
-        className={`group relative isolate flex w-full flex-col gap-1.5 overflow-hidden rounded-xl border px-4 py-3 text-left transition ${
-          alVuelo?.id === "resumen" ? "border-app-main bg-app-main/10" : "border-app-border bg-app-light hover:border-app-main"
-        }`}
-      >
-        {/* Marca de agua ▶ en el centro, como la tarjeta del versículo
-            (12-11-2026, pedido del usuario). */}
-        <PlayIcon
-          data-marca-agua="proyectar"
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 m-auto h-20 w-20 text-app-main/15 transition group-hover:text-app-main/25"
-        />
-        <span className="text-diminuto font-semibold tracking-widest text-app-muted uppercase">Resumen de puntos vistos</span>
-        {partes.map((parte, p) => (
-          <ul
-            key={p}
-            data-parte={p + 1}
-            aria-current={p === parteEnPantalla ? "true" : undefined}
-            className={`m-0 flex list-none flex-col gap-0.5 p-0 text-sm ${
-              // La línea entre partes se ve siempre: clara sobre el recuadro
-              // normal y dorada sobre el encendido (12-11-2026, pedido del usuario).
-              p > 0 ? `border-t border-dashed pt-1.5 ${alVuelo?.id === "resumen" ? "border-app-main/70" : "border-app-muted/60"}` : ""
-            } ${parteEnPantalla === -1 || p === parteEnPantalla ? "text-app-texto" : "text-app-muted"}`}
-          >
-            {parte.map((linea) => (
-              <li key={linea} className="truncate whitespace-pre">
-                {linea}
-              </li>
-            ))}
-          </ul>
-        ))}
-      </button>
+  // Todos los puntos, cada uno un botón: el tocado lleva el check y los que
+  // están ahora en la pantalla, el recuadro dorado.
+  const enPantallaResumen = alVuelo?.id === "resumen" ? paginaResumen.map((p) => p.id) : [];
+  const resumenNodo = puntos.length > 0 && (
+    <section aria-label="Resumen de puntos" className="relative isolate flex flex-col gap-1.5 overflow-hidden rounded-xl border border-app-border bg-app-light px-3 py-3">
+      {/* Marca de agua ▶ en el centro, como la tarjeta del versículo. */}
+      <PlayIcon data-marca-agua="proyectar" aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 m-auto h-20 w-20 text-app-main/15" />
+      <span className="text-diminuto font-semibold tracking-widest text-app-muted uppercase">
+        Resumen de puntos · en pantalla {paginaResumen.length} de {RENGLONES_RESUMEN}
+      </span>
+      <ul className="m-0 flex list-none flex-col gap-1 p-0">
+        {puntos.map((punto) => {
+          const tocado = tocados.includes(punto.id);
+          const alAire = enPantallaResumen.includes(punto.id);
+          return (
+            <li key={punto.id} className={nivelDe(punto) === 2 ? "ml-8" : nivelDe(punto) === 1 ? "ml-4" : ""}>
+              <button
+                type="button"
+                data-punto-resumen={punto.id}
+                aria-pressed={tocado}
+                aria-current={alAire ? "true" : undefined}
+                onClick={() => tocarPunto(punto)}
+                className={`flex w-full items-start gap-2 rounded-lg border px-2.5 py-2 text-left text-sm transition ${
+                  alAire ? "border-app-main bg-app-main/10 text-app-texto" : tocado ? "border-transparent text-app-muted" : "border-app-border text-app-texto hover:border-app-main"
+                }`}
+              >
+                <span className="min-w-0 flex-1">
+                  {numerosPuntos[punto.id] && (
+                    <>
+                      <b>{numerosPuntos[punto.id]}</b>{" "}
+                    </>
+                  )}
+                  {punto.contenido}
+                </span>
+                {tocado && <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-app-success" aria-hidden="true" />}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 
   const versiculoNodo = (
     <section aria-label="Versículo espontáneo" className="flex min-h-0 flex-1 flex-col gap-2">
       <h3 className="m-0 text-xs font-semibold tracking-widest text-app-muted uppercase">Versículo espontáneo</h3>
-      {/* Como en Preparar: el botón de las Biblias encima del buscador. */}
-      <SelectorBiblia />
+      {/* Como en Preparar: el botón de las Biblias encima del buscador. En el
+          celular se quitó (13-11-2026): pendiente de ubicar. */}
+      {formato !== "celular" && <SelectorBiblia />}
       <BuscadorVersiculos accion="proyectar" onAgregar={proyectarVersiculo} showNotif={showNotif} plegable={baja} />
     </section>
   );
@@ -463,78 +533,116 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
 
   // ---------- Celular ----------
   if (formato === "celular") {
-    const PESTANAS = [
-      { clave: "bosquejo", nombre: "Bosquejo", icono: ListBulletIcon, tono: "text-app-texto" },
-      { clave: "versiculo", nombre: "Versículo", icono: BookOpenIcon, tono: "text-app-agua" },
-      { clave: "resumen", nombre: "Resumen", icono: PlayIcon, tono: "text-app-main" },
+    // «Terminar» pregunta antes (14-11-2026, pedido del usuario): un toque
+    // suelto no debe cerrar la prédica.
+    const terminarConPregunta = async () => {
+      if (await confirmAction("¿Terminar y marcar como predicada?")) onTerminar();
+    };
+    // Puntos: abre el diálogo (o avisa si la prédica aún no tiene puntos).
+    const abrirResumen = () => {
+      if (!resumenNodo) return showNotif("info", "Esta prédica aún no tiene puntos.");
+      setResumenAbierto(true);
+      return undefined;
+    };
+    // Fila de cuatro botones solo con ícono, como la barra de Preparar.
+    const herramientas = [
+      { clave: "volver", nombre: "Volver a preparar", icono: ArrowLeftIcon, tono: "text-app-texto", alPulsar: onSalir, atributo: { "data-volver-preparar": true } },
+      { clave: "versiculo", nombre: "Versículos", icono: BookOpenIcon, tono: "text-app-agua", alPulsar: () => setHoja("versiculo"), atributo: { "data-pestana": "versiculo" } },
+      // En lugar del triángulo, la palabra «Puntos» (14-11-2026, pedido del usuario).
+      { clave: "resumen", nombre: "Puntos", icono: null, tono: "text-app-main text-sm font-semibold", alPulsar: abrirResumen, atributo: { "data-pestana": "resumen", title: "Resumen de puntos" } },
     ];
-    const nombreHoja = PESTANAS.find((p) => p.clave === hoja)?.nombre;
     return (
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex h-14 shrink-0 items-center gap-2 px-2">
-          <button type="button" onClick={onSalir} aria-label="Salir del modo predicar" className="grid h-11 w-11 place-items-center rounded-xl text-app-texto">
-            <XMarkIcon className="h-5 w-5" aria-hidden="true" />
-          </button>
+        <div className="flex h-11 shrink-0 items-center gap-2 px-3.5">
           <b className="min-w-0 flex-1 truncate text-app-texto">{predica.titulo}</b>
-          <span className="pr-2 text-lg">{reloj_}</span>
+          <span className="text-lg">{reloj_}</span>
         </div>
 
         <div className="relative flex min-h-0 flex-1 flex-col">
-          <div className="scrollbar-custom flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3.5 pb-3">
+          <div className="scrollbar-custom flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-3.5 pb-2">
             {etiqueta}
-            {pantalla}
-            {interruptoresDe(true)}
-            {luegoNodo}
+            <div ref={pantallaRef}>{pantalla}</div>
+            <div className="relative flex min-h-0 flex-1 flex-col gap-2">
+              {interruptoresDe(true)}
+              <section
+                ref={recuadroBosquejo}
+                aria-label="Bosquejo"
+                data-bosquejo-vivo
+                className="scrollbar-custom relative -mx-2.5 flex min-h-32 flex-1 flex-col gap-2 overflow-y-auto px-2.5 py-2"
+              >
+                {lista}
+                {/* Lo poco usado, lejos de Siguiente: al final del bosquejo; pregunta antes. */}
+                <button
+                  type="button"
+                  data-terminar-predicada
+                  onClick={terminarConPregunta}
+                  className="flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-app-success bg-app-success/10 text-sm font-bold text-app-success shadow-sm transition hover:bg-app-success/20"
+                >
+                  <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                  Terminar y marcar como predicada
+                </button>
+              </section>
+            </div>
           </div>
-          {/* La hoja: se abre sobre el escenario y nunca tapa el muelle. */}
-          {hoja && (
-            <div
-              role="dialog"
-              aria-label={nombreHoja}
-              data-hoja={hoja}
-              className="absolute inset-0 z-30 flex flex-col gap-3 rounded-t-3xl border border-b-0 border-app-border bg-app-aviso p-4 shadow-2xl"
-            >
+        </div>
+
+        {/* Puntos: el diálogo ocupa todo desde debajo de la mini pantalla (que sigue
+            a la vista para ver lo que se proyecta) hasta el borde de abajo de la
+            pantalla, tapando también el muelle; se cierra con la X. */}
+        {resumenNodo && resumenAbierto && (
+          <div
+            role="dialog"
+            aria-label="Puntos"
+            data-resumen-vivo
+            style={{ top: topResumen }}
+            className="fixed inset-x-0 bottom-0 z-40 flex flex-col gap-2 rounded-t-2xl border border-b-0 border-app-border bg-app-dark p-3 shadow-2xl"
+          >
+            <div className="flex items-center justify-between">
+              <b className="text-sm text-app-texto">Puntos</b>
+              <button type="button" onClick={() => setResumenAbierto(false)} aria-label="Cerrar" className="grid h-8 w-8 place-items-center rounded-lg text-app-muted">
+                <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
+            </div>
+            <div className="scrollbar-custom min-h-0 flex-1 overflow-y-auto">{resumenNodo}</div>
+          </div>
+        )}
+
+        {/* Versículos: el mismo diálogo de pantalla completa de Preparar, pero
+            la tarjeta proyecta (y se cierra al hacerlo). */}
+        {hoja === "versiculo" && (
+          <div className="fixed inset-0 z-40 flex flex-col bg-app-dark">
+            <div role="dialog" aria-modal="true" aria-label="Versículos" data-hoja="versiculo" className="flex h-full min-h-0 flex-col gap-3 bg-app-dark p-4">
               <div className="flex items-center justify-between">
-                <b className="text-app-texto">{nombreHoja}</b>
+                <b className="text-app-texto">Versículos</b>
                 <button type="button" onClick={() => setHoja(null)} aria-label="Cerrar" className="grid h-10 w-10 place-items-center rounded-xl text-app-muted">
                   <XMarkIcon className="h-5 w-5" aria-hidden="true" />
                 </button>
               </div>
               <div className="scrollbar-custom flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
-                {hoja === "bosquejo" && (
-                  <>
-                    {lista}
-                    {/* Lo poco usado, lejos de Siguiente: al final del bosquejo. */}
-                    {terminarBoton}
-                  </>
-                )}
-                {hoja === "versiculo" && versiculoNodo}
-                {hoja === "resumen" && (resumenNodo || <p className="m-0 py-6 text-center text-sm text-app-muted">El resumen aparece cuando ya pasó algún punto.</p>)}
+                <BuscadorVersiculos accion="proyectar" cambiarBiblia onAgregar={proyectarVersiculo} showNotif={showNotif} />
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* El muelle: todo lo de predicar, al alcance del pulgar. */}
-        <div data-muelle className="flex shrink-0 flex-col gap-2.5 border-t border-app-border bg-app-light px-3.5 pt-3 pb-4">
+        <div data-muelle className="flex shrink-0 flex-col gap-1.5 border-t border-app-border bg-app-light px-3.5 pt-1.5 pb-2.5">
           <div role="group" aria-label="Herramientas" className="flex gap-1.5">
-            {PESTANAS.map(({ clave, nombre, icono: Icono, tono }) => (
+            {herramientas.map(({ clave, nombre, icono: Icono, tono, alPulsar, atributo }) => (
               <button
                 key={clave}
                 type="button"
-                data-pestana={clave}
-                aria-pressed={hoja === clave}
-                onClick={() => setHoja((abierta) => (abierta === clave ? null : clave))}
-                className={`flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border text-sm font-semibold transition ${tono} ${
-                  hoja === clave ? "border-current bg-app-dark" : "border-app-border bg-app-dark/40"
-                }`}
+                aria-label={Icono ? nombre : undefined}
+                title={nombre}
+                onClick={alPulsar}
+                {...atributo}
+                className={`flex h-7 flex-1 items-center justify-center rounded-lg transition active:bg-app-border/40 ${tono}`}
               >
-                <Icono className="h-4 w-4" aria-hidden="true" />
-                {nombre}
+                {Icono ? <Icono className="h-5 w-5" aria-hidden="true" /> : nombre}
               </button>
             ))}
           </div>
-          {avanzar({ anterior: "h-19 w-28 text-base", siguiente: "h-19 text-2xl" })}
+          {avanzar({ anterior: "h-16 w-24 text-base", siguiente: "h-16 text-2xl" })}
         </div>
       </div>
     );

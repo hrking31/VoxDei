@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeftIcon,
-  EllipsisHorizontalIcon,
+  ArrowUturnLeftIcon,
+  ArrowUturnRightIcon,
   EyeIcon,
   XMarkIcon,
   BookOpenIcon,
@@ -9,19 +10,18 @@ import {
   CheckIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  DocumentDuplicateIcon,
   NumberedListIcon,
   PencilIcon,
   PhotoIcon,
   PlayIcon,
   TrashIcon,
 } from "@heroicons/react/24/solid";
-import CampoPieza from "./CampoPieza.jsx";
 import ElegirImagen from "./ElegirImagen.jsx";
 import BotonesHistorial from "./BotonesHistorial.jsx";
 import BuscadorVersiculos from "./BuscadorVersiculos.jsx";
 import PantallaPrevia from "./PantallaPrevia.jsx";
 // TEMPORAL DHH (12-11-2026): el botón de las Biblias en la hoja de versículos del celular.
-import SelectorBiblia from "../Biblia/SelectorBiblia.jsx";
 import { useAppContext } from "../Context/AppContext";
 // TEMPORAL DHH (12-11-2026): el versículo base se reconoce en la Biblia elegida.
 import { librosDe, versionValida } from "../Biblia/versionesBiblia";
@@ -86,15 +86,23 @@ export default function EditorPredica({
   enfocarTitulo = false,
   onTituloEnfocado,
   acciones = null, // computador: ↶ ↷ Borrar Duplicar │ WhatsApp, abajo a la derecha
-  historial = null, // { deshacer, rehacer, puedeDeshacer, puedeRehacer } (celular: arriba)
-  menuMas = null, // celular: lo que va en ⋯ (Duplicar, Borrar, WhatsApp, Biblia)
+  historial = null, // { deshacer, rehacer, puedeDeshacer, puedeRehacer } (celular: barra de abajo)
+  botonWhatsApp = null, // celular: el botón de WhatsApp de la barra de arriba
   onAgregarVersiculo = null, // celular: el versículo elegido en la hoja de versículos
+  onDuplicar = null, // celular: Duplicar de la barra de arriba
+  onBorrar = null, // celular: Eliminar de la barra de arriba
 }) {
   const [editando, setEditando] = useState(null); // { id, texto }
+  // Celular (14-11-2026, pedido del usuario): «Punto» pregunta el tipo de
+  // numeración la primera vez (hoja `hojaNumeracion`) y, ya elegido, crea sin
+  // preguntar. Si la prédica ya tiene puntos, se da por elegido.
+  const [puntoElegido, setPuntoElegido] = useState(() => predica.piezas.some((p) => p.tipo === "titulo"));
+  const [hojaNumeracion, setHojaNumeracion] = useState(false);
+  const piezasActuales = useRef(predica.piezas);
+  piezasActuales.current = predica.piezas;
   // Celular (12-11-2026, propuesta por pantallas): el menú ⋯, la hoja de
   // versículos y la vista previa del ítem («Ver»), que en el celular no tienen
   // columna propia.
-  const [masAbierto, setMasAbierto] = useState(false);
   const [hojaVersiculos, setHojaVersiculos] = useState(false);
   const [previa, setPrevia] = useState(null); // id del ítem que se ve
   const campoTitulo = useRef(null);
@@ -104,12 +112,18 @@ export default function EditorPredica({
   // La vacía que se acaba de crear al escribir (su id pasa de null a uno
   // real) sigue como estaba, para no cortarle la escritura.
   const [editandoDatos, setEditandoDatos] = useState(() => !predica.titulo.trim());
+  // Celular (14-11-2026, pedido del usuario): no hay un botón de editar general;
+  // cada texto (nombre, serie y versículo base) lleva su propio lápiz y `campo`
+  // dice cuál se está editando: null | "titulo" | "serie" | "base".
+  const [campo, setCampo] = useState(() => (!predica.titulo.trim() ? "titulo" : null));
   const idAnterior = useRef(predica.id);
   useEffect(() => {
     const antes = idAnterior.current;
     idAnterior.current = predica.id;
     if (antes === predica.id || antes === null) return;
     setEditandoDatos(!predica.titulo.trim());
+    setCampo(!predica.titulo.trim() ? "titulo" : null);
+    setPuntoElegido(piezasActuales.current.some((p) => p.tipo === "titulo"));
   }, [predica.id, predica.titulo]);
 
   // Recién creada: modo editar y el cursor en el título con «Nueva prédica»
@@ -117,6 +131,7 @@ export default function EditorPredica({
   useEffect(() => {
     if (!enfocarTitulo || !campoTitulo.current) return;
     setEditandoDatos(true);
+    setCampo("titulo");
     campoTitulo.current.focus();
     campoTitulo.current.select();
     onTituloEnfocado?.();
@@ -184,12 +199,6 @@ export default function EditorPredica({
     document.querySelector(`[data-id="${seleccionada}"]`)?.scrollIntoView?.({ block: "nearest" });
   }, [seleccionada]);
 
-  // Celular (CampoPieza): lo escrito llega hecho y va al final.
-  const agregar = (pieza) => {
-    cambiarPiezas([...piezas, pieza]);
-    onSeleccionar(pieza.id);
-  };
-
   // Lo escrito en el recuadro: se guarda; si quedó vacío y el recuadro era
   // nuevo (sin contenido), el recuadro se va.
   const aplicarEdicion = (lista, edicion) => {
@@ -226,13 +235,23 @@ export default function EditorPredica({
   // listo para escribir; la imagen,
   // con «Subir imagen | Mis imágenes» adentro. Antes se guarda lo que se
   // estaba escribiendo y se va una imagen que quedó sin foto.
-  const crearVacia = (tipo) => {
+  // `extra`: otros datos que van en el mismo cambio (la numeración elegida).
+  const crearVacia = (tipo, extra = {}) => {
     let base = editando ? aplicarEdicion(piezas, editando) : piezas;
     base = base.filter((p) => p.tipo !== "imagen" || piezaCompleta(p));
     const nueva = nuevaPieza(tipo, tipo === "imagen" ? null : "");
-    cambiarPiezas([...base, nueva]);
+    onCambiar({ ...extra, piezas: [...base, nueva] });
     onSeleccionar(nueva.id);
     setEditando(tipo === "imagen" ? null : { id: nueva.id, texto: "" });
+  };
+
+  // Celular: la primera vez, «Punto» abre la hoja para elegir la numeración y
+  // crea el punto al escoger; después crea directo.
+  const tocarPunto = () => (puntoElegido ? crearVacia("titulo") : setHojaNumeracion(true));
+  const elegirNumeracion = (combinacion) => {
+    setPuntoElegido(true);
+    setHojaNumeracion(false);
+    crearVacia("titulo", datosDeCombinacion(combinacion));
   };
 
   // La foto llega cuando termina de subir: se pone sobre lo que haya entonces.
@@ -247,7 +266,10 @@ export default function EditorPredica({
   // guardado (se guarda solo; si falla, avisa ControlPredica) ni botón de
   // estado: «Marcar terminada» va al final del tapete.
   const hoja = hojaDeFecha(predica.fecha);
-  const puedeFecha = editandoDatos || !hoja;
+  // En el celular la fecha siempre se puede tocar (ya no hay botón de editar).
+  const puedeFecha = compacto || editandoDatos || !hoja;
+  // ¿Se edita el nombre? En el celular, solo con su lápiz; en el computador, con el general.
+  const enTitulo = compacto ? campo === "titulo" : editandoDatos;
   const conPunteado = "border-b border-dashed border-app-main";
   const tamanoSerie = Math.max(4, (predica.serie || TEXTO_SERIE).length);
 
@@ -255,37 +277,96 @@ export default function EditorPredica({
   // alto del recuadro; el lápiz (cuadrado, como los de los ítems) va abajo a
   // la derecha y es siempre un lápiz: editando se pinta dorado (12-11-2026,
   // pedidos del usuario). Se deja de editar con el mismo lápiz o con Enter.
+  //
+  // Celular (14-11-2026, pedidos del usuario): el recuadro va en filas. Arriba,
+  // a la derecha, el chip, un poco más pequeño (h-6, 11 px) pero con sitio para
+  // cualquier estado («Terminada», «Predicada»); debajo, el nombre de la
+  // prédica de lado a lado; después, la fecha, a su derecha la serie y el
+  // versículo base uno encima del otro y, al final, el lápiz; por último, el
+  // resumen. En el computador, la columna de siempre a la derecha.
+  const chip = (
+    <span
+      data-estado-predica={predica.estado}
+      className={`flex shrink-0 items-center gap-1 rounded-full border font-semibold ${compacto ? "h-6 px-2 text-pie" : "h-7 px-3 text-chip"} ${tonoDe(predica.estado).chip}`}
+    >
+      {/* Sin el ✓ en el celular (14-11-2026, pedido del usuario). */}
+      {!compacto && predica.estado !== "borrador" && <CheckIcon className="h-3.5 w-3.5" aria-hidden="true" />}
+      {ESTADOS[predica.estado]}
+    </span>
+  );
+
+  const lapiz = (
+    <button
+      type="button"
+      data-editar-datos
+      aria-label="Editar"
+      title={editandoDatos ? "Terminar de editar" : "Editar fecha, título, serie y versículo base"}
+      aria-pressed={editandoDatos}
+      onClick={() => setEditandoDatos((si) => !si)}
+      className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg border transition ${
+        editandoDatos ? "border-app-main bg-app-main text-app-dark" : "border-app-border text-app-muted hover:border-app-main hover:text-app-main"
+      }`}
+    >
+      <PencilIcon className="h-4 w-4" aria-hidden="true" />
+    </button>
+  );
+
+  // Computador: el chip centrado en el alto del recuadro y el lápiz abajo.
   const columnaDerecha = (
-    <div className={`flex shrink-0 gap-2 ${compacto ? "w-full items-center justify-between" : "flex-col items-end self-stretch"}`}>
-      <span className={compacto ? "contents" : "flex flex-1 items-center"}>
-        <span
-          data-estado-predica={predica.estado}
-          className={`flex h-7 shrink-0 items-center gap-1 rounded-full border px-3 text-chip font-semibold ${tonoDe(predica.estado).chip}`}
-        >
-          {predica.estado !== "borrador" && <CheckIcon className="h-3.5 w-3.5" aria-hidden="true" />}
-          {ESTADOS[predica.estado]}
-        </span>
-      </span>
-      <button
-        type="button"
-        data-editar-datos
-        aria-label="Editar"
-        title={editandoDatos ? "Terminar de editar" : "Editar fecha, título, serie y versículo base"}
-        aria-pressed={editandoDatos}
-        onClick={() => setEditandoDatos((si) => !si)}
-        className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg border transition ${
-          editandoDatos ? "border-app-main bg-app-main text-app-dark" : "border-app-border text-app-muted hover:border-app-main hover:text-app-main"
-        }`}
-      >
-        <PencilIcon className="h-4 w-4" aria-hidden="true" />
-      </button>
+    <div className="flex shrink-0 flex-col items-end gap-2 self-stretch">
+      <span className="flex flex-1 items-center">{chip}</span>
+      {lapiz}
     </div>
   );
 
-  const datos = (
-    <div className={`flex gap-4 ${compacto ? "flex-wrap px-1 pb-2" : "items-stretch gap-5"}`}>
-      {/* La fecha: una hoja de almanaque. Se cambia al editar, o en cualquier
-          momento si no tiene (una copia sale sin fecha). */}
+  // El título: en el computador va dentro del bloque del centro; en el celular
+  // (14-11-2026, pedido del usuario) tiene su propia fila, de lado a lado, y
+  // con el tamaño de letra de los ítems (text-sm).
+  const inputTitulo = (
+    <input
+      ref={campoTitulo}
+      aria-label="Título de la prédica"
+      readOnly={!enTitulo}
+      value={predica.titulo}
+      onChange={(e) => onCambiar({ titulo: e.target.value })}
+      onBlur={() => compacto && setCampo((actual) => (actual === "titulo" ? null : actual))}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && enTitulo) {
+          e.preventDefault();
+          setEditandoDatos(false);
+          setCampo(null);
+          e.currentTarget.blur();
+        }
+      }}
+      placeholder="Escribe el título de la prédica"
+      maxLength={120}
+      // Celular: sin `size` el campo trae ~20 caracteres de ancho propio y
+      // estira el contenedor, alejando el lápiz del texto (14-11-2026).
+      size={compacto ? 1 : undefined}
+      className={`w-full min-w-0 bg-transparent font-bold tracking-tight text-app-texto outline-none placeholder:text-app-main/80 ${
+        // Celular: 22 px de alto, 2 px menos que el chip de al lado (h-6).
+        compacto ? "col-start-1 row-start-1 h-5.5 text-sm leading-5" : "pb-1 text-3xl"
+      } ${
+        enTitulo ? conPunteado : "border-b border-transparent"
+      }`}
+    />
+  );
+
+  // Celular: el campo mide lo que mide su texto (un `span` invisible con el
+  // mismo texto da el ancho), para que el lápiz quede justo después del nombre
+  // (14-11-2026, pedido del usuario: «un espacio después del texto»).
+  const tituloMovil = (
+    <div className="inline-grid max-w-full min-w-0">
+      <span aria-hidden="true" className="invisible col-start-1 row-start-1 h-5.5 truncate pr-0.5 text-sm leading-5 font-bold tracking-tight">
+        {predica.titulo || "Escribe el título de la prédica"}
+      </span>
+      {inputTitulo}
+    </div>
+  );
+
+  // La fecha: una hoja de almanaque. Se cambia al editar, o en cualquier
+  // momento si no tiene (una copia sale sin fecha).
+  const hojaFecha = (
       <div className="relative shrink-0">
         <button
           type="button"
@@ -322,28 +403,11 @@ export default function EditorPredica({
           className="sr-only"
         />
       </div>
+  );
 
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        <input
-          ref={campoTitulo}
-          aria-label="Título de la prédica"
-          readOnly={!editandoDatos}
-          value={predica.titulo}
-          onChange={(e) => onCambiar({ titulo: e.target.value })}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && editandoDatos) {
-              e.preventDefault();
-              setEditandoDatos(false);
-              e.currentTarget.blur();
-            }
-          }}
-          placeholder="Escribe el título de la prédica"
-          maxLength={120}
-          className={`w-full min-w-0 bg-transparent pb-1 font-bold tracking-tight text-app-texto outline-none placeholder:text-app-main/80 ${compacto ? "text-xl" : "text-3xl"} ${
-            editandoDatos ? conPunteado : "border-b border-transparent"
-          }`}
-        />
-
+  // Serie y versículo base en una línea (computador). En el celular van uno
+  // encima del otro, cada uno con su lápiz: ver `bloqueSerieBaseMovil`.
+  const bloqueSerieBase = (
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
           {editandoDatos ? (
             <label className="flex items-baseline gap-1 text-app-azul">
@@ -372,64 +436,127 @@ export default function EditorPredica({
             )
           )}
         </div>
+  );
 
-        <div className="flex flex-wrap gap-1.5">
-          <Resumen n={resumen.puntos} uno="punto" varios="puntos" />
-          <Resumen n={resumen.versiculos} uno="versículo" varios="versículos" />
-          <Resumen n={resumen.mensajes} uno="mensaje" varios="mensajes" />
-          {resumen.imagenes > 0 && <Resumen n={resumen.imagenes} uno="imagen" varios="imágenes" />}
+  // Celular: la serie y el versículo base, uno encima del otro, cada uno con su
+  // lápiz al final. Vacíos muestran «Sin serie» / «Sin versículo base» para que
+  // el lápiz tenga dónde estar. Enter o salir del campo terminan de editarlo.
+  const terminarCampo = (cual) => setCampo((actual) => (actual === cual ? null : actual));
+  const bloqueSerieBaseMovil = (
+    <div className="flex min-w-0 flex-col gap-1 text-sm">
+      <div className="flex items-center gap-1">
+        <div className={`min-w-0 ${campo === "serie" ? "flex-1" : ""}`}>
+          {campo === "serie" ? (
+            <label className="flex w-full min-w-0 items-baseline gap-1 text-app-azul">
+              <span aria-hidden="true">Serie ·</span>
+              <input
+                autoFocus
+                aria-label="Serie"
+                value={predica.serie}
+                onChange={(e) => onCambiar({ serie: e.target.value })}
+                onBlur={() => terminarCampo("serie")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    e.currentTarget.blur();
+                  }
+                }}
+                placeholder={TEXTO_SERIE}
+                maxLength={60}
+                className={`min-w-0 flex-1 bg-transparent text-app-azul outline-none placeholder:text-app-main/80 ${conPunteado}`}
+              />
+            </label>
+          ) : predica.serie ? (
+            <span className="block truncate text-app-azul">Serie · {predica.serie}</span>
+          ) : (
+            <span className="block truncate text-app-muted">Sin serie</span>
+          )}
         </div>
+        <LapizCampo campo="serie" nombre="la serie" activo={campo === "serie"} onClick={() => setCampo((actual) => (actual === "serie" ? null : "serie"))} />
       </div>
+      <div className="flex items-center gap-1">
+        <div className={`min-w-0 ${campo === "base" ? "flex-1" : ""}`}>
+          {campo === "base" ? (
+            <CampoBase key={base} enfocar base={base} onCambiar={(nueva) => onCambiar({ base: nueva })} showNotif={showNotif} subrayado={`${conPunteado} w-full`} onTerminar={() => terminarCampo("base")} />
+          ) : base ? (
+            <span data-texto-base className="block truncate text-app-agua" title={base}>
+              {base}
+            </span>
+          ) : (
+            <span className="block truncate text-app-muted">Sin versículo base</span>
+          )}
+        </div>
+        <LapizCampo campo="base" nombre="el versículo base" activo={campo === "base"} onClick={() => setCampo((actual) => (actual === "base" ? null : "base"))} />
+      </div>
+    </div>
+  );
 
+  const bloqueResumen = (
+    <div className="flex flex-wrap gap-1.5">
+      <Resumen n={resumen.puntos} uno="punto" varios="puntos" />
+      <Resumen n={resumen.versiculos} uno="versículo" varios="versículos" />
+      <Resumen n={resumen.mensajes} uno="mensaje" varios="mensajes" />
+      {resumen.imagenes > 0 && <Resumen n={resumen.imagenes} uno="imagen" varios="imágenes" />}
+    </div>
+  );
+
+  // Computador: fecha │ título, serie, versículo base y resumen │ columna derecha.
+  const fila = (
+    <div className="flex items-stretch gap-5">
+      {hojaFecha}
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        {inputTitulo}
+        {bloqueSerieBase}
+        {bloqueResumen}
+      </div>
       {columnaDerecha}
     </div>
+  );
+
+  const datos = compacto ? (
+    <div className="flex flex-col gap-1.5 px-1 pb-2">
+      <div data-fila-titulo className="flex items-center gap-0.5">
+        {tituloMovil}
+        <LapizCampo
+          campo="titulo"
+          nombre="el nombre"
+          activo={campo === "titulo"}
+          onClick={() => {
+            if (campo === "titulo") return campoTitulo.current?.blur();
+            setCampo("titulo");
+            setTimeout(() => campoTitulo.current?.focus(), 0);
+          }}
+        />
+        <span aria-hidden="true" className="flex-1" />
+        {chip}
+      </div>
+      <div data-fila-fecha className="flex items-center gap-2.5">
+        {hojaFecha}
+        <div className="min-w-0 flex-1">{bloqueSerieBaseMovil}</div>
+      </div>
+      {bloqueResumen}
+    </div>
+  ) : (
+    fila
   );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {compacto && (
-        <div className="flex h-14 shrink-0 items-center gap-2 border-b border-app-main bg-app-light px-2">
-          <button type="button" onClick={onVolver} aria-label="Volver a mis prédicas" className="grid h-11 w-11 place-items-center rounded-xl text-app-texto">
-            <ArrowLeftIcon className="h-5 w-5" aria-hidden="true" />
-          </button>
-          <span className="flex min-w-0 flex-1 flex-col">
-            <b className="truncate text-base text-app-texto">{predica.titulo || "Sin título"}</b>
-          </span>
-          {/* Celular: Deshacer y Rehacer arriba (abajo está el campo). */}
-          {historial && <BotonesHistorial historial={historial} className="h-10 w-10 rounded-xl" />}
-          {menuMas && (
-            <div className="relative">
-              <button
-                type="button"
-                aria-label="Más: Duplicar, Borrar, WhatsApp, Biblia"
-                aria-haspopup="menu"
-                aria-expanded={masAbierto}
-                onClick={() => setMasAbierto((si) => !si)}
-                className="grid h-10 w-10 place-items-center rounded-xl border border-app-border text-app-texto"
-              >
-                <EllipsisHorizontalIcon className="h-5 w-5" aria-hidden="true" />
-              </button>
-              {masAbierto && (
-                <div
-                  role="menu"
-                  aria-label="Más"
-                  data-menu-mas
-                  onClick={(e) => {
-                    // Elegir una acción cierra el menú; tocar la Biblia, no.
-                    if (e.target.closest("[data-cierra-menu]")) setMasAbierto(false);
-                  }}
-                  className="absolute top-full right-0 z-40 mt-2 flex w-64 flex-col gap-2 rounded-2xl border border-app-border bg-app-light p-3 shadow-xl"
-                >
-                  {menuMas}
-                </div>
-              )}
-            </div>
-          )}
+        // Celular (14-11-2026, pedido del usuario): una barra baja, del alto de
+        // la de abajo, solo con íconos y sin el nombre de la prédica, repartidos
+        // en todo el ancho (justificados): ← atrás, Duplicar, Eliminar, WhatsApp
+        // y ▶ Predicar, en ese orden.
+        <div className="flex h-11 shrink-0 items-center justify-between gap-1.5 border-b border-app-main bg-app-light px-2.5 py-1">
+          <BotonIcono etiqueta="Volver a mis prédicas" Icono={ArrowLeftIcon} clase="text-app-texto" onClick={onVolver} fijo />
+          <BotonIcono etiqueta="Duplicar" Icono={DocumentDuplicateIcon} clase="text-app-texto" onClick={onDuplicar} disabled={!predica.id} fijo />
+          <BotonIcono etiqueta="Eliminar" Icono={TrashIcon} clase="text-app-error" onClick={onBorrar} disabled={!predica.id} fijo />
+          {botonWhatsApp}
           <button
             type="button"
             onClick={onPredicar}
             disabled={!piezas.length}
-            className="flex h-10 items-center gap-1.5 rounded-xl bg-app-main px-3.5 text-sm font-bold text-app-dark disabled:opacity-40"
+            className="flex h-9 items-center gap-1.5 rounded-lg bg-app-main px-3 text-sm font-bold text-app-dark disabled:opacity-40"
           >
             <PlayIcon className="h-3.5 w-3.5" aria-hidden="true" />
             Predicar
@@ -444,9 +571,9 @@ export default function EditorPredica({
           abajo, con su regla arriba y a la izquierda. El tapete queda quieto
           y las piezas se desplazan encima, así la regla coincide siempre. */}
       <div className="flex min-h-0 flex-1 flex-col">
-        <ReglaTapete />
+        <ReglaTapete compacto={compacto} />
         <div className="flex min-h-0 flex-1">
-          <ReglaTapete vertical />
+          <ReglaTapete vertical compacto={compacto} />
           <ol
             data-tapete
             className={`tapete scrollbar-custom m-0 flex min-h-0 min-w-0 flex-1 list-none flex-col gap-2 overflow-y-auto ${compacto ? "px-3 py-3" : "px-6 py-5"}`}
@@ -454,7 +581,7 @@ export default function EditorPredica({
             {piezas.length === 0 && (
               <li className="rounded-xl bg-app-tapete-pieza px-2 py-8 text-center text-sm text-app-muted">
                 {compacto
-                  ? "Escribe abajo el primer punto, un mensaje o una cita como «Juan 3:16»."
+                  ? "Toca Punto, Mensaje o Imagen abajo, o el libro para agregar un versículo."
                   : "Toca Punto, Mensaje o Imagen abajo, o agrega un versículo a la derecha."}
               </li>
             )}
@@ -465,9 +592,9 @@ export default function EditorPredica({
               if (pieza.tipo === "imagen" && !piezaCompleta(pieza)) {
                 return (
                   <li key={pieza.id} data-id={pieza.id} data-pieza="imagen" data-sin-foto className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 ${tonoPieza("imagen").elegida}`}>
-                    <Marca pieza={pieza} />
+                    <Marca pieza={pieza} compacto={compacto} />
                     <span className="flex min-w-0 flex-1 gap-2">
-                      <ElegirImagen showNotif={showNotif} onElegida={(imagen) => ponerImagen(pieza.id, imagen)} />
+                      <ElegirImagen showNotif={showNotif} compacto={compacto} onElegida={(imagen) => ponerImagen(pieza.id, imagen)} />
                     </span>
                     <Accion
                       etiqueta="Quitar"
@@ -490,7 +617,7 @@ export default function EditorPredica({
                   data-pieza={pieza.tipo}
                   data-subpunto={esSubpunto(pieza) || undefined}
                   data-nivel={nivelDe(pieza) || undefined}
-                  className={`flex items-start gap-3 rounded-xl border px-3 py-2.5 transition ${SANGRIA_NIVEL[compacto ? "compacto" : "normal"][nivelDe(pieza)]} ${
+                  className={`flex items-start rounded-xl border px-3 py-2.5 transition ${compacto ? "gap-2" : "gap-3"} ${SANGRIA_NIVEL[compacto ? "compacto" : "normal"][nivelDe(pieza)]} ${
                     elegida ? tonoPieza(pieza.tipo).elegida : tonoPieza(pieza.tipo).caja
                   }`}
                 >
@@ -498,10 +625,10 @@ export default function EditorPredica({
                     type="button"
                     onClick={() => onSeleccionar(elegida ? null : pieza.id)}
                     aria-pressed={elegida}
-                    className={`flex items-start gap-3 text-left ${enEdicion ? "shrink-0" : "min-w-0 flex-1"}`}
+                    className={`flex items-start text-left ${compacto ? "gap-2" : "gap-3"} ${enEdicion ? "shrink-0" : "min-w-0 flex-1"}`}
                   >
-                    <Marca pieza={pieza} numero={numeros[pieza.id]} />
-                    {enEdicion ? null : <Contenido pieza={pieza} />}
+                    <Marca pieza={pieza} numero={numeros[pieza.id]} compacto={compacto} />
+                    {enEdicion ? null : <Contenido pieza={pieza} compacto={compacto} />}
                   </button>
     
                   {/* Se escribe en el sitio: Enter o tocar fuera guarda (en el
@@ -516,7 +643,9 @@ export default function EditorPredica({
                         onChange={(e) => setEditando({ ...editando, texto: e.target.value })}
                         onBlur={guardarEdicion}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
+                          // En el celular no hay Shift+Enter: en un mensaje,
+                          // Enter es salto de línea y se guarda con ✓.
+                          if (e.key === "Enter" && !e.shiftKey && !(compacto && pieza.tipo !== "titulo")) {
                             e.preventDefault();
                             guardarEdicion();
                           }
@@ -535,7 +664,7 @@ export default function EditorPredica({
                         // Ocupa todo el recuadro y no se pinta distinto: sin
                         // fondo ni borde, con la letra que tendrá al guardarse.
                         className={`min-w-0 flex-1 resize-none border-0 bg-transparent p-0 text-app-texto outline-none placeholder:text-app-muted ${
-                          pieza.tipo === "titulo" ? "text-lg leading-snug font-bold" : "text-sm leading-relaxed"
+                          pieza.tipo === "titulo" ? `${compacto ? "text-sm" : "text-lg"} leading-snug font-bold` : "text-sm leading-relaxed"
                         }`}
                       />
                       {/* onMouseDown evita que el campo pierda el foco antes del clic. */}
@@ -543,16 +672,20 @@ export default function EditorPredica({
                         type="button"
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={guardarEdicion}
-                        className={`flex h-9 shrink-0 items-center gap-1 rounded-lg px-3 text-sm font-bold ${tonoPieza(pieza.tipo).boton}`}
+                        aria-label="Guardar"
+                        className={`flex h-9 shrink-0 items-center justify-center gap-1 rounded-lg text-sm font-bold ${compacto ? "w-9" : "px-3"} ${tonoPieza(pieza.tipo).boton}`}
                       >
                         <CheckIcon className="h-4 w-4" aria-hidden="true" />
-                        Guardar
+                        {!compacto && "Guardar"}
                       </button>
                     </>
                   )}
     
                   {elegida && !enEdicion && (
-                    <span className="flex shrink-0 gap-1">
+                    // Celular: los botones del ítem, apilados en vertical (14-11-2026).
+                    <span className={`flex shrink-0 gap-1 ${compacto ? "flex-col" : ""}`}>
+                      {/* Celular: el número del ítem va arriba de la columna. */}
+                      {compacto && cajita(pieza, i)}
                       <Accion etiqueta="Subir" onClick={() => cambiarPiezas(mover(piezas, i, -1))} disabled={i === 0}>
                         <ChevronUpIcon className="h-4 w-4" aria-hidden="true" />
                       </Accion>
@@ -607,7 +740,7 @@ export default function EditorPredica({
                       </Accion>
                     </span>
                   )}
-                  {cajita(pieza, i)}
+                  {!(compacto && elegida && !enEdicion) && cajita(pieza, i)}
                 </li>
               );
             })}
@@ -636,22 +769,20 @@ export default function EditorPredica({
       {/* Celular: la hoja de versículos (el mismo buscador de la columna
           derecha del computador) y la vista previa del ítem. */}
       {compacto && hojaVersiculos && (
-        <div className="fixed inset-0 z-40 flex flex-col bg-app-velo" onClick={() => setHojaVersiculos(false)}>
-          <div
-            role="dialog"
-            aria-label="Versículos"
-            className="mt-auto flex max-h-4/5 flex-col gap-3 rounded-t-3xl bg-app-dark p-4"
-            onClick={(e) => e.stopPropagation()}
-          >
+        // A pantalla completa (14-11-2026, pedido del usuario), para ver entero
+        // el versículo elegido; se cierra con la X.
+        <div className="fixed inset-0 z-40 flex flex-col bg-app-dark">
+          <div role="dialog" aria-modal="true" aria-label="Versículos" className="flex h-full min-h-0 flex-col gap-3 bg-app-dark p-4">
             <div className="flex items-center justify-between">
               <b className="text-app-texto">Versículos</b>
               <button type="button" onClick={() => setHojaVersiculos(false)} aria-label="Cerrar" className="grid h-10 w-10 place-items-center rounded-xl text-app-muted">
                 <XMarkIcon className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
-            <SelectorBiblia />
+            {/* Sin SelectorBiblia en el celular (13-11-2026): pendiente de ubicar. */}
             <div className="scrollbar-custom flex min-h-0 flex-1 flex-col overflow-y-auto">
               <BuscadorVersiculos
+                cambiarBiblia
                 showNotif={showNotif}
                 onAgregar={(pieza) => {
                   onAgregarVersiculo(pieza);
@@ -673,32 +804,46 @@ export default function EditorPredica({
         </div>
       )}
 
-      <div className={`shrink-0 border-t border-app-border bg-app-light ${compacto ? "px-2.5 py-2" : "px-8 py-4"}`}>
-        {compacto ? (
-          <div className="flex flex-col gap-2">
-            <div className="flex gap-2">
-              <BotonPunto
-                nombre="Punto"
-                Icono={NumberedListIcon}
-                clase={tonoPieza("titulo").contorno}
-                numeracion={predica.numeracion}
-                niveles={predica.numeracionNiveles}
-                onCrear={() => crearVacia("titulo")}
-                onElegir={(combinacion) => onCambiar(datosDeCombinacion(combinacion))}
-              />
-              {onAgregarVersiculo && (
-                <button
-                  type="button"
-                  data-abrir-versiculos
-                  onClick={() => setHojaVersiculos(true)}
-                  className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-app-agua text-sm font-bold text-app-agua"
-                >
-                  <BookOpenIcon className="h-5 w-5" aria-hidden="true" />
-                  Versículo
-                </button>
-              )}
+      {/* Celular: la hoja para elegir la numeración de los puntos, la primera
+          vez que se toca «Punto». Al escoger una, se crea el punto. */}
+      {compacto && hojaNumeracion && (
+        <div className="fixed inset-0 z-40 flex flex-col bg-app-velo" onClick={() => setHojaNumeracion(false)}>
+          <div role="dialog" aria-label="Numeración de los puntos" className="mt-auto flex flex-col gap-3 rounded-t-3xl bg-app-dark p-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <b className="text-app-texto">¿Cómo numerar los puntos?</b>
+              <button type="button" onClick={() => setHojaNumeracion(false)} aria-label="Cerrar" className="grid h-10 w-10 place-items-center rounded-xl text-app-muted">
+                <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
             </div>
-            <CampoPieza onAgregar={agregar} showNotif={showNotif} />
+            <div className="grid grid-cols-2 gap-2">
+              {COMBINACIONES.map((c) => (
+                <OpcionCombinacion key={c.clave} combinacion={c} elegida={combinacionDe(predica.numeracion, predica.numeracionNiveles)?.clave === c.clave} onElegir={elegirNumeracion} />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className={`shrink-0 border-t border-app-border bg-app-light ${compacto ? "px-2.5 py-1" : "px-8 py-4"}`}>
+        {compacto ? (
+          // Celular (14-11-2026, pedido del usuario): seis botones solo con
+          // ícono, sin recuadro ni línea divisoria, en una fila y de 40 px de alto:
+          // Punto (la primera vez pregunta la numeración), Mensaje, Imagen,
+          // Versículo (abre la hoja de siempre), Deshacer y Rehacer. Los
+          // textos se escriben dentro de cada ítem, como en el computador.
+          <div role="group" aria-label="Agregar al bosquejo" className="flex gap-1.5">
+            <BotonIcono etiqueta="Punto" Icono={NumberedListIcon} clase={tonoPieza("titulo").acento} onClick={tocarPunto} data-punto />
+            <BotonIcono etiqueta="Mensaje" Icono={ChatBubbleLeftRightIcon} clase={tonoPieza("mensaje").acento} onClick={() => crearVacia("mensaje")} />
+            <BotonIcono etiqueta="Imagen" Icono={PhotoIcon} clase={tonoPieza("imagen").acento} onClick={() => crearVacia("imagen")} />
+            {onAgregarVersiculo && (
+              <BotonIcono etiqueta="Versículo" Icono={BookOpenIcon} clase="text-app-agua" onClick={() => setHojaVersiculos(true)} data-abrir-versiculos />
+            )}
+            {historial && (
+              <>
+                <BotonIcono etiqueta="Deshacer" Icono={ArrowUturnLeftIcon} clase="text-app-texto" onClick={historial.deshacer} disabled={!historial.puedeDeshacer} />
+                <BotonIcono etiqueta="Rehacer" Icono={ArrowUturnRightIcon} clase="text-app-texto" onClick={historial.rehacer} disabled={!historial.puedeRehacer} />
+              </>
+            )}
           </div>
         ) : (
           // Computador: sin campo de texto; cada botón crea su recuadro. El
@@ -753,14 +898,19 @@ export default function EditorPredica({
 
 // La regla del tapete de corte: un número cada 5 cuadritos (cada línea dorada
 // de la utilidad `tapete`, 6.25rem). Solo dibujo; lo que sobra se recorta.
-function ReglaTapete({ vertical = false }) {
+//
+// `compacto` (celular, 14-11-2026, pedido del usuario): las dos reglas, un poco
+// más angostas (la de arriba h-4 y la lateral w-5, en vez de h-5 y w-6). La
+// esquina de la regla de arriba mide lo mismo que la lateral.
+function ReglaTapete({ vertical = false, compacto = false }) {
   const numeros = Array.from({ length: vertical ? 12 : 16 }, (_, i) => i);
   const numero = "shrink-0 text-diminuto font-semibold text-app-main/70";
+  const ancho = compacto ? "w-5" : "w-6";
   if (vertical) {
     return (
-      <div aria-hidden="true" data-regla="izquierda" className="flex w-6 shrink-0 flex-col overflow-hidden border-r border-app-main/35 bg-app-tapete-regla">
+      <div aria-hidden="true" data-regla="izquierda" className={`flex ${ancho} shrink-0 flex-col overflow-hidden border-r border-app-main/35 bg-app-tapete-regla`}>
         {numeros.map((n) => (
-          <span key={n} className={`h-25 pt-1 pl-2 ${numero}`}>
+          <span key={n} className={`h-25 ${compacto ? "pt-0.5 pl-1" : "pt-1 pl-2"} ${numero}`}>
             {n}
           </span>
         ))}
@@ -768,10 +918,10 @@ function ReglaTapete({ vertical = false }) {
     );
   }
   return (
-    <div aria-hidden="true" data-regla="arriba" className="flex h-5 shrink-0 overflow-hidden border-b border-app-main/35 bg-app-tapete-regla">
-      <span className="w-6 shrink-0 border-r border-app-main/35" />
+    <div aria-hidden="true" data-regla="arriba" className={`flex ${compacto ? "h-4" : "h-5"} shrink-0 overflow-hidden border-b border-app-main/35 bg-app-tapete-regla`}>
+      <span className={`${ancho} shrink-0 border-r border-app-main/35`} />
       {numeros.map((n) => (
-        <span key={n} className={`w-25 pt-1 pl-1 ${numero}`}>
+        <span key={n} className={`w-25 ${compacto ? "pt-0 pl-1" : "pt-1 pl-1"} ${numero}`}>
           {n}
         </span>
       ))}
@@ -846,36 +996,17 @@ function BotonPunto({ nombre, Icono, clase, numeracion, niveles, onCrear, onEleg
         >
           <span className="text-diminuto font-semibold tracking-widest text-app-muted uppercase">Numeración de puntos, subpuntos y sub-subpuntos</span>
           <div className="grid grid-cols-3 gap-2">
-            {COMBINACIONES.map((c) => {
-              const elegida = actual?.clave === c.clave;
-              return (
-                <button
-                  key={c.clave}
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked={elegida}
-                  aria-label={`${c.nombre}: ${c.estilos.map((s) => etiquetaPunto(1, s)).join(" → ")}`}
-                  data-combinacion={c.clave}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => {
-                    onElegir(c);
-                    setAbierto(false);
-                  }}
-                  className={`flex flex-col gap-0.5 rounded-lg border p-2 text-left text-xs transition ${
-                    elegida ? "border-app-violeta bg-app-violeta/15 text-app-texto" : "border-app-border text-app-muted hover:border-app-violeta hover:text-app-texto"
-                  }`}
-                >
-                  {/* Vista previa: un renglón por nivel, cada uno más adentro. */}
-                  {c.estilos.map((s, n) => (
-                    <span key={n} className={`flex items-center gap-1 ${["", "pl-3", "pl-6"][n]}`}>
-                      <b className={elegida ? "text-app-violeta" : ""}>{etiquetaPunto(1, s)}</b>
-                      <span aria-hidden="true" className="h-0.5 flex-1 rounded-full bg-current opacity-40" />
-                    </span>
-                  ))}
-                  <span className="pt-1 text-diminuto">{c.nombre}</span>
-                </button>
-              );
-            })}
+            {COMBINACIONES.map((c) => (
+              <OpcionCombinacion
+                key={c.clave}
+                combinacion={c}
+                elegida={actual?.clave === c.clave}
+                onElegir={(combinacion) => {
+                  onElegir(combinacion);
+                  setAbierto(false);
+                }}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -883,29 +1014,82 @@ function BotonPunto({ nombre, Icono, clase, numeracion, niveles, onCrear, onEleg
   );
 }
 
-function Marca({ pieza, numero }) {
+// Una combinación de numeración con su vista previa (un renglón por nivel, cada
+// uno más adentro). La usan el desplegable de «Punto» (computador) y la hoja
+// del celular.
+function OpcionCombinacion({ combinacion: c, elegida, onElegir }) {
+  return (
+    <button
+      type="button"
+      role="menuitemradio"
+      aria-checked={elegida}
+      aria-label={`${c.nombre}: ${c.estilos.map((s) => etiquetaPunto(1, s)).join(" → ")}`}
+      data-combinacion={c.clave}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={() => onElegir(c)}
+      className={`flex flex-col gap-0.5 rounded-lg border p-2 text-left text-xs transition ${
+        elegida ? "border-app-violeta bg-app-violeta/15 text-app-texto" : "border-app-border text-app-muted hover:border-app-violeta hover:text-app-texto"
+      }`}
+    >
+      {c.estilos.map((s, n) => (
+        <span key={n} className={`flex items-center gap-1 ${["", "pl-3", "pl-6"][n]}`}>
+          <b className={elegida ? "text-app-violeta" : ""}>{etiquetaPunto(1, s)}</b>
+          <span aria-hidden="true" className="h-0.5 flex-1 rounded-full bg-current opacity-40" />
+        </span>
+      ))}
+      <span className="pt-1 text-diminuto">{c.nombre}</span>
+    </button>
+  );
+}
+
+// Botón de la barra de abajo del celular: solo el ícono, sin recuadro, 40 px de alto.
+// El nombre va en `aria-label` y `title`. onMouseDown evita que el campo que se
+// está escribiendo pierda el foco antes del clic.
+function BotonIcono({ etiqueta, Icono, clase, onClick, disabled = false, fijo = false, ...datos }) {
+  return (
+    <button
+      type="button"
+      aria-label={etiqueta}
+      title={etiqueta}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onClick}
+      disabled={disabled}
+      className={`flex h-9 items-center justify-center rounded-xl transition active:bg-app-border/40 disabled:pointer-events-none disabled:opacity-30 ${fijo ? "w-10 shrink-0" : "min-w-0 flex-1"} ${clase}`}
+      {...datos}
+    >
+      <Icono className="h-6 w-6" aria-hidden="true" />
+    </button>
+  );
+}
+
+// Los textos de los ítems van acordes a la pantalla (14-11-2026, pedido del
+// usuario): en el celular, punto, mensaje y versículo comparten `text-sm` (el
+// punto se distingue por la negrita) y las columnas de la marca son más
+// angostas; en el computador, el punto es más grande (`text-lg`).
+function Marca({ pieza, numero, compacto = false }) {
+  const ancho = compacto ? "w-6" : "w-8";
   // min-w y no w fijo: la etiqueta lleva su signo («VIII.», «iv.»).
-  if (pieza.tipo === "titulo") return <span className={`min-w-8 shrink-0 pr-1 text-xl leading-snug font-bold ${tonoPieza("titulo").acento}`}>{numero}</span>;
+  if (pieza.tipo === "titulo") return <span className={`${compacto ? "min-w-6 text-sm" : "min-w-8 text-xl"} shrink-0 pr-1 leading-snug font-bold ${tonoPieza("titulo").acento}`}>{numero}</span>;
   if (pieza.tipo === "mensaje" || pieza.tipo === "imagen" || pieza.tipo === "versiculo") {
     // El versículo lleva la Biblia abierta (pedido del usuario, 11-11-2026).
     const Icono = { imagen: PhotoIcon, versiculo: BookOpenIcon }[pieza.tipo] || ChatBubbleLeftRightIcon;
     return (
-      <span className={`grid w-8 shrink-0 place-items-start pt-0.5 ${tonoPieza(pieza.tipo).acento}`}>
+      <span className={`grid ${ancho} shrink-0 place-items-start pt-0.5 ${tonoPieza(pieza.tipo).acento}`}>
         <Icono className="h-4 w-4" aria-hidden="true" />
       </span>
     );
   }
-  return <span className="w-8 shrink-0" aria-hidden="true" />;
+  return <span className={`${ancho} shrink-0`} aria-hidden="true" />;
 }
 
-function Contenido({ pieza }) {
-  if (pieza.tipo === "titulo") return <b className="min-w-0 flex-1 text-lg leading-snug text-app-texto">{pieza.contenido}</b>;
+function Contenido({ pieza, compacto = false }) {
+  if (pieza.tipo === "titulo") return <b className={`min-w-0 flex-1 leading-snug text-app-texto ${compacto ? "text-sm" : "text-lg"}`}>{pieza.contenido}</b>;
   // El texto del contenido va igual en todos los ítems (pedido del usuario).
   if (pieza.tipo === "mensaje") return <span className="min-w-0 flex-1 text-sm leading-relaxed whitespace-pre-line text-app-texto">{pieza.contenido}</span>;
   if (pieza.tipo === "imagen")
     return (
       <span className="flex min-w-0 flex-1 items-center gap-3">
-        <img src={pieza.contenido?.url} alt="" className="h-20 w-32 shrink-0 rounded-lg bg-app-aviso object-cover" />
+        <img src={pieza.contenido?.url} alt="" className={`shrink-0 rounded-lg bg-app-aviso object-cover ${compacto ? "h-16 w-24" : "h-20 w-32"}`} />
         <span className="min-w-0 truncate text-sm text-app-texto">{pieza.contenido?.nombre || "Imagen"}</span>
       </span>
     );
@@ -926,7 +1110,7 @@ function Contenido({ pieza }) {
 // al salir del campo o con Enter, se reconoce y queda bien escrita
 // («juan 3 16» → «Juan 3:16»). Solo se muestra arriba, junto a la serie: no
 // se agrega como ítem. Lo que no es una cita avisa y no se guarda; vacío, se quita.
-function CampoBase({ base, onCambiar, showNotif, subrayado }) {
+function CampoBase({ base, onCambiar, showNotif, subrayado, enfocar = false, onTerminar }) {
   const { versionBiblia } = useAppContext();
   const [texto, setTexto] = useState(base);
   const aplicar = () => {
@@ -943,9 +1127,13 @@ function CampoBase({ base, onCambiar, showNotif, subrayado }) {
     <input
       data-texto-base
       aria-label="Versículo base"
+      autoFocus={enfocar}
       value={texto}
       onChange={(e) => setTexto(e.target.value)}
-      onBlur={aplicar}
+      onBlur={() => {
+        aplicar();
+        onTerminar?.();
+      }}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
@@ -957,6 +1145,26 @@ function CampoBase({ base, onCambiar, showNotif, subrayado }) {
       size={Math.max(6, (texto || ayuda).length)}
       className={`min-w-0 bg-transparent text-app-agua outline-none placeholder:text-app-main/80 ${subrayado}`}
     />
+  );
+}
+
+// El lápiz pequeño al final de cada texto del recuadro de arriba (celular,
+// 14-11-2026). Edita solo ese campo; con el campo activo se pinta dorado.
+// onMouseDown evita que el campo pierda el foco antes del clic.
+function LapizCampo({ campo, nombre, activo, onClick }) {
+  return (
+    <button
+      type="button"
+      data-editar-campo={campo}
+      aria-label={`Editar ${nombre}`}
+      title={`Editar ${nombre}`}
+      aria-pressed={activo}
+      onMouseDown={(e) => e.preventDefault()}
+      onClick={onClick}
+      className={`grid h-6 w-6 shrink-0 place-items-center rounded-lg transition ${activo ? "bg-app-main text-app-dark" : "text-app-muted"}`}
+    >
+      <PencilIcon className="h-3.5 w-3.5" aria-hidden="true" />
+    </button>
   );
 }
 

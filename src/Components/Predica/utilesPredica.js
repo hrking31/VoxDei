@@ -237,50 +237,32 @@ export const cambiarNivel = (piezas, id, nivel) =>
 // La etiqueta ya trae su signo («I.», «1)»).
 export const textoDePunto = (numero, contenido) => (numero ? `${numero} ${contenido}` : String(contenido || ""));
 
-// El resumen de los puntos ya vistos, uno por renglón, para proyectarlo
-// como un solo mensaje. `hasta` es el índice del último ítem visto.
-// Los subpuntos, con sangría bajo su punto.
+// El resumen de puntos (14-11-2026, pedido del usuario; antes, «los puntos ya
+// vistos» repartidos en partes): muestra TODOS los puntos de la prédica y cada
+// uno es un botón que el predicador toca al ir recordándolo; los tocados se
+// proyectan juntos, en el orden en que se tocaron, uno por renglón. Los
+// subpuntos, con sangría.
 export const SANGRIA_RESUMEN = "    ";
-// Regla (12-11-2026, pedido del usuario): SOLO lo que se proyecta desde
-// «Resumen de puntos vistos» va alineado así, renglón por renglón, en un
-// bloque centrado; todo lo demás sigue la alineación de Estilos y colores.
+// Regla (12-11-2026, pedido del usuario): SOLO lo que se proyecta desde el
+// resumen va alineado así, renglón por renglón, en un bloque centrado; todo lo
+// demás sigue la alineación de Estilos y colores.
 export const ALINEACION_RESUMEN = "izquierda";
 
-// El resumen, por partes, para que nunca quede cortado en la pantalla
-// (12-11-2026, pedido del usuario): paquetes de hasta `maximo` renglones. Un
-// punto va siempre con sus subpuntos: si no cabe entero, pasa a la parte
-// siguiente (solo se parte si él solo ya no cabe en una).
+// La pantalla muestra como máximo RENGLONES_RESUMEN puntos: al tocar el
+// séptimo, la pantalla se limpia y lo muestra como el primero de una nueva.
 export const RENGLONES_RESUMEN = 6;
-export function partesDelResumen(lineas, maximo = RENGLONES_RESUMEN) {
-  const grupos = [];
-  for (const linea of lineas) {
-    if (linea.startsWith(SANGRIA_RESUMEN) && grupos.length) grupos.at(-1).push(linea);
-    else grupos.push([linea]);
-  }
-  const partes = [];
-  let parte = [];
-  for (const grupo of grupos) {
-    if (parte.length && parte.length + grupo.length > maximo) {
-      partes.push(parte);
-      parte = [];
-    }
-    for (const linea of grupo) {
-      if (parte.length === maximo) {
-        partes.push(parte);
-        parte = [];
-      }
-      parte.push(linea);
-    }
-  }
-  if (parte.length) partes.push(parte);
-  return partes;
+// Todos los puntos del bosquejo (de cualquier nivel), en su orden.
+export const puntosDelBosquejo = (piezas) => piezas.filter((p) => p.tipo === "titulo");
+// Lo que hay en la pantalla actual: los últimos tocados de la tanda de `maximo`.
+export function paginaDelResumen(tocados, maximo = RENGLONES_RESUMEN) {
+  if (!tocados.length) return [];
+  return tocados.slice(-(((tocados.length - 1) % maximo) + 1));
 }
-export function resumenDePuntos(piezas, hasta, estilo = "romanos", niveles = null) {
-  const numeros = numerosDePuntos(piezas, estilo, niveles);
-  return piezas
-    .slice(0, hasta + 1)
-    .filter((p) => p.tipo === "titulo")
-    .map((p) => SANGRIA_RESUMEN.repeat(nivelDe(p)) + textoDePunto(numeros[p.id], p.contenido));
+// Los renglones de esa pantalla. La numeración empieza de nuevo en cada
+// pantalla (el séptimo punto sale como el primero).
+export function lineasDelResumen(pagina, estilo = "romanos", niveles = null) {
+  const numeros = numerosDePuntos(pagina, estilo, niveles);
+  return pagina.map((p) => SANGRIA_RESUMEN.repeat(nivelDe(p)) + textoDePunto(numeros[p.id], p.contenido));
 }
 
 export function resumenPiezas(piezas) {

@@ -33,28 +33,35 @@ export default function ElegirImagen({ onElegida, showNotif, compacto = false })
     }
   };
 
-  const alto = compacto ? "h-11 text-sm" : "h-11";
+  // Celular (14-11-2026, pedido del usuario): solo el ícono, el nombre va en
+  // `aria-label` y `title`; en el computador, ícono y texto.
+  const alto = compacto ? "h-10 w-10 shrink-0" : "h-11 min-w-0 flex-1 gap-2";
+  const nombreSubir = subiendo ? "Subiendo…" : "Subir imagen";
 
   return (
     <>
       <input ref={archivo} type="file" accept="image/*" onChange={alElegirArchivo} className="hidden" aria-label="Archivo de imagen" />
       <button
         type="button"
+        aria-label={nombreSubir}
+        title={nombreSubir}
         onClick={() => archivo.current?.click()}
         disabled={subiendo}
-        className={`flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl font-bold transition disabled:opacity-60 ${tonoPieza("imagen").boton} ${alto}`}
+        className={`flex items-center justify-center rounded-xl font-bold transition disabled:opacity-60 ${tonoPieza("imagen").boton} ${alto}`}
       >
-        <ArrowUpTrayIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
-        {subiendo ? "Subiendo…" : "Subir imagen"}
+        <ArrowUpTrayIcon className={`h-4 w-4 shrink-0 ${compacto && subiendo ? "animate-pulse" : ""}`} aria-hidden="true" />
+        {!compacto && nombreSubir}
       </button>
       <button
         type="button"
+        aria-label="Mis imágenes"
+        title="Mis imágenes"
         onClick={() => setVerImagenes(true)}
         disabled={subiendo}
-        className={`flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-app-border font-semibold text-app-texto transition hover:border-app-texto disabled:opacity-60 ${alto}`}
+        className={`flex items-center justify-center rounded-xl border border-app-border font-semibold text-app-texto transition hover:border-app-texto disabled:opacity-60 ${alto}`}
       >
         <PhotoIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
-        Mis imágenes
+        {!compacto && "Mis imágenes"}
       </button>
       <ModalImagenes
         abierto={verImagenes}

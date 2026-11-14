@@ -51,8 +51,6 @@ export default function ControlPredica() {
   // Tableta: el cajón de Mis prédicas y el panel de versículos.
   const [cajonAbierto, setCajonAbierto] = useState(false);
   const [versiculosAbierto, setVersiculosAbierto] = useState(false);
-  // Escritorio: Mis prédicas plegada a una franja (arranca plegada si la pantalla es baja).
-  const [misPlegada, setMisPlegada] = useState(baja);
   const groupId = userData?.groupId;
   const predicas = usePredicas(groupId);
 
@@ -63,6 +61,9 @@ export default function ControlPredica() {
   const [seleccionada, setSeleccionada] = useState(null);
   // La recién creada: su título recibe el cursor al abrirse.
   const [recienCreada, setRecienCreada] = useState(null);
+  // Celular: hay una prédica nueva abierta que aún no existe en Firestore
+  // (14-11-2026, pedido del usuario: como en el computador, se crea al escribir).
+  const [nuevaAbierta, setNuevaAbierta] = useState(false);
 
   // Lo último sin guardar, para guardarlo al cambiar de prédica o salir.
   const sinGuardar = useRef(null);
@@ -130,6 +131,10 @@ export default function ControlPredica() {
     setAbiertaId(null);
     setBorrador(null);
     setModo("preparar");
+    // Si era una nueva sin escribir, se descarta sin dejar rastro.
+    setNuevaAbierta(false);
+    vaciaActual.current = predicaVacia();
+    setVacia(vaciaActual.current);
   };
 
   // `cambios`: un objeto o una función de la prédica actual (para lo que llega
@@ -223,8 +228,6 @@ export default function ControlPredica() {
     }
   };
 
-  const nueva = (fecha) => crear(fecha ? { fecha } : {});
-
   // Computador sin prédica abierta: el bosquejo vacío, como una nueva, en vez
   // de un aviso sobre gris (pedido del usuario, 11-11-2026). No hay documento
   // hasta que se escribe: el primer cambio la crea y lo que se siga
@@ -245,6 +248,7 @@ export default function ControlPredica() {
       const ultimo = vaciaActual.current;
       setAbiertaId(id);
       setBorrador({ ...ultimo, id, titulo: ultimo.titulo || "Nueva prédica" });
+      setNuevaAbierta(false);
       setEstadoGuardado("pendiente"); // guarda lo escrito mientras se creaba
       vaciaActual.current = predicaVacia();
       setVacia(vaciaActual.current);
@@ -266,6 +270,21 @@ export default function ControlPredica() {
     setVacia(vaciaActual.current);
     setSeleccionada(null);
     setEnfocarVacia(true);
+  };
+
+  // Celular: «Nueva» y «Crear para este día» abren el bosquejo vacío, igual que
+  // el computador: no hay documento (ni punto en la línea de tiempo) hasta que
+  // se escribe algo (14-11-2026, pedido del usuario).
+  const nueva = (fecha) => {
+    soltarPendiente();
+    setAbiertaId(null);
+    setBorrador(null);
+    setSeleccionada(null);
+    setModo("preparar");
+    vaciaActual.current = fecha ? { ...predicaVacia(), fecha } : predicaVacia();
+    setVacia(vaciaActual.current);
+    setEnfocarVacia(true);
+    setNuevaAbierta(true);
   };
 
   const duplicar = () =>
@@ -330,8 +349,9 @@ export default function ControlPredica() {
   // La biblioteca muestra los cambios aún sin guardar de la abierta.
   const listado = (predicas || []).map((p) => (borrador && p.id === borrador.id ? borrador : p));
 
-  // En el computador, sin prédica abierta (ni una cargándose), la vacía.
-  const conVacia = !celular && !abiertaId && !borrador;
+  // En el computador, sin prédica abierta (ni una cargándose), la vacía; en el
+  // celular, solo cuando se pidió una nueva.
+  const conVacia = (celular ? nuevaAbierta : true) && !abiertaId && !borrador;
   const enEditor = borrador || (conVacia ? vacia : null);
   const piezaElegida = enEditor?.piezas.find((p) => p.id === seleccionada) || null;
 
@@ -361,28 +381,17 @@ export default function ControlPredica() {
       }}
       historial={controlHistorial}
       onAgregarVersiculo={celular ? agregarVersiculo : null}
-      menuMas={
-        // Celular: lo que en las otras pantallas va en la barra de abajo.
+      // Duplicar y Eliminar van en la barra de arriba del celular, junto a
+      // WhatsApp (14-11-2026, pedido del usuario); abajo van Deshacer y Rehacer.
+      onDuplicar={celular ? duplicar : null}
+      onBorrar={celular ? borrar : null}
+      botonWhatsApp={
         celular && (
-          <>
-            <button type="button" data-cierra-menu onClick={duplicar} disabled={!borrador} className="flex h-11 items-center gap-2 rounded-xl border border-app-border px-3 text-sm font-semibold text-app-texto disabled:opacity-30">
-              <DocumentDuplicateIcon className="h-5 w-5" aria-hidden="true" />
-              Duplicar
-            </button>
-            <WhatsAppButton
-              message={enEditor.piezas}
-              title="Compartir por WhatsApp"
-              className="flex h-11 items-center gap-2 rounded-xl border border-app-border px-3 text-sm font-semibold text-app-texto"
-            >
-              WhatsApp
-            </WhatsAppButton>
-            <button type="button" data-cierra-menu onClick={borrar} disabled={!borrador} className="flex h-11 items-center gap-2 rounded-xl border border-app-border px-3 text-sm font-semibold text-app-error disabled:opacity-30">
-              <TrashIcon className="h-5 w-5" aria-hidden="true" />
-              Borrar
-            </button>
-            <span className="h-px bg-app-border" />
-            <SelectorBiblia />
-          </>
+          <WhatsAppButton
+            message={enEditor.piezas}
+            title="Compartir por WhatsApp"
+            className="grid h-9 w-10 shrink-0 place-items-center rounded-xl active:bg-app-border/40"
+          />
         )
       }
       acciones={
@@ -441,10 +450,11 @@ export default function ControlPredica() {
   if (celular) {
     return (
       <div className="h-pantalla flex flex-col bg-app-dark">
-        {predicando && <FranjaTurno />}
-        {!borrador ? (
-          <div className="flex min-h-0 flex-1 flex-col gap-3 p-4 pb-20">
-            <SelectorBiblia />
+        {/* Sin FranjaTurno en el celular (14-11-2026, pedido del usuario): el
+            servicio y la pantalla ya van en la barra de arriba. */}
+        {!enEditor ? (
+          <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
+            {/* Sin SelectorBiblia en el celular (13-11-2026): pendiente de ubicar. */}
             <BibliotecaPredicas predicas={listado} abiertaId={abiertaId} onAbrir={abrir} onNueva={nueva} compacta />
           </div>
         ) : modo === "predicar" ? (
@@ -546,31 +556,21 @@ export default function ControlPredica() {
         pulpito
       ) : (
         <div className="flex min-h-0 flex-1">
-          {misPlegada ? (
-            // Plegada: una franja con lo esencial (12-11-2026, para pantallas bajas).
-            <aside aria-label="Mis prédicas" data-mis-plegada className="flex w-16 shrink-0 flex-col items-center gap-2.5 border-r border-app-border bg-app-light py-3">
-              <button type="button" onClick={() => setMisPlegada(false)} aria-label="Abrir Mis prédicas" title="Abrir Mis prédicas" className="grid h-10 w-10 place-items-center rounded-xl border border-app-border text-app-texto">
-                <Bars3Icon className="h-5 w-5" aria-hidden="true" />
-              </button>
-              <button type="button" onClick={predicar} aria-label="Predicar" title="Predicar" className="grid h-10 w-10 place-items-center rounded-xl bg-app-main text-app-dark">
-                <PlayIcon className="h-5 w-5" aria-hidden="true" />
-              </button>
-            </aside>
-          ) : (
-            <aside aria-label="Mis prédicas" className="flex w-80 shrink-0 flex-col border-r border-app-border bg-app-light p-4">
-              {/* «Predicar» va arriba de esta lista; no hay botón «Nueva»: la
-                  nueva es la vacía, y un día libre del calendario le pone fecha. */}
-              <BibliotecaPredicas
-                predicas={listado}
-                abiertaId={abiertaId}
-                onAbrir={abrir}
-                onPredicar={predicar}
-                fechaVacia={conVacia ? vacia.fecha : null}
-                onElegirFecha={elegirFecha}
-                onPlegar={() => setMisPlegada(true)}
-              />
-            </aside>
-          )}
+          {/* Mis prédicas ya no se pliega a una franja (13-11-2026, el usuario
+              no la quiso): siempre a la vista. */}
+          <aside aria-label="Mis prédicas" className="flex w-80 shrink-0 flex-col border-r border-app-border bg-app-light p-4">
+            {/* «Predicar» va arriba de esta lista; no hay botón «Nueva»: la
+                nueva es la vacía, y un día libre del calendario le pone fecha. */}
+            <BibliotecaPredicas
+              predicas={listado}
+              abiertaId={abiertaId}
+              onAbrir={abrir}
+              onPredicar={predicar}
+              fechaVacia={conVacia ? vacia.fecha : null}
+              onElegirFecha={elegirFecha}
+            />
+          </aside>
+
 
           <main className="flex min-w-0 flex-1 flex-col">{editor}</main>
 

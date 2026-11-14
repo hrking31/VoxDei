@@ -140,3 +140,64 @@ describe("BarraLateral", () => {
     await waitFor(() => expect(auth.logout).toHaveBeenCalledTimes(1));
   });
 });
+
+describe("BarraLateral en el celular", () => {
+  const hayBarra = () => screen.queryByRole("navigation", { name: "Secciones del panel" }) !== null;
+
+  it("cerrada no pinta nada ni ocupa sitio", () => {
+    const { container } = montar(<BarraLateral movil abierta={false} onCerrar={() => {}} />);
+    expect(hayBarra()).toBe(false);
+    expect(container.querySelector(".w-barra")).toBeNull();
+  });
+
+  it("abierta muestra los nombres y las mismas secciones que en el computador", () => {
+    montar(<BarraLateral movil abierta onCerrar={() => {}} />);
+    expect(within(barra()).getByText("Biblia")).toBeTruthy();
+    const grupos = within(barra()).getAllByRole("group");
+    expect(grupos.map((g) => g.getAttribute("aria-label"))).toEqual(["Organizar", "Proyectar", "Administrar"]);
+    expect(within(barra()).getByText("Ayuda")).toBeTruthy();
+    expect(within(barra()).getByText("Cerrar sesión")).toBeTruthy();
+  });
+
+  it("al operador no le muestra Prédica", () => {
+    montar(<BarraLateral movil abierta onCerrar={() => {}} />, {
+      auth: { userData: { name: "Luis", role: "Operador" } },
+    });
+    expect(within(barra()).queryByText("Prédica")).toBeNull();
+  });
+
+  it("elegir una sección navega y pide cerrar el menú", () => {
+    const alCerrar = vi.fn();
+    montar(<BarraLateral movil abierta onCerrar={alCerrar} />);
+    fireEvent.click(boton("Biblia"));
+    expect(ruta()).toBe("/ViewVersiculo");
+    expect(alCerrar).toHaveBeenCalledTimes(1);
+  });
+
+  it("el logo lleva al menú inicial y cierra el menú", () => {
+    const alCerrar = vi.fn();
+    montar(<BarraLateral movil abierta onCerrar={alCerrar} />);
+    fireEvent.click(boton("Menú inicial"));
+    expect(ruta()).toBe("/ViewSelector");
+    expect(alCerrar).toHaveBeenCalledTimes(1);
+  });
+
+  it("no lleva flecha para cerrar: se cierra con Escape y al tocar fuera", () => {
+    const alCerrar = vi.fn();
+    montar(<BarraLateral movil abierta onCerrar={alCerrar} />);
+    expect(within(barra()).queryByRole("button", { name: /Cerrar el menú|Encoger la barra|Mostrar los nombres/ })).toBeNull();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    fireEvent.click(screen.getByTestId("velo-barra"));
+
+    expect(alCerrar).toHaveBeenCalledTimes(2);
+  });
+
+  it("pide confirmación antes de cerrar sesión y, si se confirma, cierra", async () => {
+    const alCerrar = vi.fn();
+    const { auth } = montar(<BarraLateral movil abierta onCerrar={alCerrar} />);
+    fireEvent.click(boton("Cerrar sesión"));
+    await waitFor(() => expect(auth.logout).toHaveBeenCalledTimes(1));
+    expect(alCerrar).toHaveBeenCalled();
+  });
+});

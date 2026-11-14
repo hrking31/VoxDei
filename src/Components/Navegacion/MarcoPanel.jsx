@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import BarraLateral from "./BarraLateral.jsx";
-import BarraInferior, { BotonAnterior } from "./BarraInferior.jsx";
+import BarraSuperior from "./BarraSuperior.jsx";
 import IconoPestana from "./IconoPestana.jsx";
 
 // Marco de las pantallas del panel. En App.jsx es una ruta sin dirección
@@ -12,11 +13,13 @@ import IconoPestana from "./IconoPestana.jsx";
 //
 // Las barras salen solo con la sesión lista: mientras ProtectedRoutes decide
 // (cargando, verificar correo, sin ficha) no tiene sentido ofrecer secciones.
-// Computador: barra lateral. Celular: barra inferior y el botón para volver a
-// la sección anterior; el relleno de abajo deja sitio a la barra.
+// Computador: barra lateral fija. Celular: una barra de arriba con el botón de
+// menú, que despliega esa misma barra lateral; el relleno de arriba le deja
+// sitio.
 export default function MarcoPanel() {
   const { isDesktop } = useAppContext();
   const { user, userData, correoVerificado } = useAuth();
+  const [menuAbierto, setMenuAbierto] = useState(false);
 
   if (!user || !userData || !correoVerificado) return <Outlet />;
 
@@ -24,11 +27,11 @@ export default function MarcoPanel() {
     return (
       <>
         <IconoPestana />
-        <div className="pb-barra-inferior">
+        <BarraSuperior menuAbierto={menuAbierto} onAbrirMenu={() => setMenuAbierto(true)} />
+        <BarraLateral movil abierta={menuAbierto} onCerrar={() => setMenuAbierto(false)} />
+        <div className="pt-barra-superior">
           <Outlet />
         </div>
-        <BotonAnterior />
-        <BarraInferior />
       </>
     );
   }

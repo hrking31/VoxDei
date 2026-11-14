@@ -20,7 +20,10 @@ const mesDe = (fecha) => {
 // a crearlos por error). Quien lo monta decide con `onTocarDia(fecha,
 // prédicasDelDia)`; `marcada` es el día libre elegido (aro dorado punteado).
 // Un día gris del mes vecino solo pasa a ese mes, y «Hoy» vuelve al actual.
-export default function CalendarioPredicas({ predicas, abiertaFecha, marcada, onTocarDia, hoy = hoyLocal() }) {
+//
+// `compacto` (celular, 13-11-2026, pedido del usuario): días de 24 px en vez de
+// 28, menos relleno y el encabezado más bajo, para que ocupe menos alto.
+export default function CalendarioPredicas({ predicas, abiertaFecha, marcada, onTocarDia, hoy = hoyLocal(), compacto = false }) {
   const [mes, setMes] = useState(() => mesDe(abiertaFecha || hoy));
   const dias = useMemo(() => diasDelMes(mes.anio, mes.mes), [mes]);
   const porFecha = useMemo(() => predicasPorFecha(predicas), [predicas]);
@@ -34,9 +37,9 @@ export default function CalendarioPredicas({ predicas, abiertaFecha, marcada, on
     });
 
   return (
-    <section aria-label="Calendario de prédicas" className="flex flex-col gap-1.5 rounded-2xl border border-app-border bg-app-aviso p-2.5">
+    <section aria-label="Calendario de prédicas" className={`flex flex-col rounded-2xl border border-app-border bg-app-aviso ${compacto ? "gap-0.5 p-1.5" : "gap-1.5 p-2.5"}`}>
       <div className="flex items-center gap-1">
-        <button type="button" onClick={() => cambiarMes(-1)} aria-label="Mes anterior" className="grid h-8 w-8 place-items-center rounded-full text-app-muted hover:text-app-main">
+        <button type="button" onClick={() => cambiarMes(-1)} aria-label="Mes anterior" className={`grid place-items-center rounded-full text-app-muted hover:text-app-main ${compacto ? "h-7 w-7" : "h-8 w-8"}`}>
           <ChevronLeftIcon className="h-4 w-4" aria-hidden="true" />
         </button>
         <b className="flex-1 text-center text-sm text-app-main">
@@ -51,14 +54,14 @@ export default function CalendarioPredicas({ predicas, abiertaFecha, marcada, on
             Hoy
           </button>
         )}
-        <button type="button" onClick={() => cambiarMes(1)} aria-label="Mes siguiente" className="grid h-8 w-8 place-items-center rounded-full text-app-muted hover:text-app-main">
+        <button type="button" onClick={() => cambiarMes(1)} aria-label="Mes siguiente" className={`grid place-items-center rounded-full text-app-muted hover:text-app-main ${compacto ? "h-7 w-7" : "h-8 w-8"}`}>
           <ChevronRightIcon className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
 
       <div className="grid grid-cols-7 gap-px text-center">
         {SEMANA.map((letra, i) => (
-          <span key={i} aria-hidden="true" className={`py-0.5 text-diminuto font-semibold ${i === 0 ? "text-app-main" : "text-app-muted"}`}>
+          <span key={i} aria-hidden="true" className={`${compacto ? "py-0" : "py-0.5"} text-diminuto font-semibold ${i === 0 ? "text-app-main" : "text-app-muted"}`}>
             {letra}
           </span>
         ))}
@@ -106,7 +109,7 @@ export default function CalendarioPredicas({ predicas, abiertaFecha, marcada, on
               aria-current={abierta ? "date" : undefined}
               aria-pressed={esMarcada || undefined}
               onClick={() => (delMes ? onTocarDia(fecha, delDia) : setMes(mesDe(fecha)))}
-              className={`mx-auto grid h-7 w-7 place-items-center rounded-full text-xs transition ${fondo} ${borde}`}
+              className={`mx-auto grid place-items-center rounded-full text-xs transition ${compacto ? "h-6 w-6" : "h-7 w-7"} ${fondo} ${borde}`}
             >
               {dia}
             </button>

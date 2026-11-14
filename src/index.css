@@ -20,8 +20,8 @@
   --spacing-barra-etiqueta: 4.25rem; /* nombre flotante, justo al lado de la barra encogida */
   --shadow-barra: 12px 0 30px rgb(0 0 0 / 0.45);
 
-  /* Barra inferior del panel (solo celular) */
-  --spacing-barra-inferior: 4.5rem;
+  /* Barra de arriba del panel, con el botón de menú (solo celular) */
+  --spacing-barra-superior: 2.5rem;
 
   /* Pantalla de espera del templo: relativas al alto de la pantalla */
   --spacing-espera-logo: 30vh;
@@ -96,6 +96,7 @@
   --spacing-aviso-pantalla: 20.625rem; /* ancho de la tarjeta en el computador */
   --text-diminuto: 0.6rem; /* «Ventana → Completa» y el equipo */
   --text-chip: 0.8125rem; /* 13 px: los filtros de Mis prédicas */
+  --text-pie: 0.6875rem; /* 11 px: «N prédicas guardadas» al pie de Mis prédicas, en el celular */
   /* Dura lo mismo que DURACION_AVISO (presencia.js): si cambias uno, cambia el otro */
   --animate-cuenta-aviso: cuenta-aviso 2s linear forwards;
   --animate-brillo-aviso: brillo-aviso 1s 0.35s ease-out both; /* al ponerse en pantalla completa */
@@ -109,6 +110,8 @@
   --animate-escena-late: escena-late 1s ease-in-out infinite;
   /* «Mostrar» del púlpito: con todo oculto, palpita para pedir atención (12-11-2026) */
   --animate-palpita: palpita 1.4s ease-in-out infinite;
+  /* El ítem que sigue en el bosquejo del púlpito (celular): flota y brilla en amarillo (14-11-2026) */
+  --animate-siguiente: siguiente 1.8s ease-in-out infinite;
   /* El anuncio de la mini pantalla del púlpito: pasa de derecha a izquierda (12-11-2026) */
   --animate-ticker-mini: ticker-mini 14s linear infinite;
   --animate-escena-tv: escena-tv 3.2s ease-in infinite;
@@ -168,6 +171,10 @@
     0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-app-error) 55%, transparent); }
     50% { transform: scale(1.05); box-shadow: 0 0 0 7px color-mix(in srgb, var(--color-app-error) 0%, transparent); }
   }
+  @keyframes siguiente {
+    0%, 100% { transform: translateY(0) scale(1.01); box-shadow: 0 5px 12px rgb(0 0 0 / 0.5), 0 0 0 0 color-mix(in srgb, var(--color-app-main) 45%, transparent); }
+    50% { transform: translateY(-2px) scale(1.025); box-shadow: 0 9px 16px rgb(0 0 0 / 0.55), 0 0 9px 2px color-mix(in srgb, var(--color-app-main) 50%, transparent); }
+  }
   /* Televisor viejo que se apaga: línea, punto y nada */
   @keyframes escena-tv {
     0%, 20% { opacity: 1; transform: scale(1, 1); filter: brightness(1); }
@@ -213,33 +220,28 @@ body {
   @apply bg-app-dark;
 }
 
-/* Alto que ocupa la barra inferior del celular. Vale 0 salvo cuando la barra
+/* Alto que ocupa la barra de arriba del celular. Vale 0 salvo cuando la barra
    está en la página: así el computador y la pantalla del templo miden igual
    que siempre, sin que ningún componente tenga que preguntar. */
 :root {
   --alto-barra: 0px;
-  --alto-flotante: 0px;
 }
-:root:has([data-barra-inferior]) {
-  --alto-barra: var(--spacing-barra-inferior);
+:root:has([data-barra-superior]) {
+  --alto-barra: var(--spacing-barra-superior);
 }
-/* Con el botón «volver a la anterior» en pantalla, los avisos suben un poco
-   más para no taparlo. */
-:root:has([data-boton-anterior]) {
-  --alto-flotante: 3.25rem;
+/* Los encabezados pegajosos de cada pantalla se pegan debajo de la barra, no
+   detrás de ella. Sin la barra, --alto-barra vale 0 y no cambia nada. */
+:root:has([data-barra-superior]) .sticky.top-0 {
+  top: var(--alto-barra);
 }
 
-/* Alto de pantalla descontando la barra inferior. Las pantallas del panel que
+/* Alto de pantalla descontando la barra de arriba. Las pantallas del panel que
    miden exactamente la pantalla usan estas en vez de h-svh / min-h-svh. */
 @utility h-pantalla {
   height: calc(100svh - var(--alto-barra));
 }
 @utility min-h-pantalla {
   min-height: calc(100svh - var(--alto-barra));
-}
-/* Los avisos flotan encima de la barra, no detrás. */
-@utility bottom-avisos {
-  bottom: calc(1.5rem + var(--alto-barra) + var(--alto-flotante));
 }
 /* ---- Pantalla de entrada (/ViewSelector) ---- */
 /* Fondo con un resplandor dorado detrás del símbolo */
@@ -398,15 +400,10 @@ body {
 }
 /* En el celular, la píldora va arriba, debajo de la cámara. */
 @utility top-aviso-isla {
-  top: calc(0.5rem + env(safe-area-inset-top, 0px));
+  top: calc(0.5rem + var(--alto-barra) + env(safe-area-inset-top, 0px));
 }
 @utility pausada {
   animation-play-state: paused;
-}
-
-/* Botón flotante, justo encima de la barra inferior. */
-@utility bottom-flotante {
-  bottom: calc(0.75rem + var(--alto-barra));
 }
 
 @layer utilities {
