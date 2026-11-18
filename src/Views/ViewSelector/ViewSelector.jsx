@@ -4,7 +4,7 @@ import { useAuth } from "../../Components/Context/AuthContext";
 import { useAppContext } from "../../Components/Context/AppContext";
 import Loading from "../../Components/Loading/Loading.jsx";
 import Footer from "../../Components/Footer/Footer.jsx";
-import { Simbolo } from "../../Components/Logo/Logo.jsx";
+import LogoDeLaIglesia from "../../Components/Logo/LogoDeLaIglesia.jsx";
 import { abrirProyector } from "../../Components/Navegacion/abrirProyector.js";
 import EncabezadoUsuario from "../../Components/Entrada/EncabezadoUsuario.jsx";
 import FichaPaso from "../../Components/Entrada/FichaPaso.jsx";
@@ -44,7 +44,7 @@ export default function ViewSelector() {
         <div className="flex flex-col items-center gap-2 text-center">
           <span className="relative h-16 w-16">
             <span aria-hidden="true" className="absolute -inset-5 rounded-full brillo-oro motion-safe:animate-respira" />
-            <Simbolo alt="" className="relative h-16 w-16" />
+            <LogoDeLaIglesia alt="" className="relative h-16 w-16" />
           </span>
           <h1 className="text-2xl font-bold">
             {saludoSegunHora()}, {primerNombre(userData.name)}

@@ -155,7 +155,7 @@ export default function Ayuda() {
 
   return (
     <div className="h-pantalla flex flex-col overflow-hidden bg-linear-to-b from-app-dark/50 to-app-light/50">
-      <div className="shrink-0 border-b border-app-main bg-app-light px-2">
+      <div className="hidden lg:block shrink-0 border-b border-app-main bg-app-light px-2">
         <h1 className="flex items-center gap-1 py-2 font-bold text-app-main">
           <QuestionMarkCircleIcon className="h-5 w-5 shrink-0" />
           Ayuda

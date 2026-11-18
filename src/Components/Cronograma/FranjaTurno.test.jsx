@@ -7,7 +7,8 @@ const ensayo = vi.hoisted(() => ({ iniciar: vi.fn(async () => {}), terminar: vi.
 vi.mock("../Hooks/useTurno.js", () => ({ useTurno: () => estado }));
 vi.mock("./AccionesEnsayo.js", () => ({ iniciarEnsayo: ensayo.iniciar, terminarEnsayo: ensayo.terminar }));
 
-import FranjaTurno from "./FranjaTurno.jsx";
+import FranjaTurno from "./FranjaTurno.jsx";import { AccionesGuiaContext } from "../PantallaGuia/AccionesGuia.js";
+
 import { montar } from "../Navegacion/pruebas.utils.jsx";
 
 const pastora = { user: { uid: "p1" }, userData: { name: "Ana", role: "Pastora", groupId: "g1" } };
@@ -53,6 +54,35 @@ describe("FranjaTurno", () => {
     expect(estado.className).not.toContain("rounded-full");
     expect(estado.className).not.toContain("border");
     expect(estado.querySelector("[data-icono=\"encendida\"]")).not.toBeNull();
+  });
+
+  it("en el celular no se pinta, salvo con `siempre` (Cronograma)", () => {
+    const { unmount } = abrir({ app: { formatoPantalla: "celular" } });
+    expect(franja()).toBeNull();
+    unmount();
+    estado.turno = { tipo: "libre" };
+    montar(<FranjaTurno siempre />, { auth: pastora, app: { pantallaTemplo: "encendida", formatoPantalla: "celular" } });
+    expect(franja()).not.toBeNull();
+  });
+
+  it("donde hay guía del templo se calla, salvo la de la propia guía (enGuia)", () => {
+    estado.turno = { tipo: "libre" };
+    const ranura = document.createElement("div");
+    const { unmount } = montar(
+      <AccionesGuiaContext.Provider value={ranura}>
+        <FranjaTurno />
+      </AccionesGuiaContext.Provider>,
+      { auth: pastora, app: { pantallaTemplo: "encendida" } }
+    );
+    expect(franja()).toBeNull();
+    unmount();
+    montar(
+      <AccionesGuiaContext.Provider value={ranura}>
+        <FranjaTurno enGuia />
+      </AccionesGuiaContext.Provider>,
+      { auth: pastora, app: { pantallaTemplo: "encendida" } }
+    );
+    expect(franja()).not.toBeNull();
   });
 
   it("el operador inicia el ensayo", () => {

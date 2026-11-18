@@ -210,8 +210,8 @@ export default function ControlTicker() {
       <div className="sticky top-0 border-b border-app-main bg-app-light z-10 ">
         <FranjaTurno />
         <h1 className="font-bold text-app-main flex items-center gap-1 px-2">
-          <TagIcon className="w-5 h-5 shrink-0" />
-          <span>Ticker</span>
+          <TagIcon className="w-5 h-5 shrink-0 hidden lg:block" />
+          <span className="hidden lg:inline">Ticker</span>
           {numEditando && (
             <span className="text-xs font-normal text-app-muted">
               · corrigiendo el ticker {numEditando}

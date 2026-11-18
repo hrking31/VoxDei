@@ -162,11 +162,11 @@ export default function OrdenCulto() {
       {/* ENCABEZADO */}
       <div className="shrink-0 border-b border-app-main bg-app-light px-2">
         <div className="flex items-center justify-between gap-2 py-1">
-          <h1 className="font-bold text-app-main flex items-center gap-1 truncate">
+          <h1 className="font-bold text-app-main hidden lg:flex items-center gap-1 truncate">
             <QueueListIcon className="w-5 h-5 shrink-0" />
             <span className="truncate">Orden del culto</span>
           </h1>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 ml-auto">
             <div role="tablist" aria-label="Modo" className="flex rounded border border-app-border overflow-hidden">
               {[
                 ["culto", "Culto"],

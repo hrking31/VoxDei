@@ -288,12 +288,12 @@ export default function ControlCanciones() {
       {/* ENCABEZADO */}
       <div className="shrink-0 border-b border-app-main bg-app-light px-2">
         <div className="flex items-center justify-between gap-2 py-1">
-          <h1 className="font-bold text-app-main flex items-center gap-1 truncate">
+          <h1 className="font-bold text-app-main hidden lg:flex items-center gap-1 truncate">
             <MusicalNoteIcon className="w-5 h-5 shrink-0" />
             <span className="truncate">Canciones</span>
           </h1>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 ml-auto">
             <button
               onClick={() => navigate("/ViewCancionEditar")}
               className="px-3 py-1.5 text-xs sm:text-sm font-bold text-app-main rounded inset-shadow-sm inset-shadow-app-main hover:bg-app-main hover:text-app-dark transition flex items-center gap-1"

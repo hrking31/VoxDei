@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeftStartOnRectangleIcon, UserIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
-import { LogoHorizontal, Simbolo } from "../Logo/Logo.jsx";
+import LogoDeLaIglesia from "../Logo/LogoDeLaIglesia.jsx";
 import { AYUDA, GRUPOS, INICIO, MENU_INICIAL, estaActiva, seccionesPara } from "./Secciones.js";
 
 // Barra lateral del panel en el computador. Encogida muestra solo íconos;
@@ -85,9 +85,9 @@ export default function BarraLateral({ movil = false, abierta: abiertaMovil = fa
           {abierta ? (
             // El archivo trae margen vacío alrededor: a la altura completa del
             // botón el texto se lee bien.
-            <LogoHorizontal className="h-12 w-auto" alt="" />
+            <LogoDeLaIglesia variante="horizontal" className="h-12 w-auto max-w-full" alt="" />
           ) : (
-            <Simbolo className="h-9 w-9" alt="" />
+            <LogoDeLaIglesia className="h-9 w-9" alt="" />
           )}
         </button>
 

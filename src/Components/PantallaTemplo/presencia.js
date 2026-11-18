@@ -104,3 +104,20 @@ export function tipoDispositivo(navegador = globalThis.navigator, ancho = global
   if (navegador?.userAgentData?.mobile || /Mobi|iPhone|Android/i.test(agente)) return "celular";
   return ancho && ancho < 768 ? "celular" : "computador";
 }
+
+// ¿Se está viendo la pantalla del templo? (18-11-2026, pedido del usuario: la mini
+// pantalla no puede decir «En vivo» si la pantalla está oculta o ni se abrió.)
+// Con «ventana», «maximizada» o «encendida» sí; con «apagada» u «oculta» no. Sin
+// dato todavía (cargando, o sin permiso de leer la presencia) se da por abierta,
+// para no afirmar lo contrario sin saberlo.
+export const ESTADOS_ABIERTA = ["ventana", "maximizada", "encendida"];
+
+export function pantallaAbierta(estado) {
+  return !estado || ESTADOS_ABIERTA.includes(estado);
+}
+
+// Qué decir cuando no está abierta.
+export const TEXTO_NO_ABIERTA = {
+  apagada: "Pantalla apagada",
+  oculta: "Pantalla oculta",
+};

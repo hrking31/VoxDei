@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import BarraLateral from "./BarraLateral.jsx";
 import BarraSuperior from "./BarraSuperior.jsx";
 import IconoPestana from "./IconoPestana.jsx";
+import PantallaGuia from "../PantallaGuia/PantallaGuia.jsx";
+import { AccionesGuiaContext } from "../PantallaGuia/AccionesGuia.js";
+import { rutaConGuia } from "../PantallaGuia/utilesGuia.js";
 
 // Marco de las pantallas del panel. En App.jsx es una ruta sin dirección
 // propia que agrupa a las demás: cada una conserva su URL y su protección por
@@ -20,6 +23,10 @@ export default function MarcoPanel() {
   const { isDesktop } = useAppContext();
   const { user, userData, correoVerificado } = useAuth();
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const { pathname } = useLocation();
+  // La ranura de la guía del templo (donde las secciones ponen sus botones); es
+  // null mientras no haya guía en pantalla.
+  const [ranuraGuia, setRanuraGuia] = useState(null);
 
   if (!user || !userData || !correoVerificado) return <Outlet />;
 
@@ -37,12 +44,17 @@ export default function MarcoPanel() {
   }
 
   return (
-    <div className="flex min-h-svh">
-      <IconoPestana />
-      <BarraLateral />
-      <div className="min-w-0 flex-1">
-        <Outlet />
+    <AccionesGuiaContext.Provider value={ranuraGuia}>
+      <div className="flex min-h-svh">
+        <IconoPestana />
+        <BarraLateral />
+        <div className="min-w-0 flex-1">
+          <Outlet />
+        </div>
+        {/* Guía de la pantalla del templo: solo en el computador y en las
+            secciones que proyectan (Prédica ya trae la suya en el púlpito). */}
+        {rutaConGuia(pathname) && <PantallaGuia refRanura={setRanuraGuia} />}
       </div>
-    </div>
+    </AccionesGuiaContext.Provider>
   );
 }

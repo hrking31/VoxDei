@@ -134,12 +134,12 @@ export default function ControlEstilos() {
       {/* ENCABEZADO */}
       <div className="sticky top-0 z-20 border-b border-app-main bg-app-light px-2">
         <div className="flex items-center justify-between gap-2 py-2">
-          <h1 className="font-bold text-app-main flex items-center gap-1">
+          <h1 className="font-bold text-app-main hidden lg:flex items-center gap-1">
             <SwatchIcon className="w-5 h-5" />
             Estilos y colores
           </h1>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-auto">
             <button
               onClick={restablecer}
               title="Restablecer"

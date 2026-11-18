@@ -1,5 +1,5 @@
 import { ArrowLeftStartOnRectangleIcon } from "@heroicons/react/24/solid";
-import { BuildingLibraryIcon } from "@heroicons/react/24/outline";
+import LogoDeLaIglesia from "../Logo/LogoDeLaIglesia.jsx";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import { datosDeIglesia } from "../Iglesia/datosIglesia.js";
@@ -47,11 +47,7 @@ export default function EncabezadoUsuario() {
             )}
             {nombreIglesia && (
               <span title={datos.nombre} className="flex min-w-0 items-center gap-1">
-                {datos.logo ? (
-                  <img src={datos.logo} alt="" className="h-4 w-4 shrink-0 rounded object-cover" />
-                ) : (
-                  <BuildingLibraryIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                )}
+                <LogoDeLaIglesia alt="" className="h-4 w-4 shrink-0 rounded" />
                 <span className="truncate">{nombreIglesia}</span>
               </span>
             )}

@@ -226,14 +226,14 @@ export default function ControlVideo() {
           <FranjaTurno />
         </div>
         <div className="flex items-center justify-between gap-2 py-2">
-          <h1 className="font-bold text-app-main flex items-center gap-1 truncate">
+          <h1 className={`font-bold text-app-main items-center gap-1 truncate ${enPantalla ? "flex" : "hidden lg:flex"}`}>
             <VideoCameraIcon className="w-5 h-5 shrink-0" />
             <span className="truncate">
               {enPantalla ? enPantalla.titulo : "Video"}
             </span>
           </h1>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 ml-auto">
 
             <button onClick={toggleVisibleTicker} title="Ticker">
               <TagIcon

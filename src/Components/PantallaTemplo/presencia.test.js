@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   AVISO_ESTADO,
+  pantallaAbierta,
+  TEXTO_NO_ABIERTA,
   avisoDeCambio,
   estadoPantalla,
   modoVentana,
@@ -105,5 +107,23 @@ describe("tipoDispositivo", () => {
     expect(tipoDispositivo({ userAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 8) Mobile" }, 412)).toBe("celular");
     expect(tipoDispositivo({ userAgent: "Mozilla/5.0 (Linux; Android 14; SM-X200)" }, 1200)).toBe("tablet");
     expect(tipoDispositivo({ userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }, 1920)).toBe("computador");
+  });
+});
+
+describe("pantallaAbierta", () => {
+  it("ventana, maximizada y completa son abierta", () => {
+    for (const estado of ["ventana", "maximizada", "encendida"]) expect(pantallaAbierta(estado), estado).toBe(true);
+  });
+  it("apagada y oculta no", () => {
+    expect(pantallaAbierta("apagada")).toBe(false);
+    expect(pantallaAbierta("oculta")).toBe(false);
+  });
+  it("sin dato todavía se da por abierta, para no afirmar lo contrario sin saberlo", () => {
+    expect(pantallaAbierta(null)).toBe(true);
+    expect(pantallaAbierta(undefined)).toBe(true);
+  });
+  it("dice qué pasa cuando no está abierta", () => {
+    expect(TEXTO_NO_ABIERTA.apagada).toBe("Pantalla apagada");
+    expect(TEXTO_NO_ABIERTA.oculta).toBe("Pantalla oculta");
   });
 });

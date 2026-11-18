@@ -278,7 +278,7 @@ export default function ControlImagenes() {
       <div className="sticky top-0 z-10">
         <FranjaTurno />
       </div>
-      <h1 className="font-bold text-app-main flex items-center gap-1 p-2">
+      <h1 className="font-bold text-app-main hidden lg:flex items-center gap-1 p-2">
         <PhotoIcon className="w-5 h-5 shrink-0" />
         <span>Imágenes</span>
       </h1>

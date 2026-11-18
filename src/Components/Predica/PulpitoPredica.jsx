@@ -4,6 +4,8 @@ import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import { useTurno } from "../Hooks/useTurno.js";
 import PantallaPrevia from "./PantallaPrevia.jsx";
+import InterruptoresDeVista from "../PantallaGuia/InterruptoresDeVista.jsx";
+import { usePreferenciaLocal } from "../Hooks/usePreferenciaLocal.js";
 import BuscadorVersiculos from "./BuscadorVersiculos.jsx";
 import { useLoQueSeVe } from "./useLoQueSeVe.js";
 import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
@@ -45,9 +47,16 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
     setVisibleTicker,
     visibleImagen,
     setVisibleImagen,
+    pantallaTemplo,
   } = useAppContext();
   const groupId = userData?.groupId;
   const { piezas } = predica;
+  // A PRUEBA (18-11-2026, pedido del usuario; igual que en Biblia): en el celular,
+  // dos interruptores para ocultar la mini pantalla (quien está frente al
+  // proyector no la necesita) y los cuatro botones (quien solo avanza el
+  // bosquejo tampoco). Se acuerdan en este dispositivo.
+  const [sinPantalla, setSinPantalla] = usePreferenciaLocal("voxdei.predica.sinPantalla");
+  const [sinBotones, setSinBotones] = usePreferenciaLocal("voxdei.predica.sinBotones");
   // La franja de título y el anuncio, tal como están en el templo.
   const loQueSeVe = useLoQueSeVe(groupId);
   const numeros = numerosDePuntos(piezas, predica.numeracion, predica.numeracionNiveles);
@@ -243,7 +252,6 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
     setAlVuelo(pieza);
     enviar(pieza);
   };
-  const etiquetaAire = alVuelo?.id === "resumen" ? "Resumen" : alVuelo ? "Espontáneo" : enPortada ? "Título de la prédica" : formato === "celular" ? (noSeVe ? "Oculto" : "En vivo") : "En el templo ahora";
   const reloj = relojDesde(ahora - inicio);
   const posicion = actual >= 0 ? `${actual + 1} de ${piezas.length}` : cuantosItems(piezas.length);
 
@@ -329,10 +337,13 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
   const recuadroBosquejo = useRef(null);
   // Dónde termina la mini pantalla: de ahí hacia abajo se abre el diálogo «Puntos».
   const pantallaRef = useRef(null);
+  // El área que se desplaza (bajo el encabezado): de ahí arranca el diálogo si la mini pantalla está oculta.
+  const areaRef = useRef(null);
   const [topResumen, setTopResumen] = useState(0);
   useLayoutEffect(() => {
     if (!resumenAbierto) return undefined;
-    const medir = () => setTopResumen(Math.round((pantallaRef.current?.getBoundingClientRect().bottom ?? 0) + 8));
+    const medir = () =>
+      setTopResumen(Math.round((pantallaRef.current ? pantallaRef.current.getBoundingClientRect().bottom : (areaRef.current?.getBoundingClientRect().top ?? 0)) + 8));
     medir();
     window.addEventListener("resize", medir);
     return () => window.removeEventListener("resize", medir);
@@ -387,22 +398,6 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
     </div>
   );
 
-  const etiqueta = (
-    <span
-      data-etiqueta-aire={formato === "celular" ? (noSeVe ? "oculto" : "vivo") : undefined}
-      className={`flex items-center gap-2 text-xs font-semibold tracking-widest uppercase ${formato === "celular" && noSeVe ? "text-app-error" : "text-app-success"}`}
-    >
-      {/* En el celular (14-11-2026, pedido del usuario): «En vivo» y el punto
-          pulsante; si no se ve en el templo, «Oculto» con el punto rojo y quieto. */}
-      <span
-        aria-hidden="true"
-        data-punto-vivo={formato === "celular" || undefined}
-        className={`h-2 w-2 rounded-full ${formato === "celular" && noSeVe ? "bg-app-error" : "bg-app-success"} ${formato === "celular" && !noSeVe ? "motion-safe:animate-pulse" : ""}`}
-      />
-      {etiquetaAire} · {posicion}
-    </span>
-  );
-
   // La guía del predicador (12-11-2026, pedido del usuario): si no se ve en el
   // templo, la mini pantalla lo dice; y copia el título y el anuncio.
   const pantalla = (
@@ -411,6 +406,7 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
       grande={formato !== "celular"}
       etiqueta="En el templo ahora"
       oculta={noSeVe}
+      estadoPantalla={pantallaTemplo}
       titulo={visibleTitulo ? loQueSeVe.titulo : ""}
       ticker={visibleTicker ? loQueSeVe.ticker : ""}
     />
@@ -554,21 +550,31 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
     return (
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="flex h-11 shrink-0 items-center gap-2 px-3.5">
-          <b className="min-w-0 flex-1 truncate text-app-texto">{predica.titulo}</b>
+          <span className="flex min-w-0 flex-1 items-baseline gap-2">
+            <b className="truncate text-app-texto">{predica.titulo}</b>
+            {/* El contador de ítems, pequeño, junto al nombre (18-11-2026, pedido del usuario;
+                reemplazó a la etiqueta con el estado de la pantalla) */}
+            <span data-contador-items className="shrink-0 text-pie font-normal text-app-muted">{posicion}</span>
+          </span>
+          <InterruptoresDeVista
+            sinPantalla={sinPantalla}
+            alCambiarPantalla={setSinPantalla}
+            sinBotones={sinBotones}
+            alCambiarBotones={setSinBotones}
+          />
           <span className="text-lg">{reloj_}</span>
         </div>
 
         <div className="relative flex min-h-0 flex-1 flex-col">
-          <div className="scrollbar-custom flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-3.5 pb-2">
-            {etiqueta}
-            <div ref={pantallaRef}>{pantalla}</div>
+          <div ref={areaRef} className="scrollbar-oculta flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-3.5 pb-2">
+            {!sinPantalla && <div ref={pantallaRef}>{pantalla}</div>}
             <div className="relative flex min-h-0 flex-1 flex-col gap-2">
-              {interruptoresDe(true)}
+              {!sinBotones && interruptoresDe(true)}
               <section
                 ref={recuadroBosquejo}
                 aria-label="Bosquejo"
                 data-bosquejo-vivo
-                className="scrollbar-custom relative -mx-2.5 flex min-h-32 flex-1 flex-col gap-2 overflow-y-auto px-2.5 py-2"
+                className="scrollbar-oculta relative -mx-2.5 flex min-h-32 flex-1 flex-col gap-2 overflow-y-auto px-2.5 py-2"
               >
                 {lista}
                 {/* Lo poco usado, lejos de Siguiente: al final del bosquejo; pregunta antes. */}
@@ -603,7 +609,7 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
                 <XMarkIcon className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
-            <div className="scrollbar-custom min-h-0 flex-1 overflow-y-auto">{resumenNodo}</div>
+            <div className="scrollbar-oculta min-h-0 flex-1 overflow-y-auto">{resumenNodo}</div>
           </div>
         )}
 
@@ -618,7 +624,7 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
                   <XMarkIcon className="h-5 w-5" aria-hidden="true" />
                 </button>
               </div>
-              <div className="scrollbar-custom flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+              <div className="scrollbar-oculta flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
                 <BuscadorVersiculos accion="proyectar" cambiarBiblia onAgregar={proyectarVersiculo} showNotif={showNotif} />
               </div>
             </div>
@@ -656,12 +662,14 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
           <button type="button" onClick={onSalir} aria-label="Salir del modo predicar" className="grid h-11 w-11 place-items-center rounded-xl border border-app-border text-app-texto">
             <XMarkIcon className="h-5 w-5" aria-hidden="true" />
           </button>
-          <b className="min-w-0 flex-1 truncate text-lg text-app-texto">{predica.titulo}</b>
+          <span className="flex min-w-0 flex-1 items-baseline gap-2">
+            <b className="truncate text-lg text-app-texto">{predica.titulo}</b>
+            <span data-contador-items className="shrink-0 text-xs font-normal text-app-muted">{posicion}</span>
+          </span>
           <span data-reloj className="text-2xl">{reloj_}</span>
         </div>
         <div className="flex min-h-0 flex-1 flex-col gap-3 px-5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            {etiqueta}
+          <div className="flex flex-wrap items-center justify-end gap-2">
             {interruptoresDe(false)}
           </div>
           {pantalla}
@@ -701,8 +709,7 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
 
       <main className={`flex min-w-0 flex-1 flex-col overflow-y-auto ${baja ? "gap-3 px-5 py-3.5" : "gap-4 px-8 py-6"}`}>
         <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            {etiqueta}
+          <div className="flex flex-wrap items-center justify-end gap-2">
             {interruptoresDe(false)}
           </div>
           {baja ? (

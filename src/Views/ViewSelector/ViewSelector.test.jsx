@@ -63,12 +63,12 @@ describe("ViewSelector · los dos pasos", () => {
     expect(screen.getByRole("status", { name: /falta tocar pantalla completa/ }).textContent).toBe("VENTANA");
   });
 
-  it("chip e ícono verdes si está abierta, grises si está apagada; el texto lleva el color del estado", () => {
+  it("el borde del chip es verde si está abierta y gris si está apagada; el ícono y el texto llevan el color del estado", () => {
     const casos = [
       ["apagada", "text-app-muted", "Apagada", "text-app-muted"],
-      ["oculta", "text-app-success", "OCULTA", "text-app-error"],
-      ["ventana", "text-app-success", "VENTANA", "text-app-main"],
-      ["maximizada", "text-app-success", "MAXIMIZADA", "text-app-azul"],
+      ["oculta", "text-app-error", "OCULTA", "text-app-error"],
+      ["ventana", "text-app-main", "VENTANA", "text-app-main"],
+      ["maximizada", "text-app-azul", "MAXIMIZADA", "text-app-azul"],
       ["encendida", "text-app-success", "COMPLETA", "text-app-success"],
     ];
     const iconos = new Set();

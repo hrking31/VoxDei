@@ -17,9 +17,11 @@ const ICONO = {
   encendida: ArrowsPointingOutIcon,
 };
 
-// El texto lleva el color del estado; el chip y el ícono, solo gris (apagada)
-// o verde (abierta en cualquier modo), porque en los cuatro modos la pantalla
-// ya está encendida. Así lo pidió el usuario el 10 de noviembre de 2026.
+// El texto y, desde el 18-11-2026 (pedido del usuario), también el ícono llevan
+// el color del estado: gris apagada, rojo oculta, dorado ventana, azul
+// maximizada y verde completa. El borde del chip (cuando hay chip) sigue siendo
+// gris (apagada) o verde (abierta en cualquier modo), como lo pidió el usuario
+// el 10 de noviembre de 2026, porque en los cuatro modos ya está encendida.
 const COLOR_TEXTO = {
   apagada: "text-app-muted",
   oculta: "text-app-error",
@@ -59,7 +61,7 @@ export default function EstadoPantalla({ estado, sinChip = false } = {}) {
     >
       <Icono
         data-icono={pantallaTemplo}
-        className={`h-4 w-4 ${apagada ? "text-app-muted" : "text-app-success"}`}
+        className={`h-4 w-4 ${COLOR_TEXTO[pantallaTemplo]}`}
         aria-hidden="true"
       />
       <span className={COLOR_TEXTO[pantallaTemplo]}>{TEXTO_ESTADO[pantallaTemplo]}</span>

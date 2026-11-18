@@ -1,6 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import { Route, Routes } from "react-router-dom";
+
+// La guía del templo lee de RTDB: aquí no hay Firebase.
+vi.mock("../Firebase/Firebase", () => ({ database: {} }));
+vi.mock("firebase/database", () => ({ ref: vi.fn(), onValue: vi.fn(() => () => {}) }));
+
 import MarcoPanel from "./MarcoPanel.jsx";
 import { montar } from "./pruebas.utils.jsx";
 
@@ -8,6 +13,8 @@ const rutas = (
   <Routes>
     <Route element={<MarcoPanel />}>
       <Route path="/ViewInicio" element={<p>Contenido de Inicio</p>} />
+      <Route path="/ViewVersiculo" element={<p>Contenido de Biblia</p>} />
+      <Route path="/ViewPredica" element={<p>Contenido de Prédica</p>} />
     </Route>
   </Routes>
 );
@@ -18,7 +25,25 @@ const hayLateral = () =>
 const haySuperior = () => document.querySelector("[data-barra-superior]") !== null;
 const hayMenu = () => screen.queryByRole("navigation", { name: "Secciones del panel" }) !== null;
 
+const hayGuia = () => document.querySelector("[data-guia-templo]") !== null;
+
 describe("MarcoPanel", () => {
+  it("la guía del templo sale en el computador, solo en las secciones que proyectan", () => {
+    const { unmount } = montar(rutas, { ruta: "/ViewVersiculo" });
+    expect(hayGuia()).toBe(true);
+    unmount();
+    const inicio = montar(rutas, { ruta: "/ViewInicio" });
+    expect(hayGuia()).toBe(false);
+    inicio.unmount();
+    montar(rutas, { ruta: "/ViewPredica" });
+    expect(hayGuia()).toBe(false);
+  });
+
+  it("en el celular no hay guía", () => {
+    montar(rutas, { ruta: "/ViewVersiculo", app: { isDesktop: false } });
+    expect(hayGuia()).toBe(false);
+  });
+
   it("en el computador pone la barra lateral junto al contenido", () => {
     montar(rutas);
     expect(hayLateral()).toBe(true);

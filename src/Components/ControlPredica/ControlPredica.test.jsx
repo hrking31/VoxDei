@@ -1147,11 +1147,15 @@ describe("Predicar", () => {
     fireEvent.click(boton("Predicar"));
     expect(screen.getByRole("button", { name: "Volver a preparar" })).toBeTruthy();
     expect(document.querySelector("[data-franja-turno]")).toBeNull();
-    // La etiqueta de la mini pantalla dice «En vivo» con el punto pulsante.
-    const punto = document.querySelector("[data-punto-vivo]");
-    expect(punto.className).toContain("animate-pulse");
-    expect(punto.parentElement.textContent).toContain("En vivo");
-    expect(punto.parentElement.textContent).not.toContain("En el templo ahora");
+    // Ya no hay etiqueta con el estado de la pantalla debajo del nombre (pedido del usuario):
+    // solo el contador de ítems, pequeño, al lado del nombre.
+    expect(document.querySelector("[data-punto-vivo]")).toBeNull();
+    expect(document.querySelector("[data-etiqueta-aire]")).toBeNull();
+    expect(document.body.textContent).not.toMatch(/en vivo/i);
+    const contador = document.querySelector("[data-contador-items]");
+    expect(contador.textContent).toMatch(/ítem|de/);
+    expect(contador.className).toContain("text-pie");
+    expect(contador.previousElementSibling.textContent).toBe("La fe que se atreve");
   });
 
   it("celular: el bosquejo entero está en la pantalla, sin «Luego», y se mueve solo al avanzar", () => {
@@ -1174,17 +1178,13 @@ describe("Predicar", () => {
     expect(recuadro.querySelector('[aria-current="true"]')).not.toBeNull();
   });
 
-  it("celular: con todo oculto la etiqueta dice «Oculto», con el punto rojo y quieto", () => {
+  it("celular: con todo oculto no hay etiqueta; la mini pantalla dice «No se ve en el templo»", () => {
     abrir({ isDesktop: false, app: { visibleTitulo: false, visibleTexto: false, visibleTicker: false, visibleImagen: false } });
     fireEvent.click(screen.getByText("La fe que se atreve"));
     fireEvent.click(boton("Predicar"));
-    const etiqueta = document.querySelector("[data-etiqueta-aire]");
-    expect(etiqueta.getAttribute("data-etiqueta-aire")).toBe("oculto");
-    expect(etiqueta.textContent).toContain("Oculto");
-    expect(etiqueta.textContent).not.toContain("En vivo");
-    expect(etiqueta.className).toContain("text-app-error");
-    expect(etiqueta.querySelector("[data-punto-vivo]").className).not.toContain("animate-pulse");
-    expect(etiqueta.querySelector("[data-punto-vivo]").className).toContain("bg-app-error");
+    expect(document.querySelector("[data-etiqueta-aire]")).toBeNull();
+    const mini = screen.getByRole("figure", { name: "En el templo ahora" });
+    expect(mini.querySelector("[data-aviso-oculta]").textContent).toBe("No se ve en el templo");
   });
 
   it("sin la barra de arriba: se entra y se sale con los botones del bosquejo y del púlpito", () => {
@@ -1234,7 +1234,8 @@ describe("Predicar", () => {
     await waitFor(() => expect(fb.proyectado).toHaveLength(1));
     expect(fb.proyectado[0]).toMatchObject({ ruta: "displayMessage/g1", datos: { text: "La fe que se atreve", display: "mensajePredica" } });
     expect(document.querySelector("[data-portada]").getAttribute("aria-current")).toBe("true");
-    expect(screen.getByText(/Título de la prédica ·/)).toBeTruthy();
+    // Ya no hay etiqueta bajo el nombre (pedido del usuario).
+    expect(screen.queryByText(/Título de la prédica ·/)).toBeNull();
     // El primer ítem: se enciende el Título, el nombre sube (con el mismo
     // display del ítem, para no pisarlo) y va el versículo.
     fb.proyectado = [];
@@ -1304,7 +1305,7 @@ describe("Predicar", () => {
     await waitFor(() => expect(fb.proyectado).toHaveLength(1));
     expect(fb.proyectado[0].datos.text).toBe("I. La fe obedece\nII. La fe ve");
     expect(within(resumen).getByText(/en pantalla 2 de 6/)).toBeTruthy();
-    expect(screen.getByText(/Resumen ·/)).toBeTruthy();
+    expect(screen.queryByText(/Resumen ·/)).toBeNull();
     // La mini pantalla: la misma lista del templo, con sangría francesa.
     const lista = screen.getByRole("figure", { name: "En el templo ahora" }).querySelector("[data-lista-resumen]");
     expect(lista.className).toContain("lista-resumen");
@@ -2296,5 +2297,150 @@ describe("computador con pantalla baja (1280×720)", () => {
   it("con pantalla alta, la cuadrícula de libros no se pliega", () => {
     abrir();
     expect(document.querySelector("[data-plegar-libros]")).toBeNull();
+  });
+});
+
+describe("Predicar: el estado de la pantalla del templo", () => {
+  const predicar = (opciones) => {
+    abrir(opciones);
+    fireEvent.click(screen.getByText("La fe que se atreve"));
+    fireEvent.click(boton("Predicar"));
+  };
+  const mini = () => screen.getByRole("figure", { name: "En el templo ahora" });
+
+  it("no hay etiqueta con el estado bajo el nombre, en ningún estado ni tamaño", () => {
+    for (const isDesktop of [false, true]) {
+      for (const pantallaTemplo of ["apagada", "oculta", "encendida"]) {
+        predicar({ isDesktop, app: { pantallaTemplo } });
+        expect(document.querySelector("[data-etiqueta-aire]"), pantallaTemplo).toBeNull();
+        expect(document.querySelector("[data-punto-vivo]"), pantallaTemplo).toBeNull();
+        expect(screen.queryByText(/Pantalla apagada ·|Pantalla oculta ·|En el templo ahora ·/), pantallaTemplo).toBeNull();
+        cleanup();
+      }
+    }
+  });
+
+  it("celular: el contador de ítems va pequeño al lado del nombre", () => {
+    predicar({ isDesktop: false, app: { pantallaTemplo: "encendida" } });
+    const contador = document.querySelector("[data-contador-items]");
+    expect(contador.previousElementSibling.textContent).toBe("La fe que se atreve");
+    expect(contador.className).toContain("text-pie");
+    expect(contador.className).toContain("text-app-muted");
+  });
+
+  it("el contador pasa de «N ítems» a «1 de N» al empezar a predicar", () => {
+    predicar({ isDesktop: false, app: { pantallaTemplo: "encendida" } });
+    const antes = document.querySelector("[data-contador-items]").textContent;
+    expect(antes).toMatch(/ítem/);
+    fireEvent.click(boton(/Empezar$/));
+    fireEvent.click(boton(/Siguiente/));
+    expect(document.querySelector("[data-contador-items]").textContent).toMatch(/^1 de \d+$/);
+  });
+
+  it("celular, pantalla apagada: la mini pantalla se apaga y lo dice", () => {
+    predicar({ isDesktop: false, app: { pantallaTemplo: "apagada" } });
+    expect(mini().dataset.estado).toBe("apagada");
+    expect(mini().querySelector("[data-aviso-oculta]").textContent).toBe("Pantalla apagada");
+  });
+
+  it("celular, pantalla oculta: lo dice, en rojo", () => {
+    predicar({ isDesktop: false, app: { pantallaTemplo: "oculta" } });
+    expect(mini().querySelector("[data-aviso-oculta]").textContent).toBe("Pantalla oculta");
+    expect(mini().querySelector("[data-aviso-oculta]").className).toContain("text-app-error");
+  });
+
+  it("computador: el marco toma el estado de la pantalla (ventana, maximizada, completa)", () => {
+    for (const estado of ["ventana", "maximizada", "encendida"]) {
+      abrir({ app: { pantallaTemplo: estado } });
+      fireEvent.click(screen.getByText("La fe que se atreve"));
+      fireEvent.click(boton("Predicar"));
+      expect(mini().dataset.estado).toBe(estado);
+      expect(mini().querySelector("[data-aviso-oculta]")).toBeNull();
+      cleanup();
+    }
+  });
+});
+
+describe("Predicar (celular): ocultar la pantalla y los botones (a prueba)", () => {
+  beforeEach(() => localStorage.clear());
+  afterEach(() => localStorage.clear());
+
+  const predicar = (opciones = {}) => {
+    const resultado = abrir({ isDesktop: false, ...opciones });
+    fireEvent.click(screen.getByText("La fe que se atreve"));
+    fireEvent.click(boton("Predicar"));
+    return resultado;
+  };
+  const pantalla = () => screen.queryByRole("figure", { name: "En el templo ahora" });
+  const botones = () => document.querySelector('[role="group"][aria-label="Qué se ve en el templo"]');
+
+  it("a la derecha del nombre hay dos interruptores, y todo se ve de entrada", () => {
+    predicar();
+    expect(screen.getByRole("button", { name: "Ocultar la pantalla" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Ocultar los botones" })).toBeTruthy();
+    expect(pantalla()).not.toBeNull();
+    expect(botones()).not.toBeNull();
+    const contador = document.querySelector("[data-contador-items]");
+    expect(contador.parentElement.nextElementSibling.getAttribute("aria-label")).toBe("Qué mostrar en esta vista");
+  });
+
+  it("uno oculta la mini pantalla (los botones se quedan) y el otro los botones (el bosquejo se queda)", () => {
+    predicar();
+    fireEvent.click(screen.getByRole("button", { name: "Ocultar la pantalla" }));
+    expect(pantalla()).toBeNull();
+    expect(botones()).not.toBeNull();
+    const volver = screen.getByRole("button", { name: "Mostrar la pantalla" });
+    expect(volver.getAttribute("aria-pressed")).toBe("true");
+    expect(volver.className).toContain("text-app-main");
+    fireEvent.click(screen.getByRole("button", { name: "Ocultar los botones" }));
+    expect(botones()).toBeNull();
+    expect(document.querySelector("[data-bosquejo-vivo]")).not.toBeNull();
+    expect(document.querySelector("[data-muelle]")).not.toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Mostrar la pantalla" }));
+    fireEvent.click(screen.getByRole("button", { name: "Mostrar los botones" }));
+    expect(pantalla()).not.toBeNull();
+    expect(botones()).not.toBeNull();
+  });
+
+  it("se acuerdan en este dispositivo, con claves propias de Predicar", () => {
+    const primera = predicar();
+    fireEvent.click(screen.getByRole("button", { name: "Ocultar la pantalla" }));
+    fireEvent.click(screen.getByRole("button", { name: "Ocultar los botones" }));
+    expect(localStorage.getItem("voxdei.predica.sinPantalla")).toBe("1");
+    expect(localStorage.getItem("voxdei.predica.sinBotones")).toBe("1");
+    expect(localStorage.getItem("voxdei.biblia.sinPantalla")).toBeNull();
+    primera.unmount();
+    predicar();
+    expect(pantalla()).toBeNull();
+    expect(botones()).toBeNull();
+  });
+
+  it("con todo oculto se sigue predicando: Siguiente proyecta", async () => {
+    localStorage.setItem("voxdei.predica.sinPantalla", "1");
+    localStorage.setItem("voxdei.predica.sinBotones", "1");
+    predicar();
+    fireEvent.click(boton(/Empezar$/));
+    await waitFor(() => expect(fb.proyectado.length).toBeGreaterThan(0));
+  });
+
+  it("el diálogo «Puntos» se abre aunque la mini pantalla esté oculta", () => {
+    localStorage.setItem("voxdei.predica.sinPantalla", "1");
+    predicar();
+    fireEvent.click(boton("Puntos"));
+    expect(document.querySelector("[data-resumen-vivo]")).not.toBeNull();
+  });
+
+  it("el computador no lleva estos interruptores", () => {
+    abrir({});
+    fireEvent.click(screen.getByText("La fe que se atreve"));
+    fireEvent.click(boton("Predicar"));
+    expect(screen.queryByRole("button", { name: "Ocultar la pantalla" })).toBeNull();
+  });
+
+  it("celular: el bosquejo y el área se desplazan sin barra visible", () => {
+    predicar();
+    expect(document.querySelector("[data-bosquejo-vivo]").className).toContain("scrollbar-oculta");
+    expect(document.querySelector("[data-bosquejo-vivo]").className).not.toContain("scrollbar-custom");
+    expect(document.querySelector("[data-muelle]").previousElementSibling.querySelector(".overflow-y-auto").className).toContain("scrollbar-oculta");
   });
 });

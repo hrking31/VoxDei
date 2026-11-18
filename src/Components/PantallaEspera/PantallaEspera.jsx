@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../Context/AuthContext";
-import { LogoVertical } from "../Logo/Logo.jsx";
+import LogoDeLaIglesia from "../Logo/LogoDeLaIglesia.jsx";
 import { escalar } from "../Estilos/EstilosProyeccion";
 import { contenidoEspera } from "./utilesEspera.js";
 
@@ -37,7 +37,7 @@ export default function PantallaEspera({ tamanos }) {
       data-testid="pantalla-espera"
       className="flex h-full w-full flex-col items-center justify-center gap-espera-hueco text-center"
     >
-      <LogoVertical alt="VOXDEI" className="h-espera-logo w-auto" />
+      <LogoDeLaIglesia variante="vertical" className="h-espera-logo w-auto" />
 
       {userData?.churchName && (
         <p

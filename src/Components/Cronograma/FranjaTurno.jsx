@@ -1,6 +1,8 @@
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import { useTurno } from "../Hooks/useTurno.js";
+import { useFormato } from "../Hooks/formatoPantalla.js";
+import { useRanuraGuia } from "../PantallaGuia/AccionesGuia.js";
 import { iniciarEnsayo, terminarEnsayo } from "./AccionesEnsayo.js";
 import { estadoFranja } from "./utilesFranja.js";
 import VistaFranja from "./VistaFranja.jsx";
@@ -17,8 +19,18 @@ import VistaFranja from "./VistaFranja.jsx";
 // - Con el ensayo de otro, un operador lo toma, previa confirmación: si quien
 //   lo tenía ya se fue, nadie se queda bloqueado esperándolo.
 // - Lo termina quien lo tiene o un pastor.
-export default function FranjaTurno() {
+//
+// En el celular no se pinta (el servicio y la pantalla ya van en la barra de
+// arriba de la app), salvo con `siempre`, que usa el Cronograma porque ahí se
+// gestiona el ensayo.
+//
+// Donde hay guía del templo (computador, secciones que proyectan) la franja
+// va arriba de su columna derecha (`enGuia`, 18-11-2026, pedido del usuario),
+// como en el púlpito de Prédica; las demás instancias de esa sección se callan.
+export default function FranjaTurno({ siempre = false, enGuia = false }) {
   const { user, userData } = useAuth();
+  const { formato } = useFormato();
+  const hayGuia = Boolean(useRanuraGuia());
   const { showNotif, confirmAction } = useAppContext();
   const { turno } = useTurno();
   const yo = { uid: user?.uid, nombre: userData?.name || "Operador" };
@@ -43,6 +55,9 @@ export default function FranjaTurno() {
       ejecutar(() => terminarEnsayo(userData.groupId), "Ensayo terminado.");
     }
   };
+
+  if (formato === "celular" && !siempre) return null;
+  if (hayGuia && !enGuia) return null;
 
   return <VistaFranja estado={estadoFranja(turno, userData, user?.uid)} alPulsar={alPulsar} />;
 }
