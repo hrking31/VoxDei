@@ -188,4 +188,26 @@ describe("PantallaGuia", () => {
     expect(guia().querySelector("[data-aviso-oculta]").textContent).toBe("No se ve en el templo");
     expect(guia().textContent).not.toContain("Sin texto en pantalla");
   });
+
+  it("REGLA: con la pantalla apagada la guía no muestra nada de lo enviado (mensaje, título ni ticker)", () => {
+    abrir({ visibleTexto: true, visibleTitulo: true, visibleTicker: true, pantallaTemplo: "apagada" });
+    enviar("displayMessage", { text: "Bienvenidos a casa", display: "mensaje" });
+    enviar("displayTitulo", { text: "La fe que se atreve", display: "mensaje" });
+    enviar("displayTicker", { text: "Culto de jóvenes el sábado" });
+    const texto = guia().querySelector("[data-pantalla-previa]").textContent;
+    expect(texto).not.toContain("Bienvenidos a casa");
+    expect(texto).not.toContain("La fe que se atreve");
+    expect(texto).not.toContain("Culto de jóvenes");
+    expect(guia().querySelector("[data-aviso-oculta]").textContent).toBe("Pantalla apagada");
+  });
+
+  it("con la pantalla abierta, los mismos datos sí se ven", () => {
+    abrir({ visibleTexto: true, visibleTitulo: true, visibleTicker: true, pantallaTemplo: "encendida" });
+    enviar("displayMessage", { text: "Bienvenidos a casa", display: "mensaje" });
+    enviar("displayTitulo", { text: "La fe que se atreve", display: "mensaje" });
+    enviar("displayTicker", { text: "Culto de jóvenes el sábado" });
+    const texto = guia().querySelector("[data-pantalla-previa]").textContent;
+    expect(texto).toContain("La fe que se atreve");
+    expect(texto).toContain("Culto de jóvenes");
+  });
 });

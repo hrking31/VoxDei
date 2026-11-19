@@ -52,6 +52,8 @@
   --shadow-neon-versiculo: 0 0 6px color-mix(in srgb, var(--color-app-agua) 12%, transparent);
   --shadow-neon-imagen: 0 0 6px color-mix(in srgb, var(--color-app-rojo-neon) 12%, transparent);
   --shadow-neon-mensaje: 0 0 5px color-mix(in srgb, var(--color-app-plata) 8%, transparent);
+  /* El versículo elegido en Biblia (18-11-2026): sombra proyectada por las letras, sin recuadro ni color, como si estuviera por encima de los demás */
+  --drop-shadow-elegido: 0 6px 10px rgb(0 0 0 / 0.55);
 
   /* Animaciones de la pantalla de entrada (9 de noviembre de 2026) */
   --animate-respira: respira 4s ease-in-out infinite; /* brillo del símbolo */

@@ -11,6 +11,15 @@ import ResumenPuntos from "../ControlDisplay/ResumenPuntos.jsx";
 // en pequeño arriba, y el anuncio pasando abajo, como en el templo. Llegan
 // solo si están encendidos y tienen texto.
 export default function PantallaPrevia({ pieza, grande = false, etiqueta = "Así se verá en el templo", oculta = false, titulo = "", ticker = "", textoVacio = "Toca un ítem para verlo aquí", estadoPantalla = null }) {
+  // REGLA (18-11-2026, pedido del usuario): con la pantalla del templo APAGADA la mini
+  // pantalla no muestra nada de lo enviado (ni texto, ni versículo, ni imagen, ni
+  // título, ni ticker): queda como un televisor apagado, solo con su aviso. Con la
+  // pantalla oculta, en cambio, se sigue viendo lo enviado, atenuado.
+  if (estadoPantalla === "apagada") {
+    pieza = null;
+    titulo = "";
+    ticker = "";
+  }
   const texto = pieza?.tipo === "versiculo" ? pieza.contenido?.texto : pieza?.contenido;
   const cita = pieza?.tipo === "versiculo" ? pieza.contenido?.cita : null;
 
@@ -82,8 +91,8 @@ export default function PantallaPrevia({ pieza, grande = false, etiqueta = "Así
       {textoAviso && (
         <div
           data-aviso-oculta
-          className={`absolute inset-0 flex flex-col items-center justify-center gap-2 bg-app-velo backdrop-grayscale ${
-            estadoPantalla === "apagada" ? "text-app-muted" : "text-app-error"
+          className={`absolute inset-0 flex flex-col items-center justify-center gap-2 backdrop-grayscale ${
+            estadoPantalla === "apagada" ? "bg-app-aviso text-app-muted" : "bg-app-velo text-app-error"
           }`}
         >
           <IconoAviso className={grande ? "h-12 w-12" : "h-8 w-8"} aria-hidden="true" />

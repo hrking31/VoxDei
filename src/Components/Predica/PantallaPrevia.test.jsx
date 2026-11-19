@@ -100,4 +100,42 @@ describe("PantallaPrevia: el marco toma el estado de la pantalla del templo", ()
     expect(figura().textContent).not.toContain("Sin texto en pantalla");
     expect(aviso().textContent).toBe("No se ve en el templo");
   });
+
+  it("REGLA: con la pantalla apagada no muestra nada de lo enviado, solo el aviso", () => {
+    const versiculo = { tipo: "versiculo", contenido: { texto: "Porque de tal manera amó Dios", cita: "Juan 3:16" } };
+    render(<PantallaPrevia pieza={versiculo} titulo="La fe" ticker="Reunión el viernes" estadoPantalla="apagada" />);
+    const texto = figura().textContent;
+    expect(texto).not.toContain("Porque de tal manera");
+    expect(texto).not.toContain("Juan 3:16");
+    expect(texto).not.toContain("La fe");
+    expect(texto).not.toContain("Reunión el viernes");
+    expect(figura().querySelector("[data-mini-titulo]")).toBeNull();
+    expect(figura().querySelector("[data-mini-ticker]")).toBeNull();
+    expect(aviso().textContent).toBe("Pantalla apagada");
+    // El aviso es opaco: no deja ver nada detrás
+    expect(aviso().className).toContain("bg-app-aviso");
+    expect(aviso().className).not.toContain("bg-app-velo");
+  });
+
+  it("apagada: tampoco una imagen ni un mensaje del resumen", () => {
+    render(<PantallaPrevia pieza={{ tipo: "imagen", contenido: { url: "https://x.test/f.jpg", nombre: "Foto" } }} estadoPantalla="apagada" />);
+    expect(figura().querySelector("img")).toBeNull();
+    cleanup();
+    render(<PantallaPrevia pieza={{ tipo: "mensaje", contenido: "I. La fe", alineacion: "izquierda" }} estadoPantalla="apagada" />);
+    expect(figura().textContent).not.toContain("La fe");
+  });
+
+  it("la regla es solo de «apagada»: con la pantalla oculta lo enviado se sigue viendo, atenuado", () => {
+    render(<PantallaPrevia pieza={pieza} titulo="La fe" ticker="Reunión el viernes" estadoPantalla="oculta" />);
+    expect(figura().textContent).toContain("Bienvenidos");
+    expect(figura().querySelector("[data-mini-titulo]")).not.toBeNull();
+    expect(aviso().className).toContain("bg-app-velo");
+  });
+
+  it("con la pantalla abierta todo se ve", () => {
+    render(<PantallaPrevia pieza={pieza} titulo="La fe" ticker="Reunión el viernes" estadoPantalla="encendida" />);
+    expect(figura().textContent).toContain("Bienvenidos");
+    expect(figura().querySelector("[data-mini-ticker]")).not.toBeNull();
+    expect(aviso()).toBeNull();
+  });
 });

@@ -125,4 +125,90 @@ describe("SelectorLibros", () => {
     expect(document.querySelector("[data-cuadricula-biblia]").className).toContain("scrollbar-custom");
     expect(document.querySelector("[data-cuadricula-biblia]").className).not.toContain("scrollbar-oculta");
   });
+
+  it("al elegir un versículo, la cuadrícula vuelve a la lista de libros, lista para otra búsqueda", () => {
+    const { alElegirVersiculo } = abrir();
+    fireEvent.click(screen.getByRole("button", { name: "Génesis" }));
+    fireEvent.click(screen.getByRole("button", { name: "Capítulo 1" }));
+    expect(screen.getAllByRole("button", { name: /^Versículo \d+$/ }).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole("button", { name: "Versículo 10" }));
+    expect(alElegirVersiculo).toHaveBeenCalledWith(genesis, 1, 10);
+    // Ya no hay versículos ni capítulos: vuelve la lista de libros (del mismo testamento)
+    expect(screen.queryByRole("button", { name: /^Versículo \d+$/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^Capítulo \d+$/ })).toBeNull();
+    expect(screen.getByRole("button", { name: "Génesis" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Éxodo" })).toBeTruthy();
+  });
+
+  it("elegir un capítulo sí sigue mostrando sus versículos, para poder ir a uno", () => {
+    abrir();
+    fireEvent.click(screen.getByRole("button", { name: "Génesis" }));
+    fireEvent.click(screen.getByRole("button", { name: "Capítulo 1" }));
+    expect(screen.getAllByRole("button", { name: /^Versículo \d+$/ })).toHaveLength(genesis.capitulo1);
+  });
+
+  describe("pestaña Recientes", () => {
+    const recientes = [
+      { sigla: "JHN", nombre: "Juan", capitulo: 3, versiculo: 16, numero: "16", cita: "Juan 3:16", texto: "Porque de tal manera amó Dios" },
+      { sigla: "GEN", nombre: "Génesis", capitulo: 1, versiculo: 1, numero: "1", cita: "Génesis 1:1", texto: "En el principio" },
+    ];
+
+    it("hay una tercera pestaña, junto a Antiguo y Nuevo", () => {
+      abrir();
+      const grupo = screen.getByRole("group", { name: "Testamento" });
+      expect(Array.from(grupo.querySelectorAll("button")).map((b) => b.textContent)).toEqual(["Antiguo", "Nuevo", "Recientes"]);
+    });
+
+    it("sin versículos proyectados lo dice", () => {
+      abrir();
+      fireEvent.click(screen.getByRole("button", { name: "Recientes" }));
+      expect(screen.getByText("Aún no has proyectado versículos.")).toBeTruthy();
+      expect(screen.queryByRole("button", { name: "Génesis" })).toBeNull();
+    });
+
+    it("lista la cita y el comienzo del texto, el más reciente primero", () => {
+      abrir({ recientes });
+      fireEvent.click(screen.getByRole("button", { name: "Recientes" }));
+      expect(screen.getByRole("button", { name: "Recientes" }).getAttribute("aria-pressed")).toBe("true");
+      const filas = screen.getAllByRole("button", { name: /^Ir a / });
+      expect(filas.map((f) => f.getAttribute("aria-label"))).toEqual(["Ir a Juan 3:16", "Ir a Génesis 1:1"]);
+      expect(filas[0].textContent).toContain("Porque de tal manera amó Dios");
+      // Reemplaza a los libros en el mismo espacio
+      expect(screen.queryByRole("button", { name: "Génesis" })).toBeNull();
+    });
+
+    it("tocar una fila avisa cuál y la lista se queda para seguir saltando", () => {
+      const alElegirReciente = vi.fn();
+      abrir({ recientes, alElegirReciente });
+      fireEvent.click(screen.getByRole("button", { name: "Recientes" }));
+      fireEvent.click(screen.getByRole("button", { name: "Ir a Juan 3:16" }));
+      expect(alElegirReciente).toHaveBeenCalledWith(recientes[0]);
+      expect(screen.getByRole("button", { name: "Ir a Génesis 1:1" })).toBeTruthy();
+    });
+
+    it("«Limpiar recientes» lo avisa", () => {
+      const alLimpiarRecientes = vi.fn();
+      abrir({ recientes, alLimpiarRecientes });
+      fireEvent.click(screen.getByRole("button", { name: "Recientes" }));
+      fireEvent.click(screen.getByRole("button", { name: "Limpiar recientes" }));
+      expect(alLimpiarRecientes).toHaveBeenCalledTimes(1);
+    });
+
+    it("escribir en el buscador muestra libros, no la lista; Antiguo vuelve a los libros", () => {
+      abrir({ recientes });
+      fireEvent.click(screen.getByRole("button", { name: "Recientes" }));
+      fireEvent.change(screen.getByPlaceholderText("Escribe un libro: Juan"), { target: { value: "gen" } });
+      expect(screen.getByRole("button", { name: "Génesis" })).toBeTruthy();
+      expect(screen.queryByRole("button", { name: /^Ir a / })).toBeNull();
+      fireEvent.change(screen.getByPlaceholderText("Escribe un libro: Juan"), { target: { value: "" } });
+      fireEvent.click(screen.getByRole("button", { name: "Antiguo" }));
+      expect(screen.getByRole("button", { name: "Génesis" })).toBeTruthy();
+    });
+
+    it("en la ventana del celular las filas son más altas", () => {
+      abrir({ recientes, grande: true });
+      fireEvent.click(screen.getByRole("button", { name: "Recientes" }));
+      expect(screen.getByRole("button", { name: "Ir a Juan 3:16" }).className).toContain("py-2.5");
+    });
+  });
 });

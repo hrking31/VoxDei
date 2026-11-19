@@ -1,4 +1,4 @@
-import { useState, useRef, useLayoutEffect, useEffect, useMemo } from "react";
+import { useState, useRef, useLayoutEffect, useEffect, useMemo, useCallback } from "react";
 import { database } from "../Firebase/Firebase";
 import { ref, set, update } from "firebase/database";
 import parse from "html-react-parser";
@@ -8,7 +8,6 @@ import VersiculoModal from "../ModalVersiculo/ModalVersiculo";
 import { obtenerVersiculo } from "../FuncionesControlPredica/FuncionesControlPredica";
 import BuscadorLibros from "../BuscadorLibros/BuscadorLibros";
 import {
-  BookOpenIcon,
   BookmarkIcon,
   ChatBubbleLeftRightIcon,
   ChevronDownIcon,
@@ -35,6 +34,7 @@ import { useRanuraGuia } from "../PantallaGuia/AccionesGuia.js";
 import { useTurno } from "../Hooks/useTurno.js";
 import SelectorBiblia from "../Biblia/SelectorBiblia.jsx";
 import SelectorLibros from "../Biblia/SelectorLibros.jsx";
+import { useVersiculosRecientes } from "../Biblia/useVersiculosRecientes.js";
 import { apagarImagen, cambiarVisible, encenderImagen } from "../Predica/accionesPredica.js";
 import { librosDe, libroEnVersion } from "../Biblia/versionesBiblia";
 
@@ -77,7 +77,9 @@ export default function ControlVersiculos() {
   // «Anterior» / «Siguiente» (de versículo en versículo). La tableta y el
   // computador siguen como antes.
   const { formato } = useFormato();
-  const celular = formato === "celular";
+  // El iPad mini (la «tableta», 744–1023 px) usa esta misma vista del celular (18-11-2026,
+  // pedido del usuario: «que se comporte como móvil»); solo el computador es distinto.
+  const celular = formato === "celular" || formato === "tableta";
   const [librosAbiertos, setLibrosAbiertos] = useState(false);
   // A PRUEBA (18-11-2026, pedido del usuario): dos interruptores para ganar
   // espacio. Quien está frente al proyector no necesita ver la mini pantalla; y
@@ -91,8 +93,36 @@ export default function ControlVersiculos() {
   const enGuia = isDesktop && Boolean(ranuraGuia);
   const capitulosRef = useRef({});
   const versiculosRef = useRef({});
+  // Los versículos proyectados, para volver a uno ya visto (18-11-2026).
+  const { recientes, agregar: agregarReciente, limpiar: limpiarRecientes } = useVersiculosRecientes(userData?.groupId);
+  // Sube cada vez que se vuelve a un reciente, para llevar el texto al versículo aunque
+  // sea el mismo que ya estaba abierto.
+  const [salto, setSalto] = useState(0);
   // El contenedor con scroll de los versículos (solo con guía, en el computador).
   const zonaTexto = useRef(null);
+  // Lleva el texto a un versículo (18-11-2026, pedido del usuario; se recalculó al
+  // cambiar la pantalla): el elegido queda de SEGUNDO, con el anterior arriba para
+  // dar contexto. El primero del capítulo, que no tiene anterior, queda arriba.
+  // Con guía o en el celular se desplaza solo el contenedor del texto; en la
+  // tableta, la página (con el alto de su encabezado fijo). Lo usan la cinta, la
+  // cuadrícula y la lectura de un capítulo.
+  const llevarAlVersiculo = useCallback(
+    (numero, comportamiento = "auto") => {
+      const n = Number(numero);
+      const elegido = versiculosRef.current[n];
+      if (!elegido) return;
+      const arriba = versiculosRef.current[n - 1] || elegido;
+      const zona = enGuia || celular ? zonaTexto.current : null;
+      if (zona) {
+        const y = arriba.getBoundingClientRect().top - zona.getBoundingClientRect().top + zona.scrollTop - 8;
+        zona.scrollTo?.({ top: Math.max(0, y), behavior: comportamiento });
+        return;
+      }
+      const stickyOffset = window.innerWidth >= 1280 ? 150 : 120;
+      window.scrollTo({ top: arriba.getBoundingClientRect().top + window.scrollY - stickyOffset - 5, behavior: comportamiento });
+    },
+    [enGuia, celular]
+  );
   // Catálogo de la Biblia elegida (TEMPORAL DHH: con la Dios Habla Hoy, 75 libros).
   const libros = librosDe(versionBiblia);
 
@@ -126,6 +156,19 @@ export default function ControlVersiculos() {
   const versiculoDeLaCuadricula = (libroElegido, capitulo, versiculo) => {
     setLibro((previo) => ({ ...previo, versiculo }));
     consultaVersiculo(libroElegido.sigla, capitulo, versiculo);
+  };
+
+  // Volver a un versículo reciente: abre su capítulo y lo lleva ahí (de segundo en la
+  // pantalla) y lo deja elegido, SIN proyectarlo: así se mira antes de mandarlo al templo.
+  const irAReciente = (r) => {
+    const libroDeLaLista = [...libros.librosAntiguo, ...libros.librosNuevo].find((l) => l.sigla === r.sigla);
+    if (!libroDeLaLista) {
+      showNotif("warning", "Ese libro no está en la Biblia elegida");
+      return;
+    }
+    setLibro({ ...libroDeLaLista, capitulo: r.capitulo, versiculo: r.versiculo });
+    versiculosRef.current = {};
+    consultaVersiculo(libroDeLaLista.sigla, r.capitulo, r.versiculo).then(() => setSalto((s) => s + 1));
   };
 
   const VersiculoSeleccionado = (versiculo) => {
@@ -180,6 +223,17 @@ export default function ControlVersiculos() {
   const handleProjectarVersiculo = (versiculo, numero, titulo) => {
     if (!exigirTurno()) return;
     const citaCompleta = `${resultado.libro} ${resultado.capitulo}:${numero}`;
+    if (libro.sigla) {
+      agregarReciente({
+        sigla: libro.sigla,
+        nombre: resultado.libro,
+        capitulo: Number(resultado.capitulo),
+        versiculo: Number(numerosDe(numero)[0]),
+        numero: String(numero),
+        cita: citaCompleta,
+        texto: versiculo,
+      });
+    }
     set(ref(database, `displayVersiculo/${userData.groupId}`), {
       titulo: titulo,
       text: versiculo,
@@ -197,38 +251,16 @@ export default function ControlVersiculos() {
 
     const numero = Number(resultado.numero);
 
-    // En el computador (con guía) se desplaza solo el contenedor de los
-    // versículos, no la página.
-    const zona = enGuia || celular ? zonaTexto.current : null;
-
     if (numero === 1) {
       // Esto asegura que siempre inicie desde arriba
+      const zona = enGuia || celular ? zonaTexto.current : null;
       if (zona) zona.scrollTo?.({ top: 0, behavior: "auto" });
       else window.scrollTo({ top: 0, behavior: "auto" });
       return;
     }
 
-    const elemento = versiculosRef.current[numero];
-    if (!elemento) return;
-
-    if (zona) {
-      const arriba = elemento.getBoundingClientRect().top - zona.getBoundingClientRect().top + zona.scrollTop - 8;
-      zona.scrollTo?.({ top: arriba, behavior: "auto" });
-      return;
-    }
-
-    const stickyOffset = window.innerWidth >= 1280 ? 150 : 120;
-    const marginSuperior = 5;
-
-    const elementPosition =
-      elemento.getBoundingClientRect().top + window.scrollY;
-    const offsetPosition = elementPosition - stickyOffset - marginSuperior;
-
-    window.scrollTo({
-      top: offsetPosition,
-      behavior: "auto",
-    });
-  }, [resultado?.numero, resultado?.texto, resultado?.libro, enGuia, celular]);
+    llevarAlVersiculo(numero);
+  }, [resultado?.numero, resultado?.texto, resultado?.libro, enGuia, celular, llevarAlVersiculo, salto]);
 
   useLayoutEffect(() => {
     if (!libro.capitulo) return;
@@ -272,6 +304,19 @@ export default function ControlVersiculos() {
           const titulo = tituloPendiente;
           tituloPendiente = "";
 
+          // El versículo ELEGIDO (con la cinta, la cuadrícula o tocándolo) sobresale como
+          // si estuviera por encima de los demás (18-11-2026, pedido del usuario: sin
+          // recuadros ni colores): proyecta sombra y los otros se atenúan. Sin crecer ni
+          // engrosar la letra: en el celular la fila se salía por los lados (18-11-2026).
+          // El que se PROYECTÓ al tocarlo conserva su marca de siempre (fondo amarillo
+          // claro y sombra; el usuario pidió dejarlo como estaba, 18-11-2026).
+          const esElegido = Boolean(numero) && numerosDe(numero).includes(libro.versiculo);
+          const alAire = versiculoNumero === numero && versiculoTexto === texto;
+          const estilo = [
+            esElegido ? "relative z-10 drop-shadow-elegido" : alAire ? "" : "opacity-60 hover:opacity-100",
+            alAire ? "bg-yellow-100 shadow-md" : "",
+          ].join(" ");
+
           return (
             <div
               key={`${numero}-${texto}`}
@@ -279,23 +324,24 @@ export default function ControlVersiculos() {
                 if (!numero) return;
                 for (const n of numerosDe(numero)) versiculosRef.current[n] = el;
               }}
+              data-versiculo={numero}
               onClick={() => {
+                // La cinta de versículos sigue lo que se toca en el texto
+                if (numero) setLibro((previo) => ({ ...previo, versiculo: numerosDe(numero)[0] }));
                 setVersiculoNumero(numero);
                 setVersiculoTexto(texto);
                 handleProjectarVersiculo(texto, numero, titulo);
               }}
-              className={`versiculo-scroll cursor-pointer rounded-lg px-2 py-2 transition-colors flex ${
-                versiculoNumero === numero && versiculoTexto === texto
-                  ? "bg-yellow-100 shadow-md"
-                  : "hover:bg-app-border active:bg-app-light"
-              }`}
+              data-elegido={esElegido || undefined}
+              data-al-aire={alAire || undefined}
+              className={`versiculo-scroll flex cursor-pointer items-center rounded-lg px-2 py-2 transition-all duration-200 ${estilo}`}
             >
-              <div className="flex">
-                <span className="text-right pr-3 font-bold text-app-main shrink-0 flex items-center justify-end">
+              <div className="flex min-w-0 flex-1">
+                <span className="mr-3 flex shrink-0 items-center justify-end text-right font-bold text-app-main">
                   {numero}
                 </span>
 
-                <span className="flex-1 leading-relaxed text-app-muted overflow-hidden">
+                <span className={`flex-1 overflow-hidden leading-relaxed ${esElegido && !alAire ? "text-app-texto" : "text-app-muted"}`}>
                   {texto}
                 </span>
               </div>
@@ -576,6 +622,8 @@ export default function ControlVersiculos() {
   }, [resultado?.libro, resultado?.capitulo]);
 
   const proyectarDeLaLista = (v) => {
+    // Anterior / Siguiente también mueven la marca de la cinta
+    setLibro((previo) => ({ ...previo, versiculo: numerosDe(v.numero)[0] }));
     setVersiculoNumero(v.numero);
     setVersiculoTexto(v.texto);
     handleProjectarVersiculo(v.texto, v.numero, v.titulo);
@@ -661,18 +709,9 @@ export default function ControlVersiculos() {
             {resultado ? (
               <div className="text-base leading-relaxed text-justify space-y-2">{renderCapitulo(resultado.texto)}</div>
             ) : (
-              <div data-sin-capitulo className="m-auto flex flex-col items-center gap-4 px-4 text-center">
-                <p className="m-0 font-bold text-app-muted">✨ Escudriñad las Escrituras…</p>
-                <button
-                  type="button"
-                  data-elegir-libro
-                  onClick={() => setLibrosAbiertos(true)}
-                  className="flex h-12 items-center gap-2 rounded-2xl bg-app-main px-6 text-base font-bold text-app-dark shadow-lg"
-                >
-                  <BookOpenIcon className="h-5 w-5" aria-hidden="true" />
-                  Elegir libro
-                </button>
-              </div>
+              <p data-sin-capitulo className="m-auto px-4 text-center font-bold text-app-muted">
+                ✨ Escudriñad las Escrituras…
+              </p>
             )}
           </section>
         </div>
@@ -734,14 +773,19 @@ export default function ControlVersiculos() {
                 grande
                 libros={libros}
                 version={versionBiblia}
-                alElegirCapitulo={(l, c) => {
-                  capituloDeLaCuadricula(l, c);
-                  setLibrosAbiertos(false);
-                }}
+                // Elegir un capítulo lo lee pero deja la ventana abierta, para poder
+                // escoger también el versículo (18-11-2026); el versículo la cierra.
+                alElegirCapitulo={capituloDeLaCuadricula}
                 alElegirVersiculo={(l, c, v) => {
                   versiculoDeLaCuadricula(l, c, v);
                   setLibrosAbiertos(false);
                 }}
+                recientes={recientes}
+                alElegirReciente={(r) => {
+                  irAReciente(r);
+                  setLibrosAbiertos(false);
+                }}
+                alLimpiarRecientes={limpiarRecientes}
               />
             </div>
           </div>
@@ -849,6 +893,9 @@ export default function ControlVersiculos() {
               version={versionBiblia}
               alElegirCapitulo={capituloDeLaCuadricula}
               alElegirVersiculo={versiculoDeLaCuadricula}
+              recientes={recientes}
+              alElegirReciente={irAReciente}
+              alLimpiarRecientes={limpiarRecientes}
             />
             {/* La barra de capítulos, en la parte de abajo de la columna y fija ahí
                 aunque la columna se desplace; solo con un capítulo abierto. La

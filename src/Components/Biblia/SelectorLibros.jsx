@@ -26,7 +26,9 @@ const normal = "border-app-border text-app-texto hover:border-app-agua hover:tex
 //   libros: { librosAntiguo, librosNuevo } de la Biblia elegida
 //   version: la Biblia elegida; al cambiarla la cuadrícula vuelve a los libros
 //   alElegirCapitulo(libro, capitulo) · alElegirVersiculo(libro, capitulo, versiculo)
-export default function SelectorLibros({ libros, version, alElegirCapitulo, alElegirVersiculo, grande = false }) {
+//   recientes · alElegirReciente(r) · alLimpiarRecientes(): la pestaña «Recientes», la lista de
+//   versículos proyectados (18-11-2026): tocar uno vuelve a él; quien monta decide qué hace.
+export default function SelectorLibros({ libros, version, alElegirCapitulo, alElegirVersiculo, recientes = [], alElegirReciente, alLimpiarRecientes, grande = false }) {
   const casilla = grande ? CASILLA_GRANDE : CASILLA;
   const [texto, setTexto] = useState("");
   const [testamento, setTestamento] = useState("antiguo");
@@ -40,6 +42,8 @@ export default function SelectorLibros({ libros, version, alElegirCapitulo, alEl
   }, [version]);
 
   const filtro = normalizar(texto.trim());
+  // Con la pestaña «Recientes» y sin texto escrito, la cuadrícula muestra la lista de recientes.
+  const verRecientes = !filtro && testamento === "recientes";
   const todos = [...libros.librosAntiguo, ...libros.librosNuevo];
   // Escribiendo, se busca en los dos testamentos; sin texto, en el elegido.
   const lista = filtro
@@ -57,6 +61,14 @@ export default function SelectorLibros({ libros, version, alElegirCapitulo, alEl
   const elegirCapitulo = (n) => {
     setCapitulo(n);
     alElegirCapitulo(libro, n);
+  };
+
+  // Elegir un versículo es lo último: el texto ya queda en él y la cuadrícula vuelve a
+  // la lista de libros, lista para otra búsqueda (18-11-2026, elegido por el usuario).
+  const elegirVersiculo = (n) => {
+    alElegirVersiculo(libro, capitulo, n);
+    setCapitulo(null);
+    setLibro(null);
   };
 
   // Enter en el campo: con un solo libro que coincida, lo elige.
@@ -89,6 +101,7 @@ export default function SelectorLibros({ libros, version, alElegirCapitulo, alEl
         {[
           ["antiguo", "Antiguo"],
           ["nuevo", "Nuevo"],
+          ["recientes", "Recientes"],
         ].map(([clave, nombre]) => (
           <button
             key={clave}
@@ -113,6 +126,41 @@ export default function SelectorLibros({ libros, version, alElegirCapitulo, alEl
           y se encoge, hasta un mínimo, para que toda la columna quepa en la
           pantalla sin desplazarse; los libros se desplazan por dentro. */}
       <div data-cuadricula-biblia className={`${grande ? "scrollbar-oculta" : "scrollbar-custom"} min-h-40 flex-1 overflow-y-auto`}>
+        {verRecientes ? (
+          <div data-recientes aria-label="Versículos recientes">
+            {recientes.length ? (
+              <>
+                <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
+                  {recientes.map((r) => (
+                    <li key={`${r.sigla}-${r.capitulo}-${r.versiculo}`}>
+                      <button
+                        type="button"
+                        data-reciente
+                        aria-label={`Ir a ${r.cita}`}
+                        onClick={() => alElegirReciente?.(r)}
+                        className={`w-full rounded-md border border-app-border px-2.5 text-left transition hover:border-app-agua ${grande ? "py-2.5" : "py-1.5"}`}
+                      >
+                        <b className={`block text-app-agua ${grande ? "text-sm" : "text-xs"}`}>{r.cita}</b>
+                        <span className={`block truncate text-app-muted ${grande ? "text-sm" : "text-xs"}`}>{r.texto}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  type="button"
+                  data-limpiar-recientes
+                  onClick={() => alLimpiarRecientes?.()}
+                  className="mt-2 w-full py-1 text-center text-xs text-app-muted hover:text-app-main"
+                >
+                  Limpiar recientes
+                </button>
+              </>
+            ) : (
+              <p className="m-0 p-3 text-center text-sm text-app-muted">Aún no has proyectado versículos.</p>
+            )}
+          </div>
+        ) : (
+          <>
         {libro && (
           <button
             type="button"
@@ -146,11 +194,13 @@ export default function SelectorLibros({ libros, version, alElegirCapitulo, alEl
         ) : (
           <div className="grid grid-cols-6 gap-1.5" aria-label={`Versículos de ${libro.nombre} ${capitulo}`}>
             {numeros(libro[`capitulo${capitulo}`]).map((n) => (
-              <button key={n} type="button" aria-label={`Versículo ${n}`} onClick={() => alElegirVersiculo(libro, capitulo, n)} className={`${casilla} ${normal}`}>
+              <button key={n} type="button" aria-label={`Versículo ${n}`} onClick={() => elegirVersiculo(n)} className={`${casilla} ${normal}`}>
                 {n}
               </button>
             ))}
           </div>
+        )}
+          </>
         )}
       </div>
     </div>
