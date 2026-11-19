@@ -3,7 +3,7 @@ import {
   ArrowLeftIcon,
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
-  EyeIcon,
+  ExclamationTriangleIcon,
   XMarkIcon,
   BookOpenIcon,
   ChatBubbleLeftRightIcon,
@@ -14,13 +14,13 @@ import {
   NumberedListIcon,
   PencilIcon,
   PhotoIcon,
-  PlayIcon,
   TrashIcon,
 } from "@heroicons/react/24/solid";
 import ElegirImagen from "./ElegirImagen.jsx";
 import BotonesHistorial from "./BotonesHistorial.jsx";
 import BuscadorVersiculos from "./BuscadorVersiculos.jsx";
-import PantallaPrevia from "./PantallaPrevia.jsx";
+import { MenuPulpito } from "./BotonesPulpito.jsx";
+import { TEXTO_CABIDA } from "./utilesCabida.js";
 // TEMPORAL DHH (12-11-2026): la Biblia elegida, para reconocer el versículo base.
 import { useAppContext } from "../Context/AppContext";
 // TEMPORAL DHH (12-11-2026): el versículo base se reconoce en la Biblia elegida.
@@ -46,7 +46,6 @@ import {
   combinacionDe,
   datosDeCombinacion,
   etiquetaPunto,
-  textoDePunto,
   piezaCompleta,
   quitar,
   resumenPiezas,
@@ -81,6 +80,8 @@ export default function EditorPredica({
   compacto = false,
   onVolver,
   onPredicar,
+  onPruebas, // celular y tableta: «Pruebas» del menú Púlpito
+  cabida = {}, // { [idDelÍtem]: "bien" | "justo" | "no-cabe" }: el semáforo de cabida
   onTerminar, // «Marcar terminada»: guarda, cierra y deja el bosquejo vacío
   showNotif,
   enfocarTitulo = false,
@@ -101,10 +102,8 @@ export default function EditorPredica({
   const piezasActuales = useRef(predica.piezas);
   piezasActuales.current = predica.piezas;
   // Celular (12-11-2026, propuesta por pantallas): el menú ⋯, la hoja de
-  // versículos y la vista previa del ítem («Ver»), que en el celular no tienen
-  // columna propia.
+  // versículos, que en el celular no tienen columna propia.
   const [hojaVersiculos, setHojaVersiculos] = useState(false);
-  const [previa, setPrevia] = useState(null); // id del ítem que se ve
   const campoTitulo = useRef(null);
 
   // ¿Fecha, título, serie y versículo base en modo editar (línea punteada)?
@@ -168,14 +167,6 @@ export default function EditorPredica({
   const resumen = resumenPiezas(piezas);
 
   const cambiarPiezas = (nuevas) => onCambiar({ piezas: nuevas });
-
-  // La vista previa del celular: el punto como se proyecta, con su número.
-  const elegidaVista = previa ? piezas.find((p) => p.id === previa) : null;
-  const piezaVista = elegidaVista
-    ? elegidaVista.tipo === "titulo"
-      ? { ...elegidaVista, tipo: "mensaje", contenido: textoDePunto(numeros[elegidaVista.id], elegidaVista.contenido) }
-      : elegidaVista
-    : null;
 
   // La cajita del número, dentro de cada ítem, al final, después de sus
   // botones, siempre a la vista (12-11-2026, pedidos del usuario): muestra
@@ -552,15 +543,7 @@ export default function EditorPredica({
           <BotonIcono etiqueta="Duplicar" Icono={DocumentDuplicateIcon} clase="text-app-texto" onClick={onDuplicar} disabled={!predica.id} fijo />
           <BotonIcono etiqueta="Eliminar" Icono={TrashIcon} clase="text-app-error" onClick={onBorrar} disabled={!predica.id} fijo />
           {botonWhatsApp}
-          <button
-            type="button"
-            onClick={onPredicar}
-            disabled={!piezas.length}
-            className="flex h-9 items-center gap-1.5 rounded-lg bg-app-main px-3 text-sm font-bold text-app-dark disabled:opacity-40"
-          >
-            <PlayIcon className="h-3.5 w-3.5" aria-hidden="true" />
-            Predicar
-          </button>
+          <MenuPulpito onPruebas={onPruebas} onPredicar={onPredicar} desactivado={!piezas.length} />
         </div>
       )}
 
@@ -681,6 +664,8 @@ export default function EditorPredica({
                     </>
                   )}
     
+                  {/* El semáforo: avisa si el texto va justo o no cabe en la pantalla del templo. */}
+                  <AvisoCabida estado={cabida[pieza.id]} />
                   {elegida && !enEdicion && (
                     // Celular: los botones del ítem, apilados en vertical (14-11-2026).
                     <span className={`flex shrink-0 gap-1 ${compacto ? "flex-col" : ""}`}>
@@ -718,11 +703,6 @@ export default function EditorPredica({
                               </button>
                             );
                           })}
-                      {compacto && (
-                        <Accion etiqueta="Ver en la mini pantalla" onClick={() => setPrevia(pieza.id)}>
-                          <EyeIcon className="h-4 w-4" aria-hidden="true" />
-                        </Accion>
-                      )}
                       {pieza.tipo !== "versiculo" && pieza.tipo !== "imagen" && (
                         <Accion etiqueta="Corregir" onClick={() => setEditando({ id: pieza.id, texto: pieza.contenido })}>
                           <PencilIcon className="h-4 w-4" aria-hidden="true" />
@@ -790,16 +770,6 @@ export default function EditorPredica({
                 }}
               />
             </div>
-          </div>
-        </div>
-      )}
-      {compacto && piezaVista && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-app-velo p-4" onClick={() => setPrevia(null)}>
-          <div role="dialog" aria-label="Así se verá en el templo" className="flex w-full flex-col gap-3 rounded-2xl bg-app-dark p-4" onClick={(e) => e.stopPropagation()}>
-            <PantallaPrevia pieza={piezaVista} />
-            <button type="button" onClick={() => setPrevia(null)} className="h-11 rounded-xl border border-app-border text-sm font-semibold text-app-texto">
-              Cerrar
-            </button>
           </div>
         </div>
       )}
@@ -1197,6 +1167,23 @@ function NumeroPieza({ numero, total, onMover }) {
       title="Escribe otro número para mover el ítem"
       className="h-9 w-9 shrink-0 rounded-lg border border-app-border bg-app-tapete-pieza text-center text-sm font-bold text-app-texto tabular-nums outline-none focus:border-app-main"
     />
+  );
+}
+
+// El aviso de cabida de un ítem: amarillo si va muy justo, rojo si no cabe y se
+// cortaría. Sin aviso cuando cabe con holgura.
+function AvisoCabida({ estado }) {
+  if (estado !== "justo" && estado !== "no-cabe") return null;
+  return (
+    <span
+      data-cabida={estado}
+      role="img"
+      aria-label={TEXTO_CABIDA[estado]}
+      title={TEXTO_CABIDA[estado]}
+      className={`mt-0.5 shrink-0 ${estado === "no-cabe" ? "text-app-error" : "text-app-main"}`}
+    >
+      <ExclamationTriangleIcon className="h-5 w-5" aria-hidden="true" />
+    </span>
   );
 }
 

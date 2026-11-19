@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Bars3Icon, BookOpenIcon, DocumentDuplicateIcon, PlayIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Bars3Icon, BookOpenIcon, DocumentDuplicateIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useFormato } from "../Hooks/formatoPantalla";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
@@ -8,7 +8,9 @@ import WhatsAppButton from "../WhatsAppButton/WhatsAppButton";
 import BibliotecaPredicas from "../Predica/BibliotecaPredicas.jsx";
 import EditorPredica from "../Predica/EditorPredica.jsx";
 import PulpitoPredica from "../Predica/PulpitoPredica.jsx";
-import PantallaPrevia from "../Predica/PantallaPrevia.jsx";
+import MedidorCabida from "../Predica/MedidorCabida.jsx";
+import { BotonesPulpito, MenuPulpito } from "../Predica/BotonesPulpito.jsx";
+import { elementosParaMedir } from "../Predica/utilesCabida.js";
 // TEMPORAL DHH (11-11-2026): el botón RVR1960 / DHH también en Prédica.
 import SelectorBiblia from "../Biblia/SelectorBiblia.jsx";
 import { usePredicas } from "../Predica/usePredicas.js";
@@ -320,6 +322,16 @@ export default function ControlPredica() {
     setModo("predicar");
   };
 
+  // «Pruebas» (18-11-2026, pedido del usuario): el mismo púlpito, pero en ensayo:
+  // no se manda nada al templo. Pide lo mismo que Predicar: algo que pasar.
+  const probar = () => {
+    if (!borrador?.piezas.some(piezaCompleta)) {
+      showNotif("warning", "Agrega al menos una pieza para probar.");
+      return;
+    }
+    setModo("prueba");
+  };
+
   // «Marcar terminada» (12-11-2026, pedido del usuario): se guarda como
   // terminada, se cierra y el bosquejo queda vacío, listo para una nueva; el
   // aviso dice adónde fue (sigue en la lista, con su punto azul). `extra`
@@ -353,7 +365,18 @@ export default function ControlPredica() {
   // celular, solo cuando se pidió una nueva.
   const conVacia = (celular ? nuevaAbierta : true) && !abiertaId && !borrador;
   const enEditor = borrador || (conVacia ? vacia : null);
-  const piezaElegida = enEditor?.piezas.find((p) => p.id === seleccionada) || null;
+
+  // El semáforo de cabida (18-11-2026, pedido del usuario): MedidorCabida mide cada
+  // ítem en la pantalla del templo a tamaño real y el editor marca los que van
+  // justos o no caben. Sustituyó a la pantalla de muestra de Preparar.
+  const [cabida, setCabida] = useState({});
+  const piezasMedidas = enEditor?.piezas;
+  const numeracionMedida = enEditor?.numeracion;
+  const nivelesMedidos = enEditor?.numeracionNiveles;
+  const elementosMedidos = useMemo(
+    () => (piezasMedidas ? elementosParaMedir(piezasMedidas, numeracionMedida, nivelesMedidos) : []),
+    [piezasMedidas, numeracionMedida, nivelesMedidos]
+  );
 
   // El buscador de versículos de la columna derecha (computador, 11-11-2026; también la hoja del celular y el panel de la tableta):
   // agrega el versículo al final (12-11-2026: antes, debajo del elegido).
@@ -372,6 +395,8 @@ export default function ControlPredica() {
       compacto={celular}
       onVolver={cerrar}
       onPredicar={predicar}
+      onPruebas={probar}
+      cabida={cabida}
       onTerminar={marcarTerminada}
       showNotif={showNotif}
       enfocarTitulo={borrador ? recienCreada === borrador.id : enfocarVacia}
@@ -429,6 +454,7 @@ export default function ControlPredica() {
       predica={{ ...borrador, piezas: borrador.piezas.filter(piezaCompleta) }}
       formato={formato}
       baja={baja}
+      prueba={modo === "prueba"}
       onSalir={() => setModo("preparar")}
       onTerminar={terminar}
     />
@@ -437,6 +463,10 @@ export default function ControlPredica() {
   // La franja del turno solo al predicar, que es cuando se envía a la pantalla;
   // en Mis prédicas y Preparar no hace falta (pedido del usuario, 11-11-2026).
   const predicando = Boolean(borrador) && modo === "predicar";
+  // En Pruebas se ve el mismo púlpito, pero sin turno ni envíos al templo.
+  const enPulpito = Boolean(borrador) && (modo === "predicar" || modo === "prueba");
+  // Se mide solo mientras se prepara.
+  const medidor = enEditor && modo === "preparar" ? <MedidorCabida elementos={elementosMedidos} titulo={enEditor.titulo || ""} alMedir={setCabida} /> : null;
 
   if (predicas === null) {
     return (
@@ -450,6 +480,7 @@ export default function ControlPredica() {
   if (celular) {
     return (
       <div className="h-pantalla flex flex-col bg-app-dark">
+        {medidor}
         {/* Sin FranjaTurno en el celular (14-11-2026, pedido del usuario): el
             servicio y la pantalla ya van en la barra de arriba. */}
         {!enEditor ? (
@@ -457,7 +488,7 @@ export default function ControlPredica() {
             {/* Sin SelectorBiblia en el celular (13-11-2026): pendiente de ubicar. */}
             <BibliotecaPredicas predicas={listado} abiertaId={abiertaId} onAbrir={abrir} onNueva={nueva} compacta />
           </div>
-        ) : modo === "predicar" ? (
+        ) : enPulpito ? (
           pulpito
         ) : (
           editor
@@ -476,8 +507,9 @@ export default function ControlPredica() {
     };
     return (
       <div className="h-pantalla flex flex-col bg-app-dark">
+        {medidor}
         {predicando && <FranjaTurno />}
-        {predicando ? (
+        {enPulpito ? (
           pulpito
         ) : (
           <div className="relative flex min-h-0 flex-1 flex-col">
@@ -501,10 +533,7 @@ export default function ControlPredica() {
                   Versículos
                 </button>
               )}
-              <button type="button" onClick={predicar} className="flex h-11 items-center gap-2 rounded-xl bg-app-main px-4.5 text-sm font-extrabold text-app-dark">
-                <PlayIcon className="h-4 w-4" aria-hidden="true" />
-                Predicar
-              </button>
+              <MenuPulpito onPruebas={probar} onPredicar={predicar} desactivado={!enEditor} grande />
             </div>
             <main className="flex min-h-0 flex-1 flex-col">{editor}</main>
 
@@ -515,7 +544,6 @@ export default function ControlPredica() {
                     predicas={listado}
                     abiertaId={abiertaId}
                     onAbrir={abrirDesdeCajon}
-                    onPredicar={predicar}
                     fechaVacia={conVacia ? vacia.fecha : null}
                     onElegirFecha={(fecha) => {
                       setCajonAbierto(false);
@@ -533,7 +561,6 @@ export default function ControlPredica() {
                     <XMarkIcon className="h-5 w-5" aria-hidden="true" />
                   </button>
                 </div>
-                <PantallaPrevia pieza={piezaElegida} />
                 <SelectorBiblia />
                 <BuscadorVersiculos onAgregar={agregarVersiculo} showNotif={showNotif} />
               </aside>
@@ -547,25 +574,25 @@ export default function ControlPredica() {
   // ---------- Computador: lado a lado ----------
   return (
     <div className="h-pantalla flex flex-col bg-app-dark">
+      {medidor}
       {/* Sin la barra «Prédica · Preparar / Predicar» (pedido del usuario,
           11-11-2026): «Predicar» va arriba de Mis prédicas y el púlpito
           tiene «Volver a preparar». */}
       {/* En el computador, la franja del turno va en la columna derecha del
           púlpito, no arriba (12-11-2026, pedido del usuario). */}
-      {predicando ? (
+      {enPulpito ? (
         pulpito
       ) : (
         <div className="flex min-h-0 flex-1">
           {/* Mis prédicas ya no se pliega a una franja (13-11-2026, el usuario
               no la quiso): siempre a la vista. */}
           <aside aria-label="Mis prédicas" className="flex w-80 shrink-0 flex-col border-r border-app-border bg-app-light p-4">
-            {/* «Predicar» va arriba de esta lista; no hay botón «Nueva»: la
-                nueva es la vacía, y un día libre del calendario le pone fecha. */}
+            {/* No hay botón «Nueva»: la nueva es la vacía, y un día libre del
+                calendario le pone fecha. «Pruebas» y «Predicar» van en la columna derecha. */}
             <BibliotecaPredicas
               predicas={listado}
               abiertaId={abiertaId}
               onAbrir={abrir}
-              onPredicar={predicar}
               fechaVacia={conVacia ? vacia.fecha : null}
               onElegirFecha={elegirFecha}
             />
@@ -575,10 +602,10 @@ export default function ControlPredica() {
           <main className="flex min-w-0 flex-1 flex-col">{editor}</main>
 
           {enEditor && (
-            <aside aria-label="Así se verá en el templo" className="flex min-h-0 w-90 shrink-0 flex-col gap-4 border-l border-app-border bg-app-light p-5">
-              {/* Sin el texto «Así se verá en el templo» encima (pedido del
-                  usuario, 11-11-2026): lo dice la etiqueta de la columna. */}
-              <PantallaPrevia pieza={piezaElegida} />
+            <aside aria-label="Púlpito y versículos" className="flex min-h-0 w-90 shrink-0 flex-col gap-4 border-l border-app-border bg-app-light p-5">
+              {/* Pruebas y Predicar (18-11-2026, pedido del usuario): ocupan el
+                  lugar de la antigua pantalla de muestra. */}
+              <BotonesPulpito onPruebas={probar} onPredicar={predicar} />
               <SelectorBiblia />
               {/* El buscador de versículos vive aquí desde el 11-11-2026 (antes,
                   en el campo de abajo del bosquejo), con la cuadrícula de

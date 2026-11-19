@@ -3,6 +3,7 @@ import { onValue, ref } from "firebase/database";
 import { database, auth } from "../Firebase/Firebase";
 import { useAppContext } from "../Context/AppContext";
 import TickerAnimacion from "../TickerAnimacion/TickerAnimacion";
+import { TAMANOS_PANTALLA } from "./tamanosPantalla.js";
 import { useAuth } from "../../Components/Context/AuthContext";
 import useScreenType from "../../Components/Hooks/useScreenType.js";
 import {
@@ -87,39 +88,9 @@ export default function DisplayView() {
 
   useEffect(() => () => clearTimeout(reintentoPendiente.current), []);
 
-  // Tamaños base según el tipo de pantalla, como valores CSS: los ajustes del
-  // panel de estilos los multiplican por su porcentaje (ver `escalar`).
-  const sizes = {
-    proyector: {
-      text: "clamp(2.5rem,4vw,4rem)",
-      title: "clamp(3rem,5vw,5rem)",
-      verseTitle: "clamp(1.8rem,3vw,2.3rem)",
-      verseCite: "clamp(1.4rem,2.5vw,1.8rem)",
-      tickerText: "clamp(1.8rem,3vw,2.3rem)",
-      tickerHeight: "clamp(3.5rem,6vw,4rem)",
-      speed: 1.4,
-    },
-    desktop: {
-      text: "clamp(1.5rem,3vw,2.5rem)",
-      title: "clamp(2rem,4vw,3rem)",
-      verseTitle: "clamp(1.2rem,2.5vw,1.6rem)",
-      verseCite: "clamp(1rem,2vw,1.3rem)",
-      tickerText: "clamp(1.2rem,2.5vw,1.6rem)",
-      tickerHeight: "clamp(2.5rem,4vw,3rem)",
-      speed: 1.2,
-    },
-    movil: {
-      text: "clamp(1rem,2.5vw,1.25rem)",
-      title: "clamp(1.2rem,3vw,1.5rem)",
-      verseTitle: "1rem",
-      verseCite: "0.875rem",
-      tickerText: "1rem",
-      tickerHeight: "2.5rem",
-      speed: 0.6,
-    },
-  };
-
-  const style = sizes[screenType];
+  // Tamaños base según el tipo de pantalla (tabla compartida con la guía del
+  // templo): los ajustes de Estilos y colores los multiplican (ver `escalar`).
+  const style = TAMANOS_PANTALLA[screenType];
 
   // Fullscreen Activation
   const activarFullscreen = () => {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeftIcon, BookOpenIcon, BookmarkIcon, ChatBubbleLeftRightIcon, CheckIcon, ChevronLeftIcon, ChevronRightIcon, ClockIcon, EyeIcon, EyeSlashIcon, PlayIcon, TagIcon, XMarkIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
@@ -11,8 +11,16 @@ import { useLoQueSeVe } from "./useLoQueSeVe.js";
 import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
 // TEMPORAL DHH (12-11-2026): el botón RVR1960 / DHH también al predicar.
 import SelectorBiblia from "../Biblia/SelectorBiblia.jsx";
+import { BeakerIcon } from "@heroicons/react/24/solid";
 import { apagarImagen, cambiarVisible, encenderImagen, proyectarPieza } from "./accionesPredica.js";
 import { ALINEACION_RESUMEN, cuantosItems, lineasDelResumen, nivelDe, numerosDePuntos, paginaDelResumen, puntosDelBosquejo, RENGLONES_RESUMEN, relojDesde, textoDePieza, textoDePunto } from "./utilesPredica.js";
+
+// Lo que el púlpito escribe en el templo. En el modo de prueba (18-11-2026, pedido
+// del usuario) no se escribe nada: lo que se ve vive solo en este púlpito.
+const ACCIONES = { apagarImagen, cambiarVisible, encenderImagen, proyectarPieza };
+const nada = () => Promise.resolve();
+const ACCIONES_DE_PRUEBA = { apagarImagen: nada, cambiarVisible: nada, encenderImagen: nada, proyectarPieza: nada };
+const SIN_TURNO = () => true;
 
 const esCampo = (el) => el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
 
@@ -33,23 +41,31 @@ const esCampo = (el) => el && (el.tagName === "INPUT" || el.tagName === "TEXTARE
 //               el resumen, el versículo espontáneo y Terminar; el muelle abajo.
 //   escritorio  tres columnas. En una pantalla baja (`baja`), Luego y el resumen
 //               van al lado de la mini pantalla y la cuadrícula se pliega.
-export default function PulpitoPredica({ predica, compacto = false, formato = compacto ? "celular" : "escritorio", baja = false, onSalir, onTerminar }) {
+export default function PulpitoPredica({ predica, compacto = false, formato = compacto ? "celular" : "escritorio", baja = false, prueba = false, onSalir, onTerminar }) {
   const { userData } = useAuth();
-  const { exigirTurno } = useTurno();
-  const {
-    showNotif,
-    confirmAction,
-    visibleTitulo,
-    setVisibleTitulo,
-    visibleTexto,
-    setVisibleTexto,
-    visibleTicker,
-    setVisibleTicker,
-    visibleImagen,
-    setVisibleImagen,
-    pantallaTemplo,
-  } = useAppContext();
+  const { exigirTurno: exigirTurnoReal } = useTurno();
+  const contexto = useAppContext();
+  const { showNotif, confirmAction } = contexto;
   const groupId = userData?.groupId;
+  // MODO DE PRUEBA (18-11-2026, pedido del usuario): el mismo púlpito, pero no pide turno, no
+  // escribe nada en el templo y lo que se ve (título, texto, anuncio, imagen) vive
+  // solo aquí, no en el contexto que comparte la app con la pantalla real.
+  const acc = prueba ? ACCIONES_DE_PRUEBA : ACCIONES;
+  const exigirTurno = prueba ? SIN_TURNO : exigirTurnoReal;
+  const [visiblesDePrueba, setVisiblesDePrueba] = useState({ titulo: false, texto: true, ticker: false, imagen: false });
+  const [tituloDePrueba, setTituloDePrueba] = useState("");
+  const ponerDePrueba = useMemo(
+    () => Object.fromEntries(["titulo", "texto", "ticker", "imagen"].map((clave) => [clave, (valor) => setVisiblesDePrueba((previo) => ({ ...previo, [clave]: Boolean(valor) }))])),
+    []
+  );
+  const visibleTitulo = prueba ? visiblesDePrueba.titulo : contexto.visibleTitulo;
+  const setVisibleTitulo = prueba ? ponerDePrueba.titulo : contexto.setVisibleTitulo;
+  const visibleTexto = prueba ? visiblesDePrueba.texto : contexto.visibleTexto;
+  const setVisibleTexto = prueba ? ponerDePrueba.texto : contexto.setVisibleTexto;
+  const visibleTicker = prueba ? visiblesDePrueba.ticker : contexto.visibleTicker;
+  const setVisibleTicker = prueba ? ponerDePrueba.ticker : contexto.setVisibleTicker;
+  const visibleImagen = prueba ? visiblesDePrueba.imagen : contexto.visibleImagen;
+  const setVisibleImagen = prueba ? ponerDePrueba.imagen : contexto.setVisibleImagen;
   const { piezas } = predica;
   // A PRUEBA (18-11-2026, pedido del usuario; igual que en Biblia): en el celular,
   // dos interruptores para ocultar la mini pantalla (quien está frente al
@@ -58,7 +74,8 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
   const [sinPantalla, setSinPantalla] = usePreferenciaLocal("voxdei.predica.sinPantalla");
   const [sinBotones, setSinBotones] = usePreferenciaLocal("voxdei.predica.sinBotones");
   // La franja de título y el anuncio, tal como están en el templo.
-  const loQueSeVe = useLoQueSeVe(groupId);
+  const loQueSeVeReal = useLoQueSeVe(prueba ? null : groupId);
+  const loQueSeVe = prueba ? { titulo: tituloDePrueba, ticker: "" } : loQueSeVeReal;
   const numeros = numerosDePuntos(piezas, predica.numeracion, predica.numeracionNiveles);
 
   // Orden al predicar (12-11-2026, pedido del usuario): primero el nombre de
@@ -91,13 +108,14 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
   const enviar = useCallback(
     (pieza, { tituloArriba = null } = {}) => {
       const esImagen = pieza.tipo === "imagen";
-      proyectarPieza(groupId, pieza, { imagenEncendida: Boolean(visibleImagen), tituloArriba }).catch((error) => {
+      if (prueba && tituloArriba !== null) setTituloDePrueba(tituloArriba);
+      acc.proyectarPieza(groupId, pieza, { imagenEncendida: Boolean(visibleImagen), tituloArriba }).catch((error) => {
         console.error("No se pudo proyectar:", error);
         showNotif("error", "No se pudo enviar a la pantalla. Revisa la conexión.");
       });
       if (esImagen || visibleImagen) setVisibleImagen?.(esImagen);
     },
-    [groupId, visibleImagen, setVisibleImagen, showNotif]
+    [acc, prueba, groupId, visibleImagen, setVisibleImagen, showNotif]
   );
 
   const proyectar = useCallback(
@@ -112,12 +130,12 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
         tituloSubido.current = predica.titulo;
         if (!visibleTitulo) {
           setVisibleTitulo(true);
-          cambiarVisible(groupId, "titulo", true);
+          acc.cambiarVisible(groupId, "titulo", true);
         }
       }
       enviar(comoSeEnvia(pieza), { tituloArriba: subir ? predica.titulo : null });
     },
-    [piezas, exigirTurno, enviar, comoSeEnvia, predica.titulo, visibleTitulo, setVisibleTitulo, groupId]
+    [acc, piezas, exigirTurno, enviar, comoSeEnvia, predica.titulo, visibleTitulo, setVisibleTitulo, groupId]
   );
 
   // El nombre se muestra solo como mensaje: si el Título estaba encendido se
@@ -131,10 +149,10 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
     tituloSubido.current = null;
     if (visibleTitulo) {
       setVisibleTitulo(false);
-      cambiarVisible(groupId, "titulo", false);
+      acc.cambiarVisible(groupId, "titulo", false);
     }
     enviar({ id: "portada", tipo: "mensaje", contenido: predica.titulo });
-  }, [exigirTurno, enviar, predica.titulo, visibleTitulo, setVisibleTitulo, groupId]);
+  }, [acc, exigirTurno, enviar, predica.titulo, visibleTitulo, setVisibleTitulo, groupId]);
 
   const siguiente = useCallback(
     () => (actual === -1 && !enPortada ? mostrarPortada() : proyectar(actual + 1)),
@@ -169,7 +187,7 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
   const cambiar = (v) => {
     if (!exigirTurno()) return;
     v.poner(!v.valor);
-    cambiarVisible(groupId, v.clave, !v.valor);
+    acc.cambiarVisible(groupId, v.clave, !v.valor);
   };
 
   // «Ocultar» / «Mostrar» (12-11-2026, pedido del usuario; antes, «En
@@ -183,11 +201,11 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
       antesDeOcultar.current = { titulo: visibleTitulo, texto: visibleTexto, ticker: visibleTicker, imagen: visibleImagen };
       for (const v of visibles) {
         v.poner(false);
-        cambiarVisible(groupId, v.clave, false);
+        acc.cambiarVisible(groupId, v.clave, false);
       }
       if (visibleImagen) {
         setVisibleImagen?.(false);
-        apagarImagen(groupId);
+        acc.apagarImagen(groupId);
       }
       return;
     }
@@ -196,11 +214,11 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
     for (const v of visibles) {
       if (!antes[v.clave]) continue;
       v.poner(true);
-      cambiarVisible(groupId, v.clave, true);
+      acc.cambiarVisible(groupId, v.clave, true);
     }
     if (antes.imagen) {
       setVisibleImagen?.(true);
-      encenderImagen(groupId);
+      acc.encenderImagen(groupId);
     }
   };
 
@@ -406,7 +424,7 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
       grande={formato !== "celular"}
       etiqueta="En el templo ahora"
       oculta={noSeVe}
-      estadoPantalla={pantallaTemplo}
+      estadoPantalla={prueba ? "encendida" : contexto.pantallaTemplo}
       titulo={visibleTitulo ? loQueSeVe.titulo : ""}
       ticker={visibleTicker ? loQueSeVe.ticker : ""}
     />
@@ -476,7 +494,7 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
 
   // Que se vean como botones, no como texto (12-11-2026, pedido del usuario):
   // el de terminar, con el verde de «predicada».
-  const terminarBoton = (
+  const terminarBoton = prueba ? null : (
     <button
       type="button"
       data-terminar-predicada
@@ -523,6 +541,14 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
     </div>
   );
 
+  // El aviso de que se está ensayando: no se manda nada al templo.
+  const bannerPrueba = prueba && (
+    <p data-modo-prueba className="m-0 flex items-center justify-center gap-2 bg-app-main/15 px-3 py-1.5 text-center text-xs font-semibold text-app-main">
+      <BeakerIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+      Modo de prueba · no se envía nada al templo
+    </p>
+  );
+
   const reloj_ = (
     <span className="font-semibold text-app-muted tabular-nums">{reloj}</span>
   );
@@ -565,6 +591,7 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
           <span className="text-lg">{reloj_}</span>
         </div>
 
+        {bannerPrueba}
         <div className="relative flex min-h-0 flex-1 flex-col">
           <div ref={areaRef} className="scrollbar-oculta flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-3.5 pb-2">
             {!sinPantalla && <div ref={pantallaRef}>{pantalla}</div>}
@@ -577,16 +604,19 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
                 className="scrollbar-oculta relative -mx-2.5 flex min-h-32 flex-1 flex-col gap-2 overflow-y-auto px-2.5 py-2"
               >
                 {lista}
-                {/* Lo poco usado, lejos de Siguiente: al final del bosquejo; pregunta antes. */}
-                <button
-                  type="button"
-                  data-terminar-predicada
-                  onClick={terminarConPregunta}
-                  className="flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-app-success bg-app-success/10 text-sm font-bold text-app-success shadow-sm transition hover:bg-app-success/20"
-                >
-                  <CheckIcon className="h-5 w-5" aria-hidden="true" />
-                  Terminar y marcar como predicada
-                </button>
+                {/* Lo poco usado, lejos de Siguiente: al final del bosquejo; pregunta antes.
+                    En las pruebas no hay nada que terminar. */}
+                {!prueba && (
+                  <button
+                    type="button"
+                    data-terminar-predicada
+                    onClick={terminarConPregunta}
+                    className="flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-app-success bg-app-success/10 text-sm font-bold text-app-success shadow-sm transition hover:bg-app-success/20"
+                  >
+                    <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                    Terminar y marcar como predicada
+                  </button>
+                )}
               </section>
             </div>
           </div>
@@ -668,6 +698,7 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
           </span>
           <span data-reloj className="text-2xl">{reloj_}</span>
         </div>
+        {bannerPrueba}
         <div className="flex min-h-0 flex-1 flex-col gap-3 px-5">
           <div className="flex flex-wrap items-center justify-end gap-2">
             {interruptoresDe(false)}
@@ -738,14 +769,12 @@ export default function PulpitoPredica({ predica, compacto = false, formato = co
         {/* El turno y la pantalla del templo, solo sobre esta columna en el
             computador (antes, de todo el ancho; 12-11-2026, pedido del
             usuario), con su diseño de siempre: pegada arriba, de borde a borde. */}
-        <div className="-mx-5 -mt-5">
-          <FranjaTurno />
-        </div>
+        <div className="-mx-5 -mt-5">{prueba ? bannerPrueba : <FranjaTurno />}</div>
         {/* El reloj, centrado y más grande (12-11-2026, pedido del usuario). */}
         <p data-reloj className="m-0 flex items-center justify-center gap-2.5 text-4xl font-bold text-app-texto tabular-nums">
           <ClockIcon className="h-8 w-8 text-app-muted" aria-hidden="true" />
           {reloj}
-          <span className="self-end pb-1 text-xs font-normal text-app-muted">predicando</span>
+          <span className="self-end pb-1 text-xs font-normal text-app-muted">{prueba ? "probando" : "predicando"}</span>
         </p>
         {versiculoNodo}
         {terminarBoton}

@@ -39,7 +39,7 @@ const FILTROS = [
 // (`onElegirFecha`), que se crea al escribir. Celular: lo marca y debajo
 // ofrece «Crear para este día» (`onNueva`). Nada se crea con solo tocar
 // (12-11-2026, pedido del usuario).
-export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNueva, onPredicar, fechaVacia = null, onElegirFecha, compacta = false }) {
+export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNueva, fechaVacia = null, onElegirFecha, compacta = false }) {
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState("todas");
   const [marcada, setMarcada] = useState(null); // celular: el día tocado
@@ -139,19 +139,6 @@ export default function BibliotecaPredicas({ predicas, abiertaId, onAbrir, onNue
     <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-lg leading-none font-bold text-app-texto">Mis prédicas</h2>
-        {/* Computador: la entrada al púlpito de la abierta (12-11-2026, pedido
-            del usuario; antes aquí iba «Nueva»: la nueva es la vacía que se ve
-            al entrar, y antes «Predicar» iba encima del título). */}
-        {!compacta && (
-          <button
-            type="button"
-            onClick={onPredicar}
-            className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-app-main px-4 text-sm font-bold text-app-dark"
-          >
-            <PlayIcon className="h-4 w-4" aria-hidden="true" />
-            Predicar
-          </button>
-        )}
         {/* Celular: «Nueva» a la derecha del título (13-11-2026, pedido del
             usuario; antes ahí iba «Predicar», y antes un botón flotante abajo).
             Crea con la fecha de fábrica, el próximo domingo. */}

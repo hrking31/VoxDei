@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { onValue, ref } from "firebase/database";
 import { database } from "../Firebase/Firebase";
 import { alineacionValida } from "../ControlDisplay/alineacionMensaje.js";
-import { imagenesDeNodo } from "./utilesGuia.js";
+import { MEDIDAS_POR_DEFECTO, imagenesDeNodo, medidasDeTemplo } from "./utilesGuia.js";
 
 const INICIAL = {
   display: "",
@@ -11,6 +11,8 @@ const INICIAL = {
   alineacion: null,
   versiculo: "",
   cita: "",
+  tituloVersiculo: "",
+  version: "RVR1960",
   titulo: "",
   ticker: "",
   imagenes: [],
@@ -56,7 +58,14 @@ export function useEspejoTemplo(groupId) {
           typeof datos.cita === "string" &&
           typeof datos.display === "string"
         ) {
-          poner({ versiculo: datos.text, cita: datos.cita, display: datos.display });
+          poner({
+            versiculo: datos.text,
+            cita: datos.cita,
+            tituloVersiculo: datos.titulo || "",
+            // Sin versión (envíos de antes): la RVR1960, la de siempre.
+            version: typeof datos.version === "string" ? datos.version : "RVR1960",
+            display: datos.display,
+          });
         }
       }, sinError),
 
@@ -76,4 +85,26 @@ export function useEspejoTemplo(groupId) {
   }, [groupId]);
 
   return espejo;
+}
+
+// Las medidas reales de la pantalla del templo (ancho, alto y tipo), leídas de
+// la presencia de sus ventanas. Solo lee. Sin ventana abierta, las de un
+// proyector de 1920×1080.
+export function useMedidasTemplo(groupId) {
+  const [medidas, setMedidas] = useState(MEDIDAS_POR_DEFECTO);
+
+  useEffect(() => {
+    if (!groupId) return undefined;
+    const dejar = onValue(
+      ref(database, `pantallaTemplo/${groupId}`),
+      (foto) => {
+        const nuevas = medidasDeTemplo(foto.val());
+        setMedidas((previas) => (previas.ancho === nuevas.ancho && previas.alto === nuevas.alto && previas.tipo === nuevas.tipo ? previas : nuevas));
+      },
+      () => {}
+    );
+    return () => dejar();
+  }, [groupId]);
+
+  return medidas;
 }

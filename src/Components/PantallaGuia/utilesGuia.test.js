@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { imagenesDeNodo, miniaturaDeVideo, piezaDelCentro, rutaConGuia, seVeAlgo } from "./utilesGuia.js";
+import { TAMANOS_PANTALLA } from "../ControlDisplay/tamanosPantalla.js";
+import { MEDIDAS_POR_DEFECTO, aContenedor, evaluarCabida, imagenesDeNodo, medidasDeTemplo, miniaturaDeVideo, piezaDelCentro, rutaConGuia, seVeAlgo } from "./utilesGuia.js";
 
 const sinNada = { display: "", mensaje: "", mensajePredica: "", alineacion: null, versiculo: "", cita: "", titulo: "", ticker: "", imagenes: [], video: null };
 const todoApagado = { titulo: false, texto: false, ticker: false, imagen: false, video: false, espera: false };
@@ -26,7 +27,7 @@ describe("piezaDelCentro", () => {
     expect(piezaDelCentro({ ...sinNada, display: "mensaje", mensaje: "Hola" }, v)).toEqual({ tipo: "mensaje", contenido: "Hola" });
     expect(piezaDelCentro({ ...sinNada, display: "versiculo", versiculo: "Amó Dios", cita: "Juan 3:16" }, v)).toEqual({
       tipo: "versiculo",
-      contenido: { cita: "Juan 3:16", texto: "Amó Dios" },
+      contenido: { cita: "Juan 3:16", texto: "Amó Dios", titulo: "", version: "RVR1960" },
     });
     expect(piezaDelCentro({ ...sinNada, display: "mensajePredica", mensajePredica: "I. Fe", alineacion: "izquierda" }, v)).toEqual({
       tipo: "mensaje",
@@ -75,5 +76,50 @@ describe("imagenesDeNodo", () => {
     expect(imagenesDeNodo({ type: "carousel", images: ["a", "b"] })).toEqual(["a", "b"]);
     expect(imagenesDeNodo(null)).toEqual([]);
     expect(imagenesDeNodo({ type: "single" })).toEqual([]);
+  });
+});
+
+describe("aContenedor", () => {
+  it("cambia vw por cqw sin tocar lo demás", () => {
+    const t = aContenedor(TAMANOS_PANTALLA.proyector);
+    expect(t.text).toBe("clamp(2.5rem,4cqw,4rem)");
+    expect(t.verseTitle).toBe("clamp(1.8rem,3cqw,2.3rem)");
+    expect(t.speed).toBe(1.4);
+    expect(aContenedor(TAMANOS_PANTALLA.movil).verseTitle).toBe("1rem");
+  });
+});
+
+describe("medidasDeTemplo", () => {
+  it("sin ventana, o sin el dato, supone un proyector de 1920×1080", () => {
+    expect(medidasDeTemplo(null)).toEqual(MEDIDAS_POR_DEFECTO);
+    expect(medidasDeTemplo({ a: { modo: "encendida" } })).toEqual(MEDIDAS_POR_DEFECTO);
+    expect(medidasDeTemplo({ a: { modo: "encendida", ancho: 0, alto: 0 } })).toEqual(MEDIDAS_POR_DEFECTO);
+  });
+  it("usa las medidas y el tipo de la mejor ventana", () => {
+    const ventanas = {
+      a: { modo: "ventana", dispositivo: "computador", ancho: 800, alto: 600 },
+      b: { modo: "encendida", dispositivo: "computador", ancho: 3840, alto: 2160 },
+    };
+    expect(medidasDeTemplo(ventanas)).toEqual({ ancho: 3840, alto: 2160, tipo: "proyector" });
+  });
+  it("un portátil pequeño es «desktop» y un celular «movil»", () => {
+    expect(medidasDeTemplo({ a: { modo: "encendida", dispositivo: "computador", ancho: 1280, alto: 720 } }).tipo).toBe("desktop");
+    expect(medidasDeTemplo({ a: { modo: "encendida", dispositivo: "celular", ancho: 390, alto: 844 } }).tipo).toBe("movil");
+  });
+});
+
+describe("evaluarCabida", () => {
+  it("se sale: no cabe", () => {
+    expect(evaluarCabida({ limite: 900, fondo: 1100, bloque: 1000, hueco: 1000 })).toBe("no-cabe");
+  });
+  it("un píxel de más por redondeo no cuenta", () => {
+    expect(evaluarCabida({ limite: 900, fondo: 901, bloque: 100, hueco: 800 })).toBe("bien");
+  });
+  it("ocupa el 90 % o más de su espacio: va justo", () => {
+    expect(evaluarCabida({ limite: 900, fondo: 900, bloque: 720, hueco: 800 })).toBe("justo");
+    expect(evaluarCabida({ limite: 900, fondo: 900, bloque: 719, hueco: 800 })).toBe("bien");
+  });
+  it("sin medidas (aún no se dibuja) todo está bien", () => {
+    expect(evaluarCabida({ limite: 0, fondo: 0, bloque: 0, hueco: 0 })).toBe("bien");
   });
 });
