@@ -2,11 +2,11 @@ import { useRef, useState } from "react";
 import { ESTILOS_POR_DEFECTO } from "../Estilos/EstilosProyeccion";
 import { AppContext } from "./AppContext";
 import { VERSION_POR_DEFECTO } from "../Biblia/versionesBiblia";
-import { esBaja, formatoDe } from "../Hooks/formatoPantalla";
+import { esBaja, esEscritorio, formatoDe } from "../Hooks/formatoPantalla";
 
 export function AppProvider({ children }) {
   // Estados globales iniciales
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const [isDesktop, setIsDesktop] = useState(() => esEscritorio(window.innerWidth));
   // celular | tableta | escritorio, y si el escritorio es bajo (Hooks/formatoPantalla.js).
   const [formatoPantalla, setFormatoPantalla] = useState(() => formatoDe(window.innerWidth));
   const [pantallaBaja, setPantallaBaja] = useState(() => esBaja(window.innerWidth, window.innerHeight));

@@ -17,7 +17,7 @@ import { pantallaAbierta } from "../PantallaTemplo/presencia.js";
 // Debajo lleva una ranura (`refRanura`) donde las secciones colocan sus botones
 // con <EnLaGuia> (ver AccionesGuia.js); vacía, no ocupa sitio.
 export default function PantallaGuia({ refRanura }) {
-  const { espejo, visibles, centro, noSeVe, pantallaTemplo } = useMiniPantalla();
+  const { espejo, visibles, centro, noSeVe, pantallaTemplo, estilos, medidas } = useMiniPantalla();
 
   const capas = [
     { clave: "titulo", nombre: "Título", activa: visibles.titulo, color: "text-app-accent" },
@@ -40,6 +40,8 @@ export default function PantallaGuia({ refRanura }) {
       </div>
 
       <PantallaPrevia
+        estilos={estilos}
+        medidas={medidas}
         pieza={centro}
         etiqueta="En el templo ahora"
         oculta={noSeVe}

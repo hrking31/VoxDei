@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ChevronLeftIcon } from "@heroicons/react/24/solid";
 import { nombreCorto, nombreSinSan } from "../Predica/utilesPredica.js";
+import ListaRecientes from "./ListaRecientes.jsx";
 
 // Minúsculas, sin acentos y sin «S. » al inicio, para buscar «mateo» en «S. Mateo».
 const normalizar = (texto) =>
@@ -28,7 +29,9 @@ const normal = "border-app-border text-app-texto hover:border-app-agua hover:tex
 //   alElegirCapitulo(libro, capitulo) · alElegirVersiculo(libro, capitulo, versiculo)
 //   recientes · alElegirReciente(r) · alLimpiarRecientes(): la pestaña «Recientes», la lista de
 //   versículos proyectados (18-11-2026): tocar uno vuelve a él; quien monta decide qué hace.
-export default function SelectorLibros({ libros, version, alElegirCapitulo, alElegirVersiculo, recientes = [], alElegirReciente, alLimpiarRecientes, grande = false }) {
+//   conRecientes: false quita esa pestaña (la ventana del celular tiene su propio botón de
+//   recientes en la barra de abajo, 20-11-2026).
+export default function SelectorLibros({ libros, version, alElegirCapitulo, alElegirVersiculo, recientes = [], alElegirReciente, alLimpiarRecientes, grande = false, conRecientes = true }) {
   const casilla = grande ? CASILLA_GRANDE : CASILLA;
   const [texto, setTexto] = useState("");
   const [testamento, setTestamento] = useState("antiguo");
@@ -101,7 +104,7 @@ export default function SelectorLibros({ libros, version, alElegirCapitulo, alEl
         {[
           ["antiguo", "Antiguo"],
           ["nuevo", "Nuevo"],
-          ["recientes", "Recientes"],
+          ...(conRecientes ? [["recientes", "Recientes"]] : []),
         ].map(([clave, nombre]) => (
           <button
             key={clave}
@@ -127,38 +130,7 @@ export default function SelectorLibros({ libros, version, alElegirCapitulo, alEl
           pantalla sin desplazarse; los libros se desplazan por dentro. */}
       <div data-cuadricula-biblia className={`${grande ? "scrollbar-oculta" : "scrollbar-custom"} min-h-40 flex-1 overflow-y-auto`}>
         {verRecientes ? (
-          <div data-recientes aria-label="Versículos recientes">
-            {recientes.length ? (
-              <>
-                <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
-                  {recientes.map((r) => (
-                    <li key={`${r.sigla}-${r.capitulo}-${r.versiculo}`}>
-                      <button
-                        type="button"
-                        data-reciente
-                        aria-label={`Ir a ${r.cita}`}
-                        onClick={() => alElegirReciente?.(r)}
-                        className={`w-full rounded-md border border-app-border px-2.5 text-left transition hover:border-app-agua ${grande ? "py-2.5" : "py-1.5"}`}
-                      >
-                        <b className={`block text-app-agua ${grande ? "text-sm" : "text-xs"}`}>{r.cita}</b>
-                        <span className={`block truncate text-app-muted ${grande ? "text-sm" : "text-xs"}`}>{r.texto}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  type="button"
-                  data-limpiar-recientes
-                  onClick={() => alLimpiarRecientes?.()}
-                  className="mt-2 w-full py-1 text-center text-xs text-app-muted hover:text-app-main"
-                >
-                  Limpiar recientes
-                </button>
-              </>
-            ) : (
-              <p className="m-0 p-3 text-center text-sm text-app-muted">Aún no has proyectado versículos.</p>
-            )}
-          </div>
+          <ListaRecientes recientes={recientes} grande={grande} alElegirReciente={alElegirReciente} alLimpiarRecientes={alLimpiarRecientes} />
         ) : (
           <>
         {libro && (

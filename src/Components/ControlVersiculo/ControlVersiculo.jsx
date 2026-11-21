@@ -11,8 +11,7 @@ import {
   BookmarkIcon,
   ChatBubbleLeftRightIcon,
   ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
+  ClockIcon,
   EyeIcon,
   EyeSlashIcon,
   MagnifyingGlassIcon,
@@ -34,6 +33,8 @@ import { useRanuraGuia } from "../PantallaGuia/AccionesGuia.js";
 import { useTurno } from "../Hooks/useTurno.js";
 import SelectorBiblia from "../Biblia/SelectorBiblia.jsx";
 import SelectorLibros from "../Biblia/SelectorLibros.jsx";
+import ListaRecientes from "../Biblia/ListaRecientes.jsx";
+import PanelHoja from "../Predica/PanelHoja.jsx";
 import { useVersiculosRecientes } from "../Biblia/useVersiculosRecientes.js";
 import { apagarImagen, cambiarVisible, encenderImagen } from "../Predica/accionesPredica.js";
 import { librosDe, libroEnVersion } from "../Biblia/versionesBiblia";
@@ -73,14 +74,18 @@ export default function ControlVersiculos() {
   const [open, setOpen] = useState(false);
   // En el celular la vista es como la de Predicar (18-11-2026, pedido del usuario):
   // la mini pantalla y los cuatro botones arriba, el capítulo en su propio recuadro
-  // con scroll, y abajo un muelle fijo con la barra de capítulos, «Libros» y
-  // «Anterior» / «Siguiente» (de versículo en versículo). La tableta y el
-  // computador siguen como antes.
+  // con scroll, y abajo un muelle fijo con la barra de capítulos. Sin botones
+  // «Anterior» / «Siguiente» (quitados el 20-11-2026, pedido del usuario: tocar un
+  // versículo ya lo proyecta y desplaza el texto). La tableta y el computador
+  // siguen como antes.
   const { formato } = useFormato();
   // El iPad mini (la «tableta», 744–1023 px) usa esta misma vista del celular (18-11-2026,
   // pedido del usuario: «que se comporte como móvil»); solo el computador es distinto.
   const celular = formato === "celular" || formato === "tableta";
   const [librosAbiertos, setLibrosAbiertos] = useState(false);
+  // La ventana de los versículos recientes del celular (20-11-2026): su botón está en la
+  // barra de abajo; antes era una pestaña dentro de la ventana de libros.
+  const [recientesAbiertos, setRecientesAbiertos] = useState(false);
   // A PRUEBA (18-11-2026, pedido del usuario): dos interruptores para ganar
   // espacio. Quien está frente al proyector no necesita ver la mini pantalla; y
   // quien solo proyecta versículos no necesita los cuatro botones. Se acuerdan
@@ -621,21 +626,6 @@ export default function ControlVersiculos() {
     setVersiculoTexto(null);
   }, [resultado?.libro, resultado?.capitulo]);
 
-  const proyectarDeLaLista = (v) => {
-    // Anterior / Siguiente también mueven la marca de la cinta
-    setLibro((previo) => ({ ...previo, versiculo: numerosDe(v.numero)[0] }));
-    setVersiculoNumero(v.numero);
-    setVersiculoTexto(v.texto);
-    handleProjectarVersiculo(v.texto, v.numero, v.titulo);
-  };
-  const versiculoSiguiente = () => {
-    const i = indiceActual + 1;
-    if (i < versiculos.length) proyectarDeLaLista(versiculos[i]);
-  };
-  const versiculoAnterior = () => {
-    if (indiceActual > 0) proyectarDeLaLista(versiculos[indiceActual - 1]);
-  };
-
   // El versículo que está al aire se centra en el recuadro del texto.
   useEffect(() => {
     if (!celular || !versiculoNumero) return;
@@ -646,15 +636,17 @@ export default function ControlVersiculos() {
     zona.scrollTo?.({ top: Math.max(0, arriba), behavior: "smooth" });
   }, [versiculoNumero, celular]);
 
-  // La ventana de libros se cierra con Escape.
+  // Las ventanas de libros y de recientes se cierran con Escape.
   useEffect(() => {
-    if (!librosAbiertos) return undefined;
+    if (!librosAbiertos && !recientesAbiertos) return undefined;
     const alTeclear = (e) => {
-      if (e.key === "Escape") setLibrosAbiertos(false);
+      if (e.key !== "Escape") return;
+      setLibrosAbiertos(false);
+      setRecientesAbiertos(false);
     };
     document.addEventListener("keydown", alTeclear);
     return () => document.removeEventListener("keydown", alTeclear);
-  }, [librosAbiertos]);
+  }, [librosAbiertos, recientesAbiertos]);
 
   if (celular) {
     // Sin capítulo abierto dice «Libro» (pedido del usuario; antes «Biblia»): es el botón que busca.
@@ -663,38 +655,9 @@ export default function ControlVersiculos() {
 
     return (
       <div className="flex h-pantalla flex-col overflow-hidden bg-linear-to-b from-app-dark/50 to-app-light/50">
-        <div className="flex h-11 shrink-0 items-center gap-2 px-3.5">
-          <span className="flex min-w-0 flex-1 items-baseline gap-2">
-            {/* El nombre abre los libros (opción 1, 18-11-2026, pedido del usuario): el libro
-                que se ve es el que se cambia. */}
-            <button
-              type="button"
-              data-abrir-libros
-              onClick={() => setLibrosAbiertos(true)}
-              aria-label={resultado ? `Abrir los libros (ahora: ${titulo})` : "Abrir los libros"}
-              title="Elegir otro libro"
-              className="flex min-w-0 items-center gap-1 text-left"
-            >
-              {/* La lupa dice que ahí se busca (pedido del usuario) */}
-              <MagnifyingGlassIcon data-icono-buscar className="h-4 w-4 shrink-0 text-app-agua" aria-hidden="true" />
-              <b data-titulo-biblia className="truncate text-app-texto">{titulo}</b>
-              <ChevronDownIcon className="h-4 w-4 shrink-0 text-app-agua" aria-hidden="true" />
-            </button>
-            {contador && (
-              <span data-contador-items className="shrink-0 text-pie font-normal text-app-muted">
-                {contador}
-              </span>
-            )}
-          </span>
-          <InterruptoresDeVista
-            sinPantalla={sinPantalla}
-            alCambiarPantalla={setSinPantalla}
-            sinBotones={sinBotones}
-            alCambiarBotones={setSinBotones}
-          />
-        </div>
-
-        <div className="flex min-h-0 flex-1 flex-col gap-2 px-3.5 pb-2">
+        {/* Arriba no hay nada (20-11-2026, pedido del usuario): el buscador, el contador y los
+            dos interruptores bajaron al muelle. */}
+        <div className="flex min-h-0 flex-1 flex-col gap-2 px-3.5 pt-2 pb-2">
           {!sinPantalla && <MiniPantalla />}
           {!sinBotones && interruptoresGuia}
           {/* El capítulo, sin recuadro (sin borde, fondo ni relleno: más espacio para el
@@ -722,25 +685,47 @@ export default function ControlVersiculos() {
               {filaCapitulos}
             </div>
           )}
-          <div className="flex gap-3">
+          {/* Abajo, al alcance del pulgar (pedido del usuario): el buscador de libros, con su
+              contador, y los dos interruptores, estos solo con el ícono y sin recuadro. */}
+          <div data-fila-herramientas className="flex items-center gap-2">
+            <span className="flex min-w-0 flex-1 items-baseline gap-2">
+              {/* El nombre abre los libros: el libro que se ve es el que se cambia. */}
+              <button
+                type="button"
+                data-abrir-libros
+                onClick={() => setLibrosAbiertos(true)}
+                aria-label={resultado ? `Abrir los libros (ahora: ${titulo})` : "Abrir los libros"}
+                title="Elegir otro libro"
+                className="flex min-w-0 items-center gap-1 text-left"
+              >
+                {/* La lupa dice que ahí se busca (pedido del usuario) */}
+                <MagnifyingGlassIcon data-icono-buscar className="h-4 w-4 shrink-0 text-app-agua" aria-hidden="true" />
+                <b data-titulo-biblia className="truncate text-app-texto">{titulo}</b>
+                <ChevronDownIcon className="h-4 w-4 shrink-0 text-app-agua" aria-hidden="true" />
+              </button>
+              {contador && (
+                <span data-contador-items className="shrink-0 text-pie font-normal text-app-muted">
+                  {contador}
+                </span>
+              )}
+            </span>
+            {/* Los versículos recientes (reloj), junto a los interruptores: solo el ícono */}
             <button
               type="button"
-              onClick={versiculoAnterior}
-              disabled={indiceActual <= 0}
-              className="flex h-16 w-24 shrink-0 items-center justify-center gap-2 rounded-2xl border border-app-border bg-app-light text-base font-semibold text-app-texto disabled:opacity-40"
+              data-abrir-recientes
+              onClick={() => setRecientesAbiertos(true)}
+              aria-label="Versículos recientes"
+              title="Versículos recientes"
+              className="grid h-10 w-10 shrink-0 place-items-center text-app-agua"
             >
-              <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
-              Anterior
+              <ClockIcon className="h-5 w-5" aria-hidden="true" />
             </button>
-            <button
-              type="button"
-              onClick={versiculoSiguiente}
-              disabled={!versiculos.length || indiceActual >= versiculos.length - 1}
-              className="flex h-16 flex-1 items-center justify-center gap-3 rounded-2xl bg-app-main text-2xl font-bold text-app-dark shadow-lg disabled:opacity-40"
-            >
-              Siguiente
-              <ChevronRightIcon className="h-6 w-6" aria-hidden="true" />
-            </button>
+            <InterruptoresDeVista
+              sinPantalla={sinPantalla}
+              alCambiarPantalla={setSinPantalla}
+              sinBotones={sinBotones}
+              alCambiarBotones={setSinBotones}
+            />
           </div>
         </div>
 
@@ -748,47 +733,56 @@ export default function ControlVersiculos() {
             la Biblia, el buscador, Antiguo | Nuevo y la cuadrícula. Al elegir un
             capítulo o un versículo se cierra y el texto queda a la vista. */}
         {librosAbiertos && (
-          <div
+          <PanelHoja
+            titulo="Libros"
             role="dialog"
             aria-modal="true"
             aria-label="Libros"
             data-dialogo-libros
-            className="fixed inset-x-0 bottom-0 top-barra-superior z-40 flex flex-col bg-app-dark"
+            alCerrar={() => setLibrosAbiertos(false)}
+            className="fixed inset-x-0 bottom-0 top-barra-superior z-40"
           >
-            <div className="flex h-12 shrink-0 items-center justify-between border-b border-app-border px-3.5">
-              <b className="text-app-texto">Libros</b>
-              <button
-                type="button"
-                onClick={() => setLibrosAbiertos(false)}
-                aria-label="Cerrar"
-                className="rounded-full p-1.5 text-app-muted transition hover:bg-app-border hover:text-app-texto"
-              >
-                <XMarkIcon className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="scrollbar-oculta flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3.5">
-              {/* TEMPORAL DHH: elegir la Biblia de toda la iglesia */}
-              <SelectorBiblia />
-              <SelectorLibros
-                grande
-                libros={libros}
-                version={versionBiblia}
-                // Elegir un capítulo lo lee pero deja la ventana abierta, para poder
-                // escoger también el versículo (18-11-2026); el versículo la cierra.
-                alElegirCapitulo={capituloDeLaCuadricula}
-                alElegirVersiculo={(l, c, v) => {
-                  versiculoDeLaCuadricula(l, c, v);
-                  setLibrosAbiertos(false);
-                }}
-                recientes={recientes}
-                alElegirReciente={(r) => {
-                  irAReciente(r);
-                  setLibrosAbiertos(false);
-                }}
-                alLimpiarRecientes={limpiarRecientes}
-              />
-            </div>
-          </div>
+            {/* TEMPORAL DHH: elegir la Biblia de toda la iglesia */}
+            <SelectorBiblia />
+            <SelectorLibros
+              grande
+              conRecientes={false}
+              libros={libros}
+              version={versionBiblia}
+              // Elegir un capítulo lo lee pero deja la ventana abierta, para poder
+              // escoger también el versículo (18-11-2026); el versículo la cierra.
+              alElegirCapitulo={capituloDeLaCuadricula}
+              alElegirVersiculo={(l, c, v) => {
+                versiculoDeLaCuadricula(l, c, v);
+                setLibrosAbiertos(false);
+              }}
+            />
+          </PanelHoja>
+        )}
+
+        {/* Los recientes, a pantalla completa: tocar una fila abre ese versículo (sin
+            proyectarlo) y cierra la ventana. */}
+        {recientesAbiertos && (
+          <PanelHoja
+            titulo="Recientes"
+            icono={ClockIcon}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Recientes"
+            data-dialogo-recientes
+            alCerrar={() => setRecientesAbiertos(false)}
+            className="fixed inset-x-0 bottom-0 top-barra-superior z-40"
+          >
+            <ListaRecientes
+              grande
+              recientes={recientes}
+              alElegirReciente={(r) => {
+                irAReciente(r);
+                setRecientesAbiertos(false);
+              }}
+              alLimpiarRecientes={limpiarRecientes}
+            />
+          </PanelHoja>
         )}
       </div>
     );

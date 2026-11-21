@@ -11,7 +11,7 @@ import { citaDeLibro, interpretarEntrada, nombreCorto, nombreSinSan, nuevaPieza 
 
 const callado = () => {};
 
-// El texto de una cita, sin avisos de «Versículo encontrado» en cada tecla.
+// El texto de una cita, sin avisos de error en cada tecla (por eso `callado`).
 async function textoDe(sigla, capitulo, versiculo, version) {
   const datos = await obtenerVersiculo(sigla, capitulo, versiculo, "versiculo", callado, version).catch(() => null);
   return datos?.texto || null;
@@ -44,7 +44,7 @@ const ACCIONES = {
 // para que el campo y la tarjeta quepan sin desplazar.
 // `cambiarBiblia` (14-11-2026, pedido del usuario): en el diálogo de versículos
 // del celular, un tercer botón junto a Antiguo | Nuevo alterna entre las Biblias.
-export default function BuscadorVersiculos({ onAgregar, showNotif, accion = "agregar", plegable = false, cambiarBiblia = false }) {
+export default function BuscadorVersiculos({ onAgregar, showNotif, accion = "agregar", plegable = false, cambiarBiblia = false, cajaFija = false }) {
   const [verLibros, setVerLibros] = useState(!plegable);
   const { verbo, marca: MarcaAgua, grosor, ayuda } = ACCIONES[accion] || ACCIONES.agregar;
   // La tarjeta dice qué hace con la marca de agua; el nombre queda en aria-label.
@@ -102,6 +102,10 @@ export default function BuscadorVersiculos({ onAgregar, showNotif, accion = "agr
     if (onAgregar(nuevaPieza("versiculo", { cita: versiculo.cita, texto: versiculo.texto, version: versiculo.version })) === false) return;
     setElegido(null);
     setTexto("");
+    // Al enviar el versículo (a la pantalla en Predicar, o al bosquejo en Preparar), la cuadrícula
+    // vuelve a mostrar los libros de la Biblia, lista para buscar otro (20-11-2026, pedido del usuario).
+    setLibro(null);
+    setCapitulo(null);
   };
 
   // Enter en el campo: lo escrito (si aún no llegó a la tarjeta, se busca).
@@ -132,6 +136,11 @@ export default function BuscadorVersiculos({ onAgregar, showNotif, accion = "agr
   const casilla = "h-8 rounded-md border text-xs font-semibold transition";
   const normal = "border-app-border text-app-texto hover:border-app-agua hover:text-app-agua";
 
+  // Tableta (20-11-2026, pedido del usuario): en un iPad más grande que el mini el recuadro del versículo
+  // elegido no se estira por todo el espacio que sobra bajo la cuadrícula: queda fijo ABAJO (`mt-auto`), con un
+  // alto proporcional al del panel (de 1/6 a 1/3).
+  // Lo que sobra se lo queda la cuadrícula (flex-1), no el recuadro: este mide lo que su texto pida, entre un sexto y un tercio del alto del panel (proporcional al tamaño del iPad, como en el computador, donde llena su columna).
+  const alturaCaja = cajaFija ? "mt-auto max-h-1/3 min-h-1/6 flex-none" : "min-h-0 flex-1";
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2.5">
       <form onSubmit={alEnviar} aria-label={`${verbo} versículo`}>
@@ -209,7 +218,7 @@ export default function BuscadorVersiculos({ onAgregar, showNotif, accion = "agr
 
       {/* Alto fijo: el de los 39 libros del Antiguo Testamento de la RVR1960
           (10 filas). Lo demás se desplaza por dentro. */}
-      <div data-cuadricula-biblia className="scrollbar-custom h-94 shrink-0 overflow-y-auto">
+      <div data-cuadricula-biblia className={`scrollbar-custom overflow-y-auto ${cajaFija ? "min-h-94 flex-1" : "h-94 shrink-0"}`}>
         {libro && (
           <button
             type="button"
@@ -266,7 +275,7 @@ export default function BuscadorVersiculos({ onAgregar, showNotif, accion = "agr
           data-versiculo-elegido
           onClick={() => agregar(elegido)}
           aria-label={`${verbo} ${elegido.cita}`}
-          className="group scrollbar-custom relative isolate flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto rounded-xl border border-app-agua/60 bg-app-agua/10 p-3 text-left transition hover:border-app-agua hover:bg-app-agua/15"
+          className={`group scrollbar-custom relative isolate flex flex-col gap-1.5 overflow-y-auto rounded-xl border border-app-agua/60 bg-app-agua/10 p-3 text-left transition hover:border-app-agua hover:bg-app-agua/15 ${alturaCaja}`}
         >
           {/* Marca de agua: + en Preparar, ▶ en Predicar (12-11-2026, pedido
               del usuario, en vez del rótulo «Agregar» / «Proyectar»). */}
@@ -283,7 +292,7 @@ export default function BuscadorVersiculos({ onAgregar, showNotif, accion = "agr
           <span className="text-sm leading-relaxed text-app-texto">{elegido.texto}</span>
         </button>
       ) : (
-        <p className="m-0 flex min-h-0 flex-1 items-center justify-center rounded-xl border border-dashed border-app-border p-3 text-center text-sm text-app-muted">
+        <p className={`m-0 flex items-center justify-center rounded-xl border border-dashed border-app-border p-3 text-center text-sm text-app-muted ${alturaCaja}`}>
           {elegido?.error ? `No encontré ${elegido.cita}.` : `Elige un versículo o escribe una cita: ${ayuda}`}
         </p>
       )}

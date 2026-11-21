@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Bars3Icon, BookOpenIcon, DocumentDuplicateIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/solid";
-import { useFormato } from "../Hooks/formatoPantalla";
+import { useAnchoCompacto, useAnchoReducido, useApaisado, useFormato, useTabletaGrande } from "../Hooks/formatoPantalla";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
-import FranjaTurno from "../Cronograma/FranjaTurno.jsx";
 import WhatsAppButton from "../WhatsAppButton/WhatsAppButton";
 import BibliotecaPredicas from "../Predica/BibliotecaPredicas.jsx";
 import EditorPredica from "../Predica/EditorPredica.jsx";
 import PulpitoPredica from "../Predica/PulpitoPredica.jsx";
 import MedidorCabida from "../Predica/MedidorCabida.jsx";
-import { BotonesPulpito, MenuPulpito } from "../Predica/BotonesPulpito.jsx";
+import { BotonesPulpito } from "../Predica/BotonesPulpito.jsx";
+import PanelHoja from "../Predica/PanelHoja.jsx";
 import { elementosParaMedir } from "../Predica/utilesCabida.js";
 // TEMPORAL DHH (11-11-2026): el botón RVR1960 / DHH también en Prédica.
 import SelectorBiblia from "../Biblia/SelectorBiblia.jsx";
@@ -27,7 +27,7 @@ const JUNTAR_TECLEO = 1000;
 const PASOS_HISTORIAL = 50;
 
 // La prédica vacía del computador: lo que se ve antes de escribir nada.
-const predicaVacia = () => ({ id: null, titulo: "", fecha: proximoDomingo(), serie: "", base: "", numeracion: "romanos", numeracionNiveles: [null, null], estado: "borrador", piezas: [] });
+const predicaVacia = () => ({ id: null, titulo: "", fecha: proximoDomingo(), serie: "", base: "", numeracion: "romanos", numeracionNiveles: [null, null], cortesPuntos: [], estado: "borrador", piezas: [] });
 
 // ¿La vacía ya tiene algo que valga guardar? (un recuadro nuevo sin escribir,
 // no; la fecha sola tampoco: el calendario la cambia con un toque, y mirar no
@@ -50,9 +50,42 @@ export default function ControlPredica() {
   const { formato, baja } = useFormato();
   const celular = formato === "celular";
   const tableta = formato === "tableta";
+  // Tableta acostada (20-11-2026, pedido del usuario): la barra de arriba y la de abajo se unen en una sola, que
+  // queda ABAJO (en vertical siguen siendo dos).
+  const apaisado = useApaisado();
+  // Tableta grande acostada (iPad Air y Pro): el diseño del computador, sin la lista de prédicas; un botón «Prédicas»
+  // la reemplaza dentro de la única barra, y la columna de la derecha conserva su estilo (20-11-2026, pedido del usuario).
+  const tabletaGrande = useTabletaGrande();
+  // Los mismos puntos de quiebre en el computador (20-11-2026, pedido del usuario): un PC de menos de 1180 px usa el diseño del
+  // iPad mini (Mis prédicas en un botón, una sola barra de íconos, paneles encima); de 1180 a 1599 px, el de las tabletas
+  // grandes acostadas; de 1600 px en adelante, el completo.
+  const anchoCompacto = useAnchoCompacto();
+  const anchoReducido = useAnchoReducido();
+  const pcReducido = formato === "escritorio" && anchoReducido;
+  const grande = (tableta && tabletaGrande) || (pcReducido && !anchoCompacto);
+  const comoTableta = tableta || pcReducido;
+  // El iPad mini acostado (y los de su tamaño): las barras de arriba y de abajo en una sola.
+  const unificada = comoTableta && apaisado && !grande;
+  // Lo que lleva «Prédicas» con texto corto en la barra única
+  const barraUnica = unificada || grande;
+  // Toda tableta, de cualquier tamaño, es «tableta» (Hooks/formatoPantalla.js): la barra de abajo va solo con íconos.
+  const soloIconos = comoTableta || grande;
   // Tableta: el cajón de Mis prédicas y el panel de versículos.
   const [cajonAbierto, setCajonAbierto] = useState(false);
   const [versiculosAbierto, setVersiculosAbierto] = useState(false);
+  // Tableta (20-11-2026, pedido del usuario): el panel de Versículos se oculta al elegir un versículo y al
+  // tocar fuera de él (como el cajón de Mis prédicas). El botón que lo abre queda fuera de la regla: él
+  // mismo lo abre y lo cierra.
+  const panelVersiculos = useRef(null);
+  useEffect(() => {
+    if (!versiculosAbierto) return undefined;
+    const fuera = (e) => {
+      if (panelVersiculos.current?.contains(e.target) || e.target.closest?.("[data-abrir-versiculos]")) return;
+      setVersiculosAbierto(false);
+    };
+    document.addEventListener("pointerdown", fuera);
+    return () => document.removeEventListener("pointerdown", fuera);
+  }, [versiculosAbierto]);
   const groupId = userData?.groupId;
   const predicas = usePredicas(groupId);
 
@@ -289,16 +322,25 @@ export default function ControlPredica() {
     setNuevaAbierta(true);
   };
 
-  const duplicar = () =>
-    crear({
+  const duplicar = () => {
+    // La copia lleva ids nuevos; los cortes de las pantallas de puntos pasan al id nuevo de su punto.
+    const nuevosIds = new Map();
+    const piezas = borrador.piezas.map((p) => {
+      const id = nuevoId();
+      nuevosIds.set(p.id, id);
+      return { ...p, id };
+    });
+    return crear({
       titulo: `${borrador.titulo} (copia)`,
       fecha: "",
       serie: borrador.serie,
       base: borrador.base,
       numeracion: borrador.numeracion,
       numeracionNiveles: borrador.numeracionNiveles,
-      piezas: borrador.piezas.map((p) => ({ ...p, id: nuevoId() })),
+      cortesPuntos: (borrador.cortesPuntos || []).map((id) => nuevosIds.get(id)).filter(Boolean),
+      piezas,
     });
+  };
 
   const borrar = async () => {
     if (!(await confirmAction(`¿Borrar «${borrador.titulo}»? No se puede deshacer.`))) return;
@@ -386,6 +428,45 @@ export default function ControlPredica() {
     setSeleccionada(pieza.id);
   };
 
+  // Los botones de la barra de arriba de la tableta: Mis prédicas, Versículos y Pruebas / Predicar. Van arriba en
+  // vertical y, en horizontal, dentro de la barra de abajo del editor.
+  const botonMisPredicas = (
+    <button type="button" data-abrir-cajon onClick={() => setCajonAbierto(true)} className="flex h-11 items-center gap-2 rounded-xl border border-app-border px-3.5 text-sm font-semibold text-app-texto">
+      <Bars3Icon className="h-5 w-5" aria-hidden="true" />
+      {/* En la barra única (horizontal) solo dice «Prédicas»; los demás botones, solo con ícono */}
+      {barraUnica ? "Prédicas" : "Mis prédicas"}
+    </button>
+  );
+  const botonVersiculos = enEditor && (
+    <button
+      type="button"
+      data-abrir-versiculos
+      aria-pressed={versiculosAbierto}
+      aria-label={unificada ? "Versículos" : undefined}
+      title="Versículos"
+      // Siempre en el aguamarina del botón de Versículos del celular (20-11-2026, pedido del usuario)
+      onClick={() => setVersiculosAbierto((si) => !si)}
+      className={`flex h-11 items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition ${unificada ? "w-14 shrink-0" : "px-3.5"} ${
+        versiculosAbierto ? "border-app-agua bg-app-agua/15 text-app-agua" : "border-app-border text-app-agua"
+      }`}
+    >
+      <BookOpenIcon className="h-5 w-5" aria-hidden="true" />
+      {!unificada && "Versículos"}
+    </button>
+  );
+  // Dos botones separados, no el menú «Púlpito» (20-11-2026, pedido del usuario)
+  const botonesPulpito = (
+    <BotonesPulpito
+      onPruebas={probar}
+      onPredicar={predicar}
+      desactivado={!enEditor}
+      soloIconos={unificada}
+      compacto={unificada}
+      barra={unificada}
+      className={unificada ? "" : "w-72"}
+    />
+  );
+
   const editor = enEditor && (
     <EditorPredica
       predica={enEditor}
@@ -393,6 +474,12 @@ export default function ControlPredica() {
       seleccionada={seleccionada}
       onSeleccionar={setSeleccionada}
       compacto={celular}
+      barraIzquierda={barraUnica ? botonMisPredicas : null}
+      // En la barra única, Versículos va después de Imagen (20-11-2026, pedido del usuario)
+      botonVersiculos={unificada ? botonVersiculos : null}
+      barraDerecha={unificada ? botonesPulpito : null}
+      // iPad mini (20-11-2026, pedido del usuario): la barra de abajo solo con íconos, como en el celular
+      soloIconos={soloIconos}
       onVolver={cerrar}
       onPredicar={predicar}
       onPruebas={probar}
@@ -424,23 +511,23 @@ export default function ControlPredica() {
         // [Punto Mensaje Imagen] │ [↶ ↷ Borrar Duplicar] │ [WhatsApp].
         // El primero lo pinta EditorPredica; estos son el segundo y el tercero.
         <>
-          <div role="group" aria-label="Cambios" className="flex flex-3 gap-2">
-            <BotonesHistorial historial={controlHistorial} />
-            <BotonSecundario onClick={borrar} etiqueta="Borrar" peligro disabled={!borrador}>
+          <div role="group" aria-label="Cambios" className={soloIconos ? "flex gap-2" : "flex flex-3 gap-2"}>
+            <BotonesHistorial historial={controlHistorial} className={soloIconos ? "h-11 w-14 rounded-xl" : undefined} />
+            <BotonSecundario onClick={borrar} etiqueta="Borrar" peligro disabled={!borrador} soloIcono={soloIconos}>
               <TrashIcon className="h-5 w-5 shrink-0" aria-hidden="true" />
             </BotonSecundario>
-            <BotonSecundario onClick={duplicar} etiqueta="Duplicar" disabled={!borrador}>
+            <BotonSecundario onClick={duplicar} etiqueta="Duplicar" disabled={!borrador} soloIcono={soloIconos}>
               <DocumentDuplicateIcon className="h-5 w-5 shrink-0" aria-hidden="true" />
             </BotonSecundario>
           </div>
           <span aria-hidden="true" className="w-px bg-app-border" />
-          <div className="flex flex-1">
+          <div className={soloIconos ? "flex" : "flex flex-1"}>
             <WhatsAppButton
               message={enEditor.piezas}
               title="Compartir por WhatsApp"
-              className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-app-border text-sm font-semibold text-app-texto transition hover:border-app-success"
+              className={`flex h-11 items-center justify-center gap-2 rounded-xl border border-app-border text-sm font-semibold text-app-texto transition hover:border-app-success ${soloIconos ? "w-14 shrink-0" : "min-w-0 flex-1"}`}
             >
-              WhatsApp
+              {!soloIconos && "WhatsApp"}
             </WhatsAppButton>
           </div>
         </>
@@ -455,14 +542,13 @@ export default function ControlPredica() {
       formato={formato}
       baja={baja}
       prueba={modo === "prueba"}
+      // Los cortes de las pantallas de puntos se ajustan solo en Pruebas (20-11-2026, pedido del usuario)
+      alCambiarCortes={modo === "prueba" ? (cortes) => cambiar({ cortesPuntos: cortes }) : null}
       onSalir={() => setModo("preparar")}
       onTerminar={terminar}
     />
   );
 
-  // La franja del turno solo al predicar, que es cuando se envía a la pantalla;
-  // en Mis prédicas y Preparar no hace falta (pedido del usuario, 11-11-2026).
-  const predicando = Boolean(borrador) && modo === "predicar";
   // En Pruebas se ve el mismo púlpito, pero sin turno ni envíos al templo.
   const enPulpito = Boolean(borrador) && (modo === "predicar" || modo === "prueba");
   // Se mide solo mientras se prepara.
@@ -475,6 +561,28 @@ export default function ControlPredica() {
       </div>
     );
   }
+
+  // El cajón de Mis prédicas, desde la izquierda: lo usan la tableta y la tableta grande (que no lleva la lista fija).
+  const abrirDesdeCajon = (id, enModo) => {
+    setCajonAbierto(false);
+    abrir(id, enModo);
+  };
+  const cajon = cajonAbierto && (
+    <div className="absolute inset-0 z-30 flex bg-app-velo" onClick={() => setCajonAbierto(false)}>
+      <aside aria-label="Mis prédicas" className="flex w-80 flex-col border-r border-app-border bg-app-light p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <BibliotecaPredicas
+          predicas={listado}
+          abiertaId={abiertaId}
+          onAbrir={abrirDesdeCajon}
+          fechaVacia={conVacia ? vacia.fecha : null}
+          onElegirFecha={(fecha) => {
+            setCajonAbierto(false);
+            elegirFecha(fecha);
+          }}
+        />
+      </aside>
+    </div>
+  );
 
   // ---------- Celular: una pantalla a la vez ----------
   if (celular) {
@@ -500,70 +608,49 @@ export default function ControlPredica() {
   // ---------- Tableta (iPad mini de pie): el bosquejo a todo el ancho ----------
   // Mis prédicas en un cajón desde la izquierda y los versículos en un panel
   // que se desliza desde la derecha, encima del bosquejo.
-  if (tableta) {
-    const abrirDesdeCajon = (id, enModo) => {
-      setCajonAbierto(false);
-      abrir(id, enModo);
-    };
+  if (comoTableta && !grande) {
     return (
       <div className="h-pantalla flex flex-col bg-app-dark">
         {medidor}
-        {predicando && <FranjaTurno />}
+        {/* Sin la franja del turno en la tableta (20-11-2026, pedido del usuario): el servicio y el estado de la
+            pantalla ya van en la barra de arriba de la app, como en el celular. */}
         {enPulpito ? (
           pulpito
         ) : (
           <div className="relative flex min-h-0 flex-1 flex-col">
-            <div className="flex h-16 shrink-0 items-center gap-2 border-b border-app-main bg-app-light px-3.5">
-              <button type="button" data-abrir-cajon onClick={() => setCajonAbierto(true)} className="flex h-11 items-center gap-2 rounded-xl border border-app-border px-3.5 text-sm font-semibold text-app-texto">
-                <Bars3Icon className="h-5 w-5" aria-hidden="true" />
-                Mis prédicas
-              </button>
-              <span className="flex-1" />
-              {enEditor && (
-                <button
-                  type="button"
-                  data-abrir-versiculos
-                  aria-pressed={versiculosAbierto}
-                  onClick={() => setVersiculosAbierto((si) => !si)}
-                  className={`flex h-11 items-center gap-2 rounded-xl border px-3.5 text-sm font-semibold transition ${
-                    versiculosAbierto ? "border-app-agua bg-app-agua/15 text-app-agua" : "border-app-border text-app-texto"
-                  }`}
-                >
-                  <BookOpenIcon className="h-5 w-5" aria-hidden="true" />
-                  Versículos
-                </button>
-              )}
-              <MenuPulpito onPruebas={probar} onPredicar={predicar} desactivado={!enEditor} grande />
-            </div>
-            <main className="flex min-h-0 flex-1 flex-col">{editor}</main>
-
-            {cajonAbierto && (
-              <div className="absolute inset-0 z-30 flex bg-app-velo" onClick={() => setCajonAbierto(false)}>
-                <aside aria-label="Mis prédicas" className="flex w-80 flex-col border-r border-app-border bg-app-light p-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                  <BibliotecaPredicas
-                    predicas={listado}
-                    abiertaId={abiertaId}
-                    onAbrir={abrirDesdeCajon}
-                    fechaVacia={conVacia ? vacia.fecha : null}
-                    onElegirFecha={(fecha) => {
-                      setCajonAbierto(false);
-                      elegirFecha(fecha);
-                    }}
-                  />
-                </aside>
+            {/* En horizontal esta barra se une a la de abajo del editor (`unificada`); sin editor abierto se queda,
+                para poder abrir Mis prédicas. */}
+            {!(unificada && enEditor) && (
+              <div className="flex h-16 shrink-0 items-center gap-2 border-b border-app-main bg-app-light px-3.5">
+                {botonMisPredicas}
+                <span className="flex-1" />
+                {botonVersiculos}
+                {botonesPulpito}
               </div>
             )}
+            <main className="flex min-h-0 flex-1 flex-col">{editor}</main>
+
+            {cajon}
             {versiculosAbierto && enEditor && (
-              <aside aria-label="Versículos" className="absolute top-16 right-0 bottom-0 z-20 flex w-96 flex-col gap-3 border-l border-app-border bg-app-light p-4 shadow-2xl">
-                <div className="flex items-center justify-between">
-                  <b className="text-app-texto">Versículos</b>
-                  <button type="button" onClick={() => setVersiculosAbierto(false)} aria-label="Cerrar" className="grid h-9 w-9 place-items-center rounded-xl text-app-muted">
-                    <XMarkIcon className="h-5 w-5" aria-hidden="true" />
-                  </button>
-                </div>
+              <PanelHoja
+                panelRef={panelVersiculos}
+                role="complementary"
+                aria-label="Versículos"
+                alCerrar={() => setVersiculosAbierto(false)}
+                className={`absolute right-0 bottom-0 z-20 w-96 border-l border-app-border shadow-2xl ${unificada && enEditor ? "top-0" : "top-16"}`}
+              >
                 <SelectorBiblia />
-                <BuscadorVersiculos onAgregar={agregarVersiculo} showNotif={showNotif} />
-              </aside>
+                <BuscadorVersiculos
+                  cajaFija
+                  onAgregar={(pieza) => {
+                    const resultado = agregarVersiculo(pieza);
+                    // Se oculta al elegir (si se agregó; con `false` lo escrito se queda)
+                    if (resultado !== false) setVersiculosAbierto(false);
+                    return resultado;
+                  }}
+                  showNotif={showNotif}
+                />
+              </PanelHoja>
             )}
           </div>
         )}
@@ -583,9 +670,11 @@ export default function ControlPredica() {
       {enPulpito ? (
         pulpito
       ) : (
-        <div className="flex min-h-0 flex-1">
+        <div className="relative flex min-h-0 flex-1">
           {/* Mis prédicas ya no se pliega a una franja (13-11-2026, el usuario
-              no la quiso): siempre a la vista. */}
+              no la quiso): siempre a la vista. En la tableta grande no hay lista fija: la reemplaza el botón «Prédicas»
+              de la barra de abajo, que abre el cajón. */}
+          {!grande && (
           <aside aria-label="Mis prédicas" className="flex w-80 shrink-0 flex-col border-r border-app-border bg-app-light p-4">
             {/* No hay botón «Nueva»: la nueva es la vacía, y un día libre del
                 calendario le pone fecha. «Pruebas» y «Predicar» van en la columna derecha. */}
@@ -597,7 +686,7 @@ export default function ControlPredica() {
               onElegirFecha={elegirFecha}
             />
           </aside>
-
+          )}
 
           <main className="flex min-w-0 flex-1 flex-col">{editor}</main>
 
@@ -613,25 +702,27 @@ export default function ControlPredica() {
               <BuscadorVersiculos onAgregar={agregarVersiculo} showNotif={showNotif} plegable={baja} />
             </aside>
           )}
+          {cajon}
         </div>
       )}
     </div>
   );
 }
 
-function BotonSecundario({ onClick, etiqueta, peligro = false, disabled = false, children }) {
+function BotonSecundario({ onClick, etiqueta, peligro = false, disabled = false, soloIcono = false, children }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-label={soloIcono ? etiqueta : undefined}
       title={etiqueta}
       disabled={disabled}
-      className={`flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-app-border text-sm font-semibold transition disabled:pointer-events-none disabled:opacity-30 ${
+      className={`flex h-11 items-center justify-center gap-2 rounded-xl border border-app-border text-sm font-semibold transition disabled:pointer-events-none disabled:opacity-30 ${soloIcono ? "w-14 shrink-0" : "min-w-0 flex-1"} ${
         peligro ? "text-app-error hover:border-app-error" : "text-app-texto hover:border-app-texto"
       }`}
     >
       {children}
-      {etiqueta}
+      {!soloIcono && etiqueta}
     </button>
   );
 }

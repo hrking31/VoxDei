@@ -61,9 +61,48 @@ describe("EscenaGuia", () => {
     expect(img.className).toContain("object-contain");
   });
 
-  it("avisa de la cabida cada vez que se dibuja; sin diseño real (jsdom) todo está bien", () => {
+  it("avisa de la cabida al dibujar; sin diseño real (jsdom) todo está bien", () => {
     const alMedir = vi.fn();
     dibujar({ centro: { tipo: "mensaje", contenido: "Hola" }, alMedir });
-    expect(alMedir).toHaveBeenCalledWith("bien");
+    expect(alMedir).toHaveBeenCalledWith("bien", expect.any(Object));
+  });
+
+  it("junto con el veredicto avisa cuánto se llenó el espacio del centro (sin diseño real, 0)", () => {
+    const alMedir = vi.fn();
+    dibujar({ centro: { tipo: "mensaje", contenido: "Hola" }, alMedir });
+    expect(alMedir).toHaveBeenCalledWith("bien", { llenado: 0 });
+  });
+
+  it("NO vuelve a medir ni a avisar al redibujarse con lo mismo, aunque lleguen objetos y funciones nuevos (así no hay bucle de avisos)", () => {
+    const alMedir = vi.fn();
+    const { rerender } = dibujar({ centro: { tipo: "mensaje", contenido: "Hola" }, alMedir });
+    const veces = alMedir.mock.calls.length;
+    for (let i = 0; i < 5; i++) {
+      // El que lo usa pasa en cada dibujo un `centro`, unos `estilos` y un `alMedir` nuevos, con el mismo contenido
+      rerender(
+        <EscenaGuia
+          estilos={{ ...ESTILOS_POR_DEFECTO }}
+          medidas={{ ...medidas }}
+          titulo=""
+          ticker=""
+          centro={{ tipo: "mensaje", contenido: "Hola" }}
+          alMedir={(estado) => alMedir(estado)}
+        />
+      );
+    }
+    expect(alMedir.mock.calls.length).toBe(veces);
+  });
+
+  it("vuelve a medir cuando cambia lo dibujado (el texto, el título, las medidas) y avisa al último alMedir recibido", () => {
+    const primero = vi.fn();
+    const segundo = vi.fn();
+    const { rerender } = dibujar({ centro: { tipo: "mensaje", contenido: "Hola" }, alMedir: primero });
+    expect(primero).toHaveBeenCalledTimes(1);
+    rerender(<EscenaGuia estilos={ESTILOS_POR_DEFECTO} medidas={medidas} titulo="" ticker="" centro={{ tipo: "mensaje", contenido: "Hola, hermanos" }} alMedir={segundo} />);
+    expect(segundo).toHaveBeenCalledTimes(1);
+    rerender(<EscenaGuia estilos={ESTILOS_POR_DEFECTO} medidas={medidas} titulo="La fe" ticker="" centro={{ tipo: "mensaje", contenido: "Hola, hermanos" }} alMedir={segundo} />);
+    expect(segundo).toHaveBeenCalledTimes(2);
+    rerender(<EscenaGuia estilos={ESTILOS_POR_DEFECTO} medidas={{ ancho: 1280, alto: 720, tipo: "desktop" }} titulo="La fe" ticker="" centro={{ tipo: "mensaje", contenido: "Hola, hermanos" }} alMedir={segundo} />);
+    expect(segundo).toHaveBeenCalledTimes(3);
   });
 });

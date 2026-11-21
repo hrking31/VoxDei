@@ -23,7 +23,7 @@ import {
 import { ref, onValue } from "firebase/database";
 import { useAppContext } from "../../Components/Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext";
-import { esBaja, formatoDe } from "../Hooks/formatoPantalla";
+import { esBaja, esEscritorio, formatoDe } from "../Hooks/formatoPantalla";
 
 export default function InicializarEstados() {
   const { user, userData, loading } = useAuth();
@@ -53,7 +53,7 @@ export default function InicializarEstados() {
   // Detectar tamaño de pantalla
   useEffect(() => {
     const handler = () => {
-      setIsDesktop(window.innerWidth >= 1024);
+      setIsDesktop(esEscritorio(window.innerWidth));
       setFormatoPantalla?.(formatoDe(window.innerWidth));
       setPantallaBaja?.(esBaja(window.innerWidth, window.innerHeight));
     };

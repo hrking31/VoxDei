@@ -42,6 +42,21 @@ describe("InterruptoresDeVista", () => {
     expect(screen.getByRole("button", { name: "Ocultar los botones" }).className).toContain("text-app-muted");
   });
 
+  it("solo el ícono: sin recuadro ni fondo, ni apagados ni encendidos", () => {
+    abrir({ sinPantalla: true, sinBotones: false });
+    for (const boton of document.querySelectorAll("[role='group'] button")) {
+      expect(boton.className).not.toMatch(/\b(bg-|border|rounded)/);
+    }
+  });
+
+  it("con conPantalla en false no lleva el botón de la pantalla, solo el de los botones", () => {
+    abrir({ conPantalla: false });
+    expect(document.querySelector("[data-alternar-pantalla]")).toBeNull();
+    expect(screen.queryByRole("button", { name: /la pantalla/ })).toBeNull();
+    expect(screen.getByRole("button", { name: "Ocultar los botones" })).toBeTruthy();
+    expect(document.querySelectorAll("[role='group'] button")).toHaveLength(1);
+  });
+
   it("el ícono de los botones no es el de Inicio del menú (los cuatro cuadritos), con el que se confundía", () => {
     abrir();
     const icono = document.querySelector("[data-alternar-botones] svg");

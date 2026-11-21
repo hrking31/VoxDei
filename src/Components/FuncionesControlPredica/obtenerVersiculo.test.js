@@ -40,6 +40,23 @@ describe("obtenerVersiculo según la Biblia elegida", () => {
     expect(resultado).toMatchObject({ texto: CAPITULO.chapter_html, libro: "S. Juan", capitulo: 3 });
   });
 
+  it("al encontrar un versículo o un capítulo no muestra ningún aviso", async () => {
+    fb.getDoc.mockResolvedValue({ exists: () => true, data: () => CAPITULO });
+    const showNotif = vi.fn();
+    await obtenerVersiculo("JHN", 3, 16, "versiculo", showNotif);
+    await obtenerVersiculo("JHN", 3, 16, "capitulo", showNotif);
+    expect(showNotif).not.toHaveBeenCalled();
+  });
+
+  it("si el versículo no existe, avisa con un error", async () => {
+    fb.getDoc.mockResolvedValue({ exists: () => true, data: () => CAPITULO });
+    const showNotif = vi.fn();
+    const resultado = await obtenerVersiculo("JHN", 3, 99, "versiculo", showNotif);
+    expect(resultado).toBeUndefined();
+    expect(showNotif).toHaveBeenCalledTimes(1);
+    expect(showNotif).toHaveBeenCalledWith("error", "🔎 Versículo no encontrado");
+  });
+
   it("si no se puede bajar la DHH, avisa con qué hacer", async () => {
     fb.leerCapituloDHH.mockRejectedValue(new Error("Failed to fetch"));
     const showNotif = vi.fn();

@@ -5,10 +5,12 @@ import { useMiniPantalla } from "./useMiniPantalla.js";
 // televisor de los 80) para las vistas que no llevan la columna de la guía,
 // como Biblia en el celular. Copia lo que de verdad hay en el templo.
 export default function MiniPantalla() {
-  const { espejo, visibles, centro, noSeVe, pantallaTemplo } = useMiniPantalla();
+  const { espejo, visibles, centro, noSeVe, pantallaTemplo, estilos, medidas } = useMiniPantalla();
 
   return (
     <PantallaPrevia
+      estilos={estilos}
+      medidas={medidas}
       pieza={centro}
       etiqueta="En el templo ahora"
       oculta={noSeVe}

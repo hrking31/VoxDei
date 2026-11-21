@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import { escalar, fondoDe, sombraDe } from "../Estilos/EstilosProyeccion.js";
 import { TAMANOS_PANTALLA } from "../ControlDisplay/tamanosPantalla.js";
 import { bloqueDeMensaje } from "../ControlDisplay/alineacionMensaje.js";
@@ -12,8 +12,10 @@ import { aContenedor, evaluarCabida } from "./utilesGuia.js";
 // hueco y barra del ticker) con los mismos tamaños (tamanosPantalla.js), para
 // que un versículo ocupe aquí los mismos renglones que en el templo.
 //
-// `alMedir` recibe «bien» | «justo» | «no-cabe» (ver evaluarCabida) cada vez
-// que se dibuja. No incluye el video (va como miniatura) ni la marca de agua.
+// `alMedir` recibe «bien» | «justo» | «no-cabe» (ver evaluarCabida) y, como segundo
+// argumento, `{ llenado }` (cuánto del espacio del centro ocupa el texto) cuando
+// cambia lo que se dibuja y al cargar la tipografía. No incluye el video (va como
+// miniatura) ni la marca de agua.
 export default function EscenaGuia({ centro, titulo, ticker, estilos, medidas, alMedir }) {
   const { ancho, alto, tipo } = medidas;
   const tam = aContenedor(TAMANOS_PANTALLA[tipo] || TAMANOS_PANTALLA.proyector);
@@ -35,26 +37,44 @@ export default function EscenaGuia({ centro, titulo, ticker, estilos, medidas, a
 
   // Después de dibujar, se mide sobre la escena a tamaño real (offsetTop y
   // offsetHeight no cambian con la reducción).
+  //
+  // Se mide SOLO cuando cambia lo que se dibuja (`firma`) y cuando termina de cargar
+  // la tipografía, no en cada dibujo (20-11-2026): antes cada aviso de `alMedir` podía
+  // provocar otro dibujo del que lo recibe, que volvía a medir y a avisar, y al crear
+  // un punto React cortaba con «Maximum update depth exceeded». `alMedir` se lee por
+  // una referencia para que su identidad (una flecha nueva en cada dibujo) no cuente.
+  const alMedirRef = useRef(alMedir);
+  alMedirRef.current = alMedir;
+  const firma = useMemo(() => JSON.stringify([centro, titulo, ticker, estilos, medidas]), [centro, titulo, ticker, estilos, medidas]);
+  const conAviso = Boolean(alMedir);
   useLayoutEffect(() => {
-    if (!alMedir) return undefined;
+    if (!conAviso) return undefined;
+    let vigente = true;
     const medir = () => {
       const col = columna.current;
-      if (!col) return;
+      if (!col || !vigente) return;
       const ultimo = col.lastElementChild;
       const relleno = parseFloat(getComputedStyle(col).paddingBottom) || 0;
-      alMedir(
+      const alturaBloque = bloque.current?.offsetHeight || 0;
+      const hueco = espacioCentral.current?.offsetHeight || 0;
+      alMedirRef.current?.(
         evaluarCabida({
           limite: col.clientHeight - relleno,
           fondo: ultimo ? ultimo.offsetTop + ultimo.offsetHeight : 0,
-          bloque: bloque.current?.offsetHeight || 0,
-          hueco: espacioCentral.current?.offsetHeight || 0,
-        })
+          bloque: alturaBloque,
+          hueco,
+        }),
+        // Cuánto se llenó el espacio del centro (0 a más de 1 si se pasa): lo usa el medidor de
+        // llenado de las pantallas de puntos (20-11-2026). Quien no lo necesita lo ignora.
+        { llenado: hueco > 0 ? alturaBloque / hueco : 0 }
       );
     };
     medir();
     document.fonts?.ready?.then(medir);
-    return undefined;
-  });
+    return () => {
+      vigente = false;
+    };
+  }, [firma, conAviso]);
 
   const esImagen = centro?.tipo === "imagen";
 

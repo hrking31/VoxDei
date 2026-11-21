@@ -342,17 +342,16 @@ describe("ControlVersiculo en el celular: como Predicar", () => {
     expect(within(muelle).queryByRole("button", { name: "Libros" })).toBeNull();
     expect(container.querySelector('[role="group"][aria-label="Herramientas"]')).toBeNull();
     expect(container.querySelector("[data-abrir-libros]")).not.toBeNull();
-    expect(within(muelle).getByRole("button", { name: "Anterior" })).toBeTruthy();
-    expect(within(muelle).getByRole("button", { name: "Siguiente" })).toBeTruthy();
+    // Sin «Anterior» / «Siguiente» (quitados el 20-11-2026): tocar el versículo ya lo proyecta
+    expect(screen.queryByRole("button", { name: "Anterior" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Siguiente" })).toBeNull();
   });
 
-  it("sin capítulo abierto: se llama «Libro», el mensaje va centrado y Anterior y Siguiente no se pueden usar", () => {
+  it("sin capítulo abierto: se llama «Libro» y el mensaje va centrado", () => {
     const { container } = abrir({ isDesktop: false });
     expect(container.querySelector("[data-titulo-biblia]").textContent).toBe("Libro");
     expect(container.querySelector("[data-contador-items]")).toBeNull();
     expect(container.querySelector("[data-sin-capitulo]").className).toContain("m-auto");
-    expect(screen.getByRole("button", { name: "Anterior" }).disabled).toBe(true);
-    expect(screen.getByRole("button", { name: "Siguiente" }).disabled).toBe(true);
     expect(container.querySelector("[data-barra-capitulos]")).toBeNull();
   });
 
@@ -402,48 +401,24 @@ describe("ControlVersiculo en el celular: como Predicar", () => {
     expect(screen.queryByRole("dialog", { name: "Libros" })).toBeNull();
   });
 
-  it("Siguiente pasa de versículo en versículo y los proyecta", async () => {
+  it("tocar un versículo del texto lo proyecta y el contador dice cuál es", async () => {
     set.mockClear();
     const { container } = await conCapitulo();
-    fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
+    fireEvent.click(screen.getByText("Había un hombre."));
     expect(proyectado()).toMatchObject({ text: "Había un hombre.", cita: "Juan 3:1", titulo: "Nicodemo", display: "versiculo" });
     expect(container.querySelector("[data-contador-items]").textContent).toBe("1 de 3");
-    fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
-    expect(proyectado()).toMatchObject({ text: "Este vino a Jesús.", cita: "Juan 3:2" });
-    expect(container.querySelector("[data-contador-items]").textContent).toBe("2 de 3");
-  });
-
-  it("Anterior vuelve al versículo de antes; en el primero no se puede, y Siguiente se apaga en el último", async () => {
-    const { container } = await conCapitulo();
-    const anterior = () => screen.getByRole("button", { name: "Anterior" });
-    const siguiente = () => screen.getByRole("button", { name: "Siguiente" });
-    expect(anterior().disabled).toBe(true);
-    fireEvent.click(siguiente());
-    expect(anterior().disabled).toBe(true);
-    fireEvent.click(siguiente());
-    fireEvent.click(siguiente());
-    expect(container.querySelector("[data-contador-items]").textContent).toBe("3 de 3");
-    expect(siguiente().disabled).toBe(true);
-    fireEvent.click(anterior());
-    expect(proyectado()).toMatchObject({ text: "Este vino a Jesús.", cita: "Juan 3:2" });
-    expect(container.querySelector("[data-contador-items]").textContent).toBe("2 de 3");
-    expect(siguiente().disabled).toBe(false);
-  });
-
-  it("tocar un versículo del texto lo proyecta y Siguiente sigue desde ahí", async () => {
-    set.mockClear();
-    const { container } = await conCapitulo();
     fireEvent.click(screen.getByText("Este vino a Jesús."));
     expect(proyectado()).toMatchObject({ text: "Este vino a Jesús.", cita: "Juan 3:2" });
     expect(container.querySelector("[data-contador-items]").textContent).toBe("2 de 3");
-    fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
+    fireEvent.click(screen.getByText("Respondió Jesús."));
     expect(proyectado()).toMatchObject({ text: "Respondió Jesús.", cita: "Juan 3:3" });
+    expect(container.querySelector("[data-contador-items]").textContent).toBe("3 de 3");
   });
 
   it("el versículo al aire se centra en el recuadro del texto", async () => {
     await conCapitulo();
     Element.prototype.scrollTo.mockClear();
-    fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
+    fireEvent.click(screen.getByText("Había un hombre."));
     expect(Element.prototype.scrollTo).toHaveBeenCalledWith(expect.objectContaining({ behavior: "smooth" }));
   });
 
@@ -462,8 +437,8 @@ describe("ControlVersiculo en el celular: como Predicar", () => {
 
   it("el versículo elegido en el celular también sobresale, con los demás atenuados", async () => {
     const { container } = await conCapitulo();
-    fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
-    fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
+    fireEvent.click(screen.getByText("Había un hombre."));
+    fireEvent.click(screen.getByText("Este vino a Jesús."));
     const verso = (n) => container.querySelector(`[data-versiculo="${n}"]`);
     expect(verso(2).hasAttribute("data-elegido")).toBe(true);
     expect(verso(2).className).toContain("drop-shadow-elegido");
@@ -518,7 +493,7 @@ describe("ControlVersiculo en el celular: como Predicar", () => {
     expect(screen.getByRole("button", { name: "Mostrar la pantalla" })).toBeTruthy();
   });
 
-  it("con la pantalla y los botones ocultos, lo que importa sigue: el texto, Anterior y Siguiente", async () => {
+  it("con la pantalla y los botones ocultos, lo que importa sigue: el texto, que se toca para proyectar", async () => {
     localStorage.setItem("voxdei.biblia.sinPantalla", "1");
     localStorage.setItem("voxdei.biblia.sinBotones", "1");
     obtenerVersiculo.mockResolvedValue({ libro: "Juan", capitulo: 3, numero: "1", texto: "<p><b>1</b> Había un hombre.</p><p><b>2</b> Este vino a Jesús.</p>" });
@@ -531,7 +506,7 @@ describe("ControlVersiculo en el celular: como Predicar", () => {
     fireEvent.click(within(dialogo).getByRole("button", { name: "Versículo 1" }));
     await screen.findByText(/Había un hombre/);
     set.mockClear();
-    fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
+    fireEvent.click(screen.getByText("Había un hombre."));
     expect(set.mock.calls.at(-1)[1]).toMatchObject({ text: "Había un hombre.", display: "versiculo" });
   });
 
@@ -547,18 +522,30 @@ describe("ControlVersiculo en el celular: como Predicar", () => {
     expect(container.querySelector("[data-muelle]")).not.toBeNull();
     expect(container.querySelector("[data-abrir-libros]")).not.toBeNull();
     expect(screen.getByRole("button", { name: "Ocultar la pantalla" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Siguiente" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Siguiente" })).toBeNull();
   });
 
-  it("el nombre es el botón de los libros: lleva una flechita y dice qué libro hay", async () => {
+  it("abajo, en el muelle, van el buscador de libros y los dos interruptores (estos solo con el ícono y sin recuadro); arriba no hay nada", async () => {
     const { container } = abrir({ isDesktop: false });
-    const nombre = container.querySelector("[data-abrir-libros]");
+    const fila = container.querySelector("[data-muelle] [data-fila-herramientas]");
+    expect(fila).not.toBeNull();
+    const nombre = fila.querySelector("[data-abrir-libros]");
     expect(nombre.getAttribute("aria-label")).toBe("Abrir los libros");
     // Con una lupa delante (dice que ahí se busca) y una flechita detrás
     expect(nombre.querySelector("[data-icono-buscar]")).not.toBeNull();
     expect(nombre.querySelectorAll("svg")).toHaveLength(2);
     expect(nombre.firstElementChild.hasAttribute("data-icono-buscar")).toBe(true);
     expect(nombre.textContent).toBe("Libro");
+    expect(fila.querySelector("[data-alternar-pantalla]")).not.toBeNull();
+    expect(fila.querySelector("[data-alternar-botones]")).not.toBeNull();
+    for (const boton of fila.querySelectorAll("[role='group'] button")) {
+      expect(boton.className).not.toMatch(/\b(bg-|border|rounded)/);
+    }
+    // Fuera del muelle solo quedan los cuatro de qué se ve en el templo: arriba no hay encabezado
+    const muelle = container.querySelector("[data-muelle]");
+    const fuera = [...container.querySelectorAll("button")].filter((b) => !muelle.contains(b));
+    expect(fuera.map((b) => b.textContent)).toEqual(["Título", "Texto", "Ticker", "Ocultar"]);
+    expect(container.querySelector("[data-titulo-biblia]").closest("[data-muelle]")).not.toBeNull();
     cleanup();
 
     obtenerVersiculo.mockResolvedValue(capitulo);
@@ -834,7 +821,7 @@ describe("ControlVersiculo: versículos recientes", () => {
     expect(JSON.parse(localStorage.getItem("voxdei.biblia.recientes.g1"))).toEqual([]);
   });
 
-  it("Anterior y Siguiente del celular también los registran, y la ventana se cierra al elegir uno", async () => {
+  it("los versículos que se tocan en el celular también se registran, y la ventana se cierra al elegir uno", async () => {
     obtenerVersiculo.mockResolvedValue(capitulo);
     abrir({ isDesktop: false });
     fireEvent.click(document.querySelector("[data-abrir-libros]"));
@@ -844,15 +831,40 @@ describe("ControlVersiculo: versículos recientes", () => {
     fireEvent.click(within(dialogo).getByRole("button", { name: "Capítulo 3" }));
     fireEvent.click(within(dialogo).getByRole("button", { name: "Versículo 1" }));
     await screen.findByText(/Había un hombre/);
-    fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
-    fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
-    fireEvent.click(document.querySelector("[data-abrir-libros]"));
-    dialogo = screen.getByRole("dialog", { name: "Libros" });
-    fireEvent.click(within(dialogo).getByRole("button", { name: "Recientes" }));
+    fireEvent.click(screen.getByText("Había un hombre."));
+    fireEvent.click(screen.getByText("Este vino a Jesús."));
+    // Los recientes se abren con el reloj de la barra de abajo, en su propia ventana
+    fireEvent.click(document.querySelector("[data-abrir-recientes]"));
+    dialogo = screen.getByRole("dialog", { name: "Recientes" });
     expect(within(dialogo).getAllByRole("button", { name: /^Ir a / }).map((f) => f.getAttribute("aria-label"))).toEqual(["Ir a Juan 3:2", "Ir a Juan 3:1"]);
     obtenerVersiculo.mockClear();
     fireEvent.click(within(dialogo).getByRole("button", { name: "Ir a Juan 3:1" }));
-    expect(screen.queryByRole("dialog", { name: "Libros" })).toBeNull();
+    expect(screen.queryByRole("dialog", { name: "Recientes" })).toBeNull();
     expect(obtenerVersiculo).toHaveBeenLastCalledWith("JHN", 3, 1, "capitulo", expect.any(Function), "RVR1960");
+  });
+
+  it("el reloj de la barra de abajo abre los recientes; la ventana de libros ya no tiene esa pestaña; Escape y la X la cierran", () => {
+    const { container } = abrir({ isDesktop: false });
+    const reloj = container.querySelector("[data-muelle] [data-fila-herramientas] [data-abrir-recientes]");
+    expect(reloj).not.toBeNull();
+    expect(reloj.getAttribute("aria-label")).toBe("Versículos recientes");
+    expect(reloj.textContent).toBe("");
+    expect(reloj.className).not.toMatch(/\b(bg-|border|rounded)/);
+    expect(reloj.querySelector("svg")).not.toBeNull();
+
+    fireEvent.click(container.querySelector("[data-abrir-libros]"));
+    const libros = screen.getByRole("dialog", { name: "Libros" });
+    expect(within(libros).queryByRole("button", { name: "Recientes" })).toBeNull();
+    expect(within(libros).getByRole("button", { name: "Antiguo" })).toBeTruthy();
+    fireEvent.click(within(libros).getByRole("button", { name: "Cerrar" }));
+
+    fireEvent.click(reloj);
+    const dialogo = screen.getByRole("dialog", { name: "Recientes" });
+    expect(within(dialogo).getByText("Aún no has proyectado versículos.")).toBeTruthy();
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "Recientes" })).toBeNull();
+    fireEvent.click(reloj);
+    fireEvent.click(within(screen.getByRole("dialog", { name: "Recientes" })).getByRole("button", { name: "Cerrar" }));
+    expect(screen.queryByRole("dialog", { name: "Recientes" })).toBeNull();
   });
 });

@@ -17,6 +17,7 @@ export async function crearPredica(groupId, datos = {}) {
     base: datos.base || "",
     numeracion: datos.numeracion,
     numeracionNiveles: datos.numeracionNiveles,
+    cortesPuntos: datos.cortesPuntos,
     estado: "borrador",
     piezas: datos.piezas || [],
   });

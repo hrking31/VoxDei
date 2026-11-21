@@ -37,7 +37,8 @@ describe("PantallaGuia", () => {
   it("lee de los nodos de su iglesia", () => {
     abrir();
     expect(Object.keys(rtdb.oyentes).sort()).toEqual(
-      ["displayImage/g1", "displayMessage/g1", "displayTicker/g1", "displayTitulo/g1", "displayVersiculo/g1", "displayVideo/g1"]
+      // pantallaTemplo: la presencia de la ventana, de donde salen las medidas reales de la pantalla
+      ["displayImage/g1", "displayMessage/g1", "displayTicker/g1", "displayTitulo/g1", "displayVersiculo/g1", "displayVideo/g1", "pantallaTemplo/g1"]
     );
   });
 

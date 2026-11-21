@@ -159,6 +159,12 @@ describe("SelectorLibros", () => {
       expect(Array.from(grupo.querySelectorAll("button")).map((b) => b.textContent)).toEqual(["Antiguo", "Nuevo", "Recientes"]);
     });
 
+    it("con conRecientes en false (la ventana del celular) no hay esa pestaña", () => {
+      abrir({ recientes, grande: true, conRecientes: false });
+      const grupo = screen.getByRole("group", { name: "Testamento" });
+      expect(Array.from(grupo.querySelectorAll("button")).map((b) => b.textContent)).toEqual(["Antiguo", "Nuevo"]);
+    });
+
     it("sin versículos proyectados lo dice", () => {
       abrir();
       fireEvent.click(screen.getByRole("button", { name: "Recientes" }));

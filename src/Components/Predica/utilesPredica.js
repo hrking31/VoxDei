@@ -68,6 +68,9 @@ export function normalizarPredica(id, datos = {}) {
     base: typeof datos.base === "string" ? datos.base : textoBase(piezas),
     numeracion: numeracionValida(datos.numeracion),
     numeracionNiveles: nivelesValidos(datos.numeracionNiveles),
+    // Los cortes manuales de las pantallas de puntos (20-11-2026): ids de los puntos antes de los
+    // que empieza una pantalla nueva. Las prédicas de antes no los tienen.
+    cortesPuntos: Array.isArray(datos.cortesPuntos) ? datos.cortesPuntos.filter((id) => typeof id === "string") : [],
     estado: estadoValido(datos.estado),
     piezas,
     antigua,
@@ -79,17 +82,24 @@ export function normalizarPredica(id, datos = {}) {
 // Lo que se guarda: la forma nueva completa (una antigua pierde `items`).
 // Nunca un recuadro vacío ni una imagen sin foto (piezaCompleta), aunque se
 // guarde justo mientras se escribe uno nuevo.
-export const documentoDePredica = ({ titulo, fecha, serie, base, numeracion, numeracionNiveles, estado, piezas }) => ({
-  titulo: titulo.trim() || "Sin título",
-  fecha: fecha || "",
-  serie: (serie || "").trim(),
-  base: (base || "").trim(),
-  numeracion: numeracionValida(numeracion),
-  numeracionNiveles: nivelesValidos(numeracionNiveles),
-  estado: estadoValido(estado),
-  // El nivel solo se guarda en los subpuntos (Firestore no acepta undefined).
-  piezas: piezas.filter(piezaCompleta).map((p) => ({ id: p.id, tipo: p.tipo, contenido: p.contenido, ...(nivelDe(p) ? { nivel: nivelDe(p) } : {}) })),
-});
+export const documentoDePredica = ({ titulo, fecha, serie, base, numeracion, numeracionNiveles, cortesPuntos, estado, piezas }) => {
+  const guardadas = piezas.filter(piezaCompleta);
+  // Los cortes de las pantallas de puntos solo valen sobre puntos que se guardan (si se borró el
+  // punto, se va su corte).
+  const puntosGuardados = new Set(guardadas.filter((p) => p.tipo === "titulo").map((p) => p.id));
+  return {
+    titulo: titulo.trim() || "Sin título",
+    fecha: fecha || "",
+    serie: (serie || "").trim(),
+    base: (base || "").trim(),
+    numeracion: numeracionValida(numeracion),
+    numeracionNiveles: nivelesValidos(numeracionNiveles),
+    cortesPuntos: (Array.isArray(cortesPuntos) ? cortesPuntos : []).filter((id) => puntosGuardados.has(id)),
+    estado: estadoValido(estado),
+    // El nivel solo se guarda en los subpuntos (Firestore no acepta undefined).
+    piezas: guardadas.map((p) => ({ id: p.id, tipo: p.tipo, contenido: p.contenido, ...(nivelDe(p) ? { nivel: nivelDe(p) } : {}) })),
+  };
+};
 
 // ---------- Puntos numerados I, II, III ----------
 
@@ -248,22 +258,11 @@ export const SANGRIA_RESUMEN = "    ";
 // demás sigue la alineación de Estilos y colores.
 export const ALINEACION_RESUMEN = "izquierda";
 
-// La pantalla muestra como máximo RENGLONES_RESUMEN puntos: al tocar el
-// séptimo, la pantalla se limpia y lo muestra como el primero de una nueva.
+// Cuántos puntos caben en una pantalla mientras no se ha medido lo que cabe de verdad (el medidor de
+// las pantallas de puntos, utilesPuntos.js, reparte según la pantalla real del templo).
 export const RENGLONES_RESUMEN = 6;
 // Todos los puntos del bosquejo (de cualquier nivel), en su orden.
 export const puntosDelBosquejo = (piezas) => piezas.filter((p) => p.tipo === "titulo");
-// Lo que hay en la pantalla actual: los últimos tocados de la tanda de `maximo`.
-export function paginaDelResumen(tocados, maximo = RENGLONES_RESUMEN) {
-  if (!tocados.length) return [];
-  return tocados.slice(-(((tocados.length - 1) % maximo) + 1));
-}
-// Los renglones de esa pantalla. La numeración empieza de nuevo en cada
-// pantalla (el séptimo punto sale como el primero).
-export function lineasDelResumen(pagina, estilo = "romanos", niveles = null) {
-  const numeros = numerosDePuntos(pagina, estilo, niveles);
-  return pagina.map((p) => SANGRIA_RESUMEN.repeat(nivelDe(p)) + textoDePunto(numeros[p.id], p.contenido));
-}
 
 export function resumenPiezas(piezas) {
   const cuenta = { puntos: 0, versiculos: 0, mensajes: 0, imagenes: 0 };

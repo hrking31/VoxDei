@@ -1,110 +1,48 @@
-import { useEffect, useRef, useState } from "react";
-import { BeakerIcon, ChevronDownIcon, PlayIcon } from "@heroicons/react/24/solid";
+import { BeakerIcon, PlayIcon } from "@heroicons/react/24/solid";
 
 // Las dos entradas al púlpito (18-11-2026, pedido del usuario):
 //   Pruebas   el púlpito en modo de ensayo: se pasa el bosquejo SIN mandar nada al templo
 //   Predicar  el púlpito de verdad: lo que se toca se proyecta
 
-// Computador: dos botones, uno al lado del otro, en el lugar donde estaba la
-// pantalla de muestra de Preparar.
-export function BotonesPulpito({ onPruebas, onPredicar }) {
+// Dos botones, uno al lado del otro, en todos los tamaños de pantalla (computador: donde estaba la
+// pantalla de muestra de Preparar; tableta y celular: en la barra de arriba, 20-11-2026). Los dos con el mismo estilo «tonal» (fondo
+// suave, borde y letra de su color), mismo alto, ancho y grosor (20-11-2026, pedido
+// del usuario): antes Predicar iba relleno de dorado y Pruebas solo con borde, y
+// Pruebas parecía apagado. Pruebas en azul y Predicar en dorado.
+const BASE_BOTON = "flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border text-sm font-bold transition";
+// Celular (20-11-2026): más bajos y con letra pequeña, para caber en la barra de arriba junto a los íconos.
+const BASE_BOTON_COMPACTO = "flex h-9 min-w-0 flex-1 items-center justify-center gap-1 rounded-lg border text-xs font-bold transition";
+// Los colores de cada uno, iguales en todos los tamaños de pantalla.
+const COLOR_PRUEBAS = "border-app-azul bg-app-azul/10 text-app-azul hover:bg-app-azul/20";
+const COLOR_PREDICAR = "border-app-main bg-app-main/10 text-app-main hover:bg-app-main/20";
+// Solo con el ícono (celular, 20-11-2026, pedido del usuario): sin recuadro, ni borde ni fondo; el color queda
+// en el ícono y, al tocar, se tiñe con un fondo suave del mismo color.
+const BASE_ICONO = "flex h-9 min-w-0 flex-1 items-center justify-center rounded-lg transition";
+const ICONO_PRUEBAS = "text-app-azul active:bg-app-azul/15";
+const ICONO_PREDICAR = "text-app-main active:bg-app-main/15";
+// En la barra de abajo de la tableta (20-11-2026, revisión de diseño): el mismo tamaño que todos los botones de ícono de
+// esa barra (56 × 44) y con su recuadro del color de cada uno, para que la barra sea uniforme.
+const ICONO_BARRA = "flex h-11 w-14 shrink-0 items-center justify-center rounded-xl border transition";
+const TITULO_PRUEBAS = "Ensayar el bosquejo sin proyectar al templo";
+const TITULO_PREDICAR = "Predicar: lo que toques se proyecta en el templo";
+
+// `desactivado` y `className` (el ancho, en la barra de la tableta: 20-11-2026, pedido del usuario, «en iPad
+// separa los botones de Predicar y Pruebas», en lugar del menú «Púlpito»).
+export function BotonesPulpito({ onPruebas, onPredicar, desactivado = false, compacto = false, soloIconos = false, barra = false, className = "" }) {
+  const base = compacto ? BASE_BOTON_COMPACTO : BASE_BOTON;
+  // Celular: solo el ícono, sin recuadro; el nombre queda en aria-label y title.
+  const nombre = (texto) => (soloIconos ? undefined : texto);
+  const apagado = "disabled:pointer-events-none disabled:opacity-40";
   return (
-    <div role="group" aria-label="Ir al púlpito" data-botones-pulpito className="flex shrink-0 gap-2">
-      <button
-        type="button"
-        data-ir-pruebas
-        onClick={onPruebas}
-        title="Ensayar el bosquejo sin proyectar al templo"
-        className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border border-app-border text-sm font-semibold text-app-texto transition hover:border-app-main hover:text-app-main"
-      >
-        <BeakerIcon className="h-5 w-5 shrink-0" aria-hidden="true" />
-        Pruebas
+    <div role="group" aria-label="Ir al púlpito" data-botones-pulpito className={`flex shrink-0 gap-2 ${className}`}>
+      <button type="button" data-ir-pruebas disabled={desactivado} onClick={onPruebas} aria-label={soloIconos ? "Pruebas" : undefined} title={TITULO_PRUEBAS} className={`${soloIconos ? (barra ? `${ICONO_BARRA} ${COLOR_PRUEBAS}` : `${BASE_ICONO} ${ICONO_PRUEBAS}`) : `${base} ${COLOR_PRUEBAS}`} ${apagado}`}>
+        <BeakerIcon className={soloIconos ? "h-5 w-5 shrink-0" : "h-4 w-4 shrink-0"} aria-hidden="true" />
+        {nombre("Pruebas")}
       </button>
-      <button
-        type="button"
-        data-ir-predicar
-        onClick={onPredicar}
-        title="Predicar: lo que toques se proyecta en el templo"
-        className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-app-main text-sm font-bold text-app-dark transition hover:brightness-110"
-      >
-        <PlayIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
-        Predicar
+      <button type="button" data-ir-predicar disabled={desactivado} onClick={onPredicar} aria-label={soloIconos ? "Predicar" : undefined} title={TITULO_PREDICAR} className={`${soloIconos ? (barra ? `${ICONO_BARRA} ${COLOR_PREDICAR}` : `${BASE_ICONO} ${ICONO_PREDICAR}`) : `${base} ${COLOR_PREDICAR}`} ${apagado}`}>
+        <PlayIcon className={soloIconos ? "h-5 w-5 shrink-0" : "h-4 w-4 shrink-0"} aria-hidden="true" />
+        {nombre("Predicar")}
       </button>
-    </div>
-  );
-}
-
-// Celular y tableta: un solo botón, «Púlpito», que abre un menú con las dos
-// opciones (se llama así y no «Predicar» porque al abrir un menú ya no es
-// predicar). Se cierra al elegir, con Escape o tocando fuera.
-export function MenuPulpito({ onPruebas, onPredicar, desactivado = false, grande = false }) {
-  const [abierto, setAbierto] = useState(false);
-  const raiz = useRef(null);
-
-  useEffect(() => {
-    if (!abierto) return undefined;
-    const alPulsar = (e) => e.key === "Escape" && setAbierto(false);
-    const alTocarFuera = (e) => {
-      if (raiz.current && !raiz.current.contains(e.target)) setAbierto(false);
-    };
-    document.addEventListener("keydown", alPulsar);
-    document.addEventListener("pointerdown", alTocarFuera);
-    return () => {
-      document.removeEventListener("keydown", alPulsar);
-      document.removeEventListener("pointerdown", alTocarFuera);
-    };
-  }, [abierto]);
-
-  const elegir = (accion) => () => {
-    setAbierto(false);
-    accion?.();
-  };
-
-  return (
-    <div ref={raiz} className="relative shrink-0">
-      <button
-        type="button"
-        data-menu-pulpito
-        aria-haspopup="menu"
-        aria-expanded={abierto}
-        disabled={desactivado}
-        onClick={() => setAbierto((si) => !si)}
-        className={`flex items-center gap-1.5 rounded-lg bg-app-main font-bold text-app-dark disabled:opacity-40 ${grande ? "h-11 rounded-xl px-4 text-sm" : "h-9 px-3 text-sm"}`}
-      >
-        <PlayIcon className="h-3.5 w-3.5" aria-hidden="true" />
-        Púlpito
-        <ChevronDownIcon className="h-3.5 w-3.5" aria-hidden="true" />
-      </button>
-      {abierto && (
-        <div role="menu" aria-label="Púlpito" data-menu-pulpito-opciones className="absolute top-full right-0 z-40 mt-1 flex w-60 flex-col gap-0.5 rounded-xl border border-app-border bg-app-light p-1 shadow-2xl">
-          <button
-            type="button"
-            role="menuitem"
-            data-ir-pruebas
-            onClick={elegir(onPruebas)}
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-app-texto transition hover:bg-app-border/50"
-          >
-            <BeakerIcon className="h-5 w-5 shrink-0 text-app-main" aria-hidden="true" />
-            <span className="flex flex-col">
-              <b className="text-sm">Pruebas</b>
-              <span className="text-xs text-app-muted">Ensayar sin proyectar</span>
-            </span>
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            data-ir-predicar
-            onClick={elegir(onPredicar)}
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-app-texto transition hover:bg-app-border/50"
-          >
-            <PlayIcon className="h-5 w-5 shrink-0 text-app-main" aria-hidden="true" />
-            <span className="flex flex-col">
-              <b className="text-sm">Predicar</b>
-              <span className="text-xs text-app-muted">Proyectar al templo</span>
-            </span>
-          </button>
-        </div>
-      )}
     </div>
   );
 }

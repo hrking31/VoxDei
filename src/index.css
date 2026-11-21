@@ -13,6 +13,7 @@
   --color-app-azul: #60a5fa; /* Pantalla del templo maximizada */
   --color-app-texto: #f3f4f6; /* Texto principal claro sobre los fondos oscuros */
   --color-app-velo: rgb(0 0 0 / 0.45); /* Oscurece el fondo detrás de un panel abierto */
+  --color-app-negro: #000000; /* Recuadro del reloj de Predicar en la tableta, para que resalten sus cifras */
 
   /* Barra lateral del panel (solo computador) */
   --spacing-barra: 4rem; /* encogida: solo íconos */
@@ -118,7 +119,6 @@
   /* Más suave desde el 18-11-2026 (pedido del usuario): crece un 2,5 %, halo más corto y tenue, ciclo más lento */
   --animate-palpita: palpita 1.8s ease-in-out infinite;
   /* El ítem que sigue en el bosquejo del púlpito (celular): flota y brilla en amarillo (14-11-2026) */
-  --animate-siguiente: siguiente 1.8s ease-in-out infinite;
   /* El anuncio de la mini pantalla del púlpito: pasa de derecha a izquierda (12-11-2026) */
   --animate-ticker-mini: ticker-mini 14s linear infinite;
   --animate-escena-tv: escena-tv 3.2s ease-in infinite;
@@ -177,10 +177,6 @@
   @keyframes palpita {
     0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-app-error) 35%, transparent); }
     50% { transform: scale(1.025); box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-app-error) 0%, transparent); }
-  }
-  @keyframes siguiente {
-    0%, 100% { transform: translateY(0) scale(1.01); box-shadow: 0 5px 12px rgb(0 0 0 / 0.5), 0 0 0 0 color-mix(in srgb, var(--color-app-main) 45%, transparent); }
-    50% { transform: translateY(-2px) scale(1.025); box-shadow: 0 9px 16px rgb(0 0 0 / 0.55), 0 0 9px 2px color-mix(in srgb, var(--color-app-main) 50%, transparent); }
   }
   /* Televisor viejo que se apaga: línea, punto y nada */
   @keyframes escena-tv {

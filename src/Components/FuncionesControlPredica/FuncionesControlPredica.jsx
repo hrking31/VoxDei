@@ -62,11 +62,8 @@ export const obtenerVersiculo = async (
       );
       return;
     }
-    showNotif(
-      "success",
-      tipo === "capitulo" ? "Capítulo encontrado" : "Versículo encontrado"
-    );
 
+    // Sin aviso de éxito (pedido del usuario, 20-11-2026): solo se avisa si falla.
     return {
       texto,
       libro: data.libro,

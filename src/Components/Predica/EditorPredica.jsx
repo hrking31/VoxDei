@@ -11,6 +11,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   DocumentDuplicateIcon,
+  HashtagIcon,
   NumberedListIcon,
   PencilIcon,
   PhotoIcon,
@@ -19,7 +20,8 @@ import {
 import ElegirImagen from "./ElegirImagen.jsx";
 import BotonesHistorial from "./BotonesHistorial.jsx";
 import BuscadorVersiculos from "./BuscadorVersiculos.jsx";
-import { MenuPulpito } from "./BotonesPulpito.jsx";
+import { BotonesPulpito } from "./BotonesPulpito.jsx";
+import PanelHoja from "./PanelHoja.jsx";
 import { TEXTO_CABIDA } from "./utilesCabida.js";
 // TEMPORAL DHH (12-11-2026): la Biblia elegida, para reconocer el versículo base.
 import { useAppContext } from "../Context/AppContext";
@@ -78,6 +80,7 @@ export default function EditorPredica({
   seleccionada,
   onSeleccionar,
   compacto = false,
+  soloIconos = false, // tableta (iPad mini): la barra de abajo solo con íconos, como en el celular
   onVolver,
   onPredicar,
   onPruebas, // celular y tableta: «Pruebas» del menú Púlpito
@@ -87,6 +90,9 @@ export default function EditorPredica({
   enfocarTitulo = false,
   onTituloEnfocado,
   acciones = null, // computador: ↶ ↷ Borrar Duplicar │ WhatsApp, abajo a la derecha
+  barraIzquierda = null, // tableta acostada: el botón de Mis prédicas, que iba en la barra de arriba, a la izquierda de la barra de abajo
+  botonVersiculos = null, // tableta acostada: el botón de Versículos, justo después de Imagen
+  barraDerecha = null, // tableta acostada: Pruebas y Predicar, a la derecha de la barra de abajo
   historial = null, // { deshacer, rehacer, puedeDeshacer, puedeRehacer } (celular: barra de abajo)
   botonWhatsApp = null, // celular: el botón de WhatsApp de la barra de arriba
   onAgregarVersiculo = null, // celular: el versículo elegido en la hoja de versículos
@@ -99,6 +105,9 @@ export default function EditorPredica({
   // preguntar. Si la prédica ya tiene puntos, se da por elegido.
   const [puntoElegido, setPuntoElegido] = useState(() => predica.piezas.some((p) => p.tipo === "titulo"));
   const [hojaNumeracion, setHojaNumeracion] = useState(false);
+  // La misma hoja también cambia la numeración sin crear ningún punto (20-11-2026, pedido
+  // del usuario): se abre desde la fila «Numeración» del recuadro de arriba.
+  const [soloCambiarNumeracion, setSoloCambiarNumeracion] = useState(false);
   const piezasActuales = useRef(predica.piezas);
   piezasActuales.current = predica.piezas;
   // Celular (12-11-2026, propuesta por pantallas): el menú ⋯, la hoja de
@@ -238,10 +247,25 @@ export default function EditorPredica({
 
   // Celular: la primera vez, «Punto» abre la hoja para elegir la numeración y
   // crea el punto al escoger; después crea directo.
-  const tocarPunto = () => (puntoElegido ? crearVacia("titulo") : setHojaNumeracion(true));
+  const tocarPunto = () => {
+    if (puntoElegido) return crearVacia("titulo");
+    setSoloCambiarNumeracion(false);
+    return setHojaNumeracion(true);
+  };
+  // La fila «Numeración» del recuadro de arriba: cambia la numeración de los puntos que ya
+  // hay (y de los que vengan) sin agregar ninguno.
+  const cambiarNumeracion = () => {
+    setSoloCambiarNumeracion(true);
+    setHojaNumeracion(true);
+  };
   const elegirNumeracion = (combinacion) => {
     setPuntoElegido(true);
     setHojaNumeracion(false);
+    if (soloCambiarNumeracion) {
+      setSoloCambiarNumeracion(false);
+      onCambiar(datosDeCombinacion(combinacion));
+      return;
+    }
     crearVacia("titulo", datosDeCombinacion(combinacion));
   };
 
@@ -543,7 +567,8 @@ export default function EditorPredica({
           <BotonIcono etiqueta="Duplicar" Icono={DocumentDuplicateIcon} clase="text-app-texto" onClick={onDuplicar} disabled={!predica.id} fijo />
           <BotonIcono etiqueta="Eliminar" Icono={TrashIcon} clase="text-app-error" onClick={onBorrar} disabled={!predica.id} fijo />
           {botonWhatsApp}
-          <MenuPulpito onPruebas={onPruebas} onPredicar={onPredicar} desactivado={!piezas.length} />
+          {/* Pruebas y Predicar separados (20-11-2026, pedido del usuario), en lugar del menú «Púlpito» */}
+          <BotonesPulpito compacto soloIconos onPruebas={onPruebas} onPredicar={onPredicar} desactivado={!piezas.length} className="w-24" />
         </div>
       )}
 
@@ -600,6 +625,14 @@ export default function EditorPredica({
                   data-pieza={pieza.tipo}
                   data-subpunto={esSubpunto(pieza) || undefined}
                   data-nivel={nivelDe(pieza) || undefined}
+                  // Tocar cualquier parte DENTRO del recuadro lo expande o lo contrae (20-11-2026,
+                  // pedido del usuario; antes solo el texto lo hacía). Lo que es un botón o un
+                  // campo hace lo suyo. Tocar fuera del recuadro no hace nada.
+                  onClick={(e) => {
+                    if (enEdicion) return;
+                    if (e.target.closest("button, input, textarea, a, select, label")) return;
+                    onSeleccionar(elegida ? null : pieza.id);
+                  }}
                   className={`flex items-start rounded-xl border px-3 py-2.5 transition ${compacto ? "gap-2" : "gap-3"} ${SANGRIA_NIVEL[compacto ? "compacto" : "normal"][nivelDe(pieza)]} ${
                     elegida ? tonoPieza(pieza.tipo).elegida : tonoPieza(pieza.tipo).caja
                   }`}
@@ -703,6 +736,14 @@ export default function EditorPredica({
                               </button>
                             );
                           })}
+                      {/* Celular (20-11-2026, pedido del usuario): el botón del punto que abre la hoja
+                          de numeración (el botón Punto de la barra no se divide ni usa gestos
+                          escondidos). Cambia la numeración de toda la prédica, sin crear nada. */}
+                      {compacto && pieza.tipo === "titulo" && (
+                        <Accion etiqueta="Numeración de los puntos" onClick={cambiarNumeracion}>
+                          <HashtagIcon className="h-4 w-4" aria-hidden="true" />
+                        </Accion>
+                      )}
                       {pieza.tipo !== "versiculo" && pieza.tipo !== "imagen" && (
                         <Accion etiqueta="Corregir" onClick={() => setEditando({ id: pieza.id, texto: pieza.contenido })}>
                           <PencilIcon className="h-4 w-4" aria-hidden="true" />
@@ -751,27 +792,23 @@ export default function EditorPredica({
       {compacto && hojaVersiculos && (
         // A pantalla completa (14-11-2026, pedido del usuario), para ver entero
         // el versículo elegido; se cierra con la X.
-        <div className="fixed inset-0 z-40 flex flex-col bg-app-dark">
-          <div role="dialog" aria-modal="true" aria-label="Versículos" className="flex h-full min-h-0 flex-col gap-3 bg-app-dark p-4">
-            <div className="flex items-center justify-between">
-              <b className="text-app-texto">Versículos</b>
-              <button type="button" onClick={() => setHojaVersiculos(false)} aria-label="Cerrar" className="grid h-10 w-10 place-items-center rounded-xl text-app-muted">
-                <XMarkIcon className="h-5 w-5" aria-hidden="true" />
-              </button>
-            </div>
-            {/* Sin SelectorBiblia en el celular (13-11-2026): pendiente de ubicar. */}
-            <div className="scrollbar-custom flex min-h-0 flex-1 flex-col overflow-y-auto">
-              <BuscadorVersiculos
-                cambiarBiblia
-                showNotif={showNotif}
-                onAgregar={(pieza) => {
-                  onAgregarVersiculo(pieza);
-                  setHojaVersiculos(false);
-                }}
-              />
-            </div>
-          </div>
-        </div>
+        <PanelHoja
+          role="dialog"
+          aria-modal="true"
+          aria-label="Versículos"
+          alCerrar={() => setHojaVersiculos(false)}
+          className="fixed inset-0 z-40"
+        >
+          {/* Sin SelectorBiblia en el celular (13-11-2026): pendiente de ubicar. */}
+          <BuscadorVersiculos
+            cambiarBiblia
+            showNotif={showNotif}
+            onAgregar={(pieza) => {
+              onAgregarVersiculo(pieza);
+              setHojaVersiculos(false);
+            }}
+          />
+        </PanelHoja>
       )}
 
       {/* Celular: la hoja para elegir la numeración de los puntos, la primera
@@ -780,7 +817,7 @@ export default function EditorPredica({
         <div className="fixed inset-0 z-40 flex flex-col bg-app-velo" onClick={() => setHojaNumeracion(false)}>
           <div role="dialog" aria-label="Numeración de los puntos" className="mt-auto flex flex-col gap-3 rounded-t-3xl bg-app-dark p-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between">
-              <b className="text-app-texto">¿Cómo numerar los puntos?</b>
+              <b className="text-app-texto">{soloCambiarNumeracion ? "Numeración de los puntos" : "¿Cómo numerar los puntos?"}</b>
               <button type="button" onClick={() => setHojaNumeracion(false)} aria-label="Cerrar" className="grid h-10 w-10 place-items-center rounded-xl text-app-muted">
                 <XMarkIcon className="h-5 w-5" aria-hidden="true" />
               </button>
@@ -824,8 +861,16 @@ export default function EditorPredica({
           // pasar el mouse; una línea; a la derecha las `acciones` que pasa
           // ControlPredica (12-11-2026): «↶ ↷ Borrar Duplicar», otra línea
           // y WhatsApp.
-          <div className="flex flex-wrap items-stretch gap-3">
-            <div role="group" aria-label="Agregar al bosquejo" className="flex min-w-80 flex-3 gap-2">
+          // Con solo íconos (tableta y PC reducido): UNA fila, con los grupos repartidos por todo el ancho y todos los
+          // botones de ícono del mismo tamaño (56 × 44).
+          <div className={soloIconos ? "flex flex-nowrap items-stretch justify-between gap-3" : "flex flex-wrap items-stretch gap-3"}>
+            {barraIzquierda && (
+              <>
+                <div data-barra-izquierda className="flex items-stretch gap-2">{barraIzquierda}</div>
+                <span aria-hidden="true" className="w-px bg-app-border" />
+              </>
+            )}
+            <div role="group" aria-label="Agregar al bosquejo" className={soloIconos ? "flex gap-2" : "flex min-w-80 flex-3 gap-2"}>
               {TIPOS_PIEZA.map(({ tipo, nombre }) => {
                 const Icono = ICONO_TIPO[tipo];
                 // «Punto» lleva el desplegable de la numeración (12-11-2026).
@@ -836,6 +881,7 @@ export default function EditorPredica({
                       nombre={nombre}
                       Icono={Icono}
                       clase={tonoPieza(tipo).contorno}
+                      soloIcono={soloIconos}
                       numeracion={predica.numeracion}
                       niveles={predica.numeracionNiveles}
                       onCrear={() => crearVacia(tipo)}
@@ -849,16 +895,25 @@ export default function EditorPredica({
                     type="button"
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => crearVacia(tipo)}
-                    className={`flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl border text-sm font-bold transition ${tonoPieza(tipo).contorno}`}
+                    aria-label={soloIconos ? nombre : undefined}
+                    title={soloIconos ? nombre : undefined}
+                    className={`flex h-11 items-center justify-center gap-2 rounded-xl border text-sm font-bold transition ${soloIconos ? "w-14 shrink-0" : "min-w-0 flex-1"} ${tonoPieza(tipo).contorno}`}
                   >
                     <Icono className="h-5 w-5 shrink-0" aria-hidden="true" />
-                    {nombre}
+                    {!soloIconos && nombre}
                   </button>
                 );
               })}
+              {botonVersiculos}
             </div>
             {acciones && <span aria-hidden="true" className="w-px bg-app-border" />}
             {acciones}
+            {barraDerecha && (
+              <>
+                <span aria-hidden="true" className="w-px bg-app-border" />
+                <div data-barra-derecha className="flex items-stretch">{barraDerecha}</div>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -913,7 +968,7 @@ function Resumen({ n, uno, varios }) {
 // cada una con su vista previa, como la biblioteca de listas multinivel de
 // Word. Se abre hacia arriba (la barra está abajo) y se cierra al elegir, con
 // Escape o tocando fuera.
-function BotonPunto({ nombre, Icono, clase, numeracion, niveles, onCrear, onElegir }) {
+function BotonPunto({ nombre, Icono, clase, soloIcono = false, numeracion, niveles, onCrear, onElegir }) {
   const [abierto, setAbierto] = useState(false);
   const caja = useRef(null);
   const actual = combinacionDe(numeracion, niveles);
@@ -935,15 +990,17 @@ function BotonPunto({ nombre, Icono, clase, numeracion, niveles, onCrear, onEleg
   }, [abierto]);
   const ejemplo = NUMERACIONES.find((n) => n.clave === estilos[0]);
   return (
-    <div ref={caja} className="relative flex min-w-0 flex-1">
+    <div ref={caja} className={`relative flex ${soloIcono ? "shrink-0" : "min-w-0 flex-1"}`}>
       <button
         type="button"
         onMouseDown={(e) => e.preventDefault()}
         onClick={onCrear}
-        className={`flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-l-xl border text-sm font-bold transition ${clase}`}
+        aria-label={soloIcono ? nombre : undefined}
+        title={soloIcono ? nombre : undefined}
+        className={`flex h-11 items-center justify-center gap-2 rounded-l-xl border text-sm font-bold transition ${soloIcono ? "w-14 shrink-0" : "min-w-0 flex-1"} ${clase}`}
       >
         <Icono className="h-5 w-5 shrink-0" aria-hidden="true" />
-        {nombre}
+        {!soloIcono && nombre}
       </button>
       <button
         type="button"

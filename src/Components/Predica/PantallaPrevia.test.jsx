@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render } from "@testing-library/react";
 import PantallaPrevia from "./PantallaPrevia.jsx";
+import { ESTILOS_POR_DEFECTO } from "../Estilos/EstilosProyeccion.js";
 
 afterEach(cleanup);
 
@@ -23,6 +24,74 @@ describe("PantallaPrevia: televisor de los 80", () => {
     cleanup();
     render(<PantallaPrevia pieza={pieza} />);
     expect(figura().className).toContain("border-4");
+  });
+});
+
+describe("PantallaPrevia: con estilos dibuja la escena real, a tamaño real y reducida", () => {
+  const medidas = { ancho: 1280, alto: 720, tipo: "proyector" };
+  const versiculo = { tipo: "versiculo", contenido: { texto: "Porque de tal manera amó Dios", cita: "Juan 3:16", version: "RVR1960" } };
+
+  it("sin estilos queda el dibujo simple de siempre (sin escena)", () => {
+    render(<PantallaPrevia pieza={pieza} />);
+    expect(figura().querySelector("[data-escena-previa]")).toBeNull();
+    expect(figura().hasAttribute("data-cabida")).toBe(false);
+  });
+
+  it("con estilos, un mensaje se dibuja en la escena, con las medidas de la pantalla del templo", () => {
+    render(<PantallaPrevia pieza={pieza} estilos={ESTILOS_POR_DEFECTO} medidas={medidas} />);
+    const escena = figura().querySelector("[data-escena-guia]");
+    expect(escena).not.toBeNull();
+    expect(escena.style.width).toBe("1280px");
+    expect(escena.style.height).toBe("720px");
+    expect(escena.textContent).toContain("Bienvenidos");
+    // El marco toma la proporción de esa pantalla, no un 16:9 fijo
+    expect(figura().style.aspectRatio.replace(/\s/g, "")).toBe("1280/720");
+    expect(figura().className).not.toContain("aspect-video");
+    expect(figura().hasAttribute("data-cabida")).toBe(true);
+  });
+
+  it("un versículo lleva su cita y el aviso de derechos de su Biblia, como en el templo", () => {
+    render(<PantallaPrevia pieza={versiculo} estilos={ESTILOS_POR_DEFECTO} medidas={medidas} />);
+    const escena = figura().querySelector("[data-escena-guia]");
+    expect(escena.textContent).toContain("Porque de tal manera amó Dios");
+    expect(escena.textContent).toContain("Juan 3:16");
+    expect(escena.textContent).toContain("Reina-Valera");
+  });
+
+  it("el título y el anuncio van dentro de la escena (no se repiten encima)", () => {
+    render(<PantallaPrevia pieza={pieza} titulo="La fe" ticker="Reunión el viernes" estilos={ESTILOS_POR_DEFECTO} medidas={medidas} />);
+    expect(figura().querySelector("[data-escena-titulo]").textContent).toBe("La fe");
+    expect(figura().querySelector("[data-escena-ticker]").textContent).toContain("Reunión el viernes");
+    expect(figura().querySelector("[data-mini-titulo]")).toBeNull();
+    expect(figura().querySelector("[data-mini-ticker]")).toBeNull();
+  });
+
+  it("con ajustarAlto el marco no fuerza el ancho completo ni el 16:9: toma el tamaño que cabe en su contenedor", () => {
+    render(<PantallaPrevia pieza={pieza} estilos={ESTILOS_POR_DEFECTO} medidas={medidas} ajustarAlto />);
+    expect(figura().hasAttribute("data-ajustar-alto")).toBe(true);
+    expect(figura().className).not.toContain("w-full");
+    expect(figura().className).not.toContain("aspect-video");
+    cleanup();
+    // También sin nada que mostrar (la escena no se dibuja) conserva el ajuste
+    render(<PantallaPrevia pieza={null} estilos={ESTILOS_POR_DEFECTO} medidas={medidas} ajustarAlto />);
+    expect(figura().hasAttribute("data-ajustar-alto")).toBe(true);
+    expect(figura().className).not.toContain("w-full");
+    expect(figura().className).not.toContain("aspect-video");
+    cleanup();
+    // Sin la opción, queda como siempre: todo el ancho
+    render(<PantallaPrevia pieza={pieza} estilos={ESTILOS_POR_DEFECTO} medidas={medidas} />);
+    expect(figura().hasAttribute("data-ajustar-alto")).toBe(false);
+    expect(figura().className).toContain("w-full");
+  });
+
+  it("una imagen o el estado apagado no usan la escena de texto", () => {
+    render(<PantallaPrevia pieza={{ tipo: "imagen", contenido: { url: "https://x.test/f.jpg", nombre: "Foto" } }} estilos={ESTILOS_POR_DEFECTO} medidas={medidas} />);
+    expect(figura().querySelector("[data-escena-previa]")).toBeNull();
+    expect(figura().querySelector("img")).not.toBeNull();
+    cleanup();
+    render(<PantallaPrevia pieza={pieza} estilos={ESTILOS_POR_DEFECTO} medidas={medidas} estadoPantalla="apagada" />);
+    expect(figura().querySelector("[data-escena-previa]")).toBeNull();
+    expect(figura().textContent).not.toContain("Bienvenidos");
   });
 });
 
