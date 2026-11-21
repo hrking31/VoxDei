@@ -542,23 +542,14 @@ export default function PulpitoPredica({ predica, compacto = false, formato: for
   // Todos los puntos, cada uno un botón: el tocado lleva el check y los que
   // están ahora en la pantalla, el recuadro dorado.
   const enPantallaResumen = alVuelo?.id === "resumen" ? idsEnPantalla : [];
-  // Computador en Pruebas (20-11-2026, pedido del usuario): el recuadro es fijo, llena el alto de
-  // su columna y NO crece; si hay muchos puntos, se desplaza la lista de adentro.
-  // El celular, igual que el computador (20-11-2026, pedido del usuario): sin recuadro.
-  const recuadroFijo = formato !== "tableta";
-  // En el computador (panel de la derecha, 20-11-2026, pedido del usuario) los puntos van sueltos, SIN
-  // recuadro alrededor, y el único título («Resumen de puntos» con su contador) está en la cabecera
-  // del panel; en el celular y la tableta, el recuadro con su rótulo de siempre.
+  // En todos los tamaños (20-11-2026, pedido del usuario) los puntos van sueltos, SIN recuadro alrededor: llenan el alto de
+  // su panel y NO crecen (si hay muchos, se desplaza la lista de adentro), y el único título («Resumen de puntos» con su
+  // contador) está en la cabecera del panel.
   const resumenNodo = puntos.length > 0 && (
     <section
       aria-label="Resumen de puntos"
-      className={`relative isolate flex flex-col gap-1.5 overflow-hidden ${recuadroFijo ? "h-full" : "rounded-xl border border-app-border bg-app-light px-3 py-3"}`}
+      className="relative isolate flex h-full flex-col gap-1.5 overflow-hidden"
     >
-      {!recuadroFijo && (
-        <span className="text-diminuto font-semibold tracking-widest text-app-muted uppercase">
-          Resumen de puntos · {grupos.length} {grupos.length === 1 ? "pantalla" : "pantallas"}
-        </span>
-      )}
       {puntos.length > 0 && (
         <MedidorPuntos
           firma={firmaPuntos}
@@ -571,7 +562,7 @@ export default function PulpitoPredica({ predica, compacto = false, formato: for
           alTerminar={(resultado) => setMedidos({ firma: firmaPuntos, grupos: resultado })}
         />
       )}
-      <ul className={`m-0 flex list-none flex-col gap-1 p-0 ${recuadroFijo ? "scrollbar-custom min-h-0 flex-1 overflow-y-auto" : ""}`}>
+      <ul className="scrollbar-custom m-0 flex min-h-0 flex-1 list-none flex-col gap-1 overflow-y-auto p-0">
         {grupos.flatMap((grupo, indiceGrupo) => {
           // Con varias pantallas (o al ajustarlas en Pruebas) cada una lleva su título y su medidor de llenado.
           const conTitulo = grupos.length > 1 || Boolean(alCambiarCortes);
@@ -708,7 +699,7 @@ export default function PulpitoPredica({ predica, compacto = false, formato: for
       {/* Como en Preparar: el botón de las Biblias encima del buscador. En el
           celular se quitó (13-11-2026): pendiente de ubicar. */}
       {formato !== "celular" && <SelectorBiblia />}
-      <BuscadorVersiculos accion="proyectar" onAgregar={proyectarVersiculo} showNotif={showNotif} plegable={baja} cajaFija={formato === "tableta"} />
+      <BuscadorVersiculos accion="proyectar" onAgregar={proyectarVersiculo} showNotif={showNotif} plegable={baja} />
     </section>
   );
 

@@ -29,6 +29,7 @@ npm run build && firebase deploy --only hosting
 - Para montar componentes con sesión, contexto y enrutador falsos está `montar()` en `Components/Navegacion/pruebas.utils.jsx` (por defecto: pastor con sesión lista, en computador, que confirma todo). También registra el `cleanup` de Testing Library, que sin `globals` no corre solo.
 - Vite **incrusta como `data:`** los SVG de menos de 4 KB (el símbolo): para comprobar una imagen, compárala con el `import` del archivo, no con su nombre.
 - Los 18 casos del cronograma que se probaron a mano el 23 de octubre **aún no están en Vitest**.
+- **Sin código muerto:** `src/CodigoMuerto.test.js` falla si algún archivo de producción de `src/` no lo importa otro (una línea comentada no cuenta). Borra el archivo en vez de dejarlo comentado o sin usar.
 - Los espejos del servidor tienen guardia: `Roles.test.js` compara `functions/roles.js` con `Roles.js`, y `Validaciones.test.js` compara `LARGO_MINIMO_CLAVE` y `SIMBOLOS_CLAVE` de `functions/index.js` con los de la app. Si cambias uno y no el otro, fallan.
 
 **Antes de correr `npm run dev` en un clon nuevo**: `src/Components/Firebase/FirebaseConfig.js` está en `.gitignore` y no se versiona. Debe existir exportando por defecto el objeto de configuración de Firebase (`apiKey`, `authDomain`, `databaseURL`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`); sin él la app no arranca.
@@ -106,11 +107,9 @@ Reglas al escribir una vista:
 
 Excepción deliberada (10 de noviembre de 2026): los cambios de la pantalla del templo los pinta `AvisoPantalla`, con mini pantalla animada y en otra ubicación (ver *Pantalla de entrada y presencia*). No uses `showNotif` para ellos.
 
-Otra excepción deliberada: los scripts de carga masiva `Upload/CargarBiblia` y `Upload/CargarVesiculos` conservan su propio `mensaje` en pantalla. No es un aviso sino un **progreso** que se reescribe en cada capítulo ("Subiendo: Génesis capítulo 3"); como notificación dispararía cientos de avisos seguidos. Además están comentados en `ViewDisplay` y no se montan.
-
 ### Modelos de datos
 
-**Biblia**: `biblia/{SIGLA}_{capitulo}` (p. ej. `GEN_1`) con `sigla`, `libro`, `capitulo`, `versiculos` (mapa `"1"` → texto) y `chapter_html`. Se consulta con `obtenerVersiculo(sigla, capitulo, numero, tipo, showNotif)` en `FuncionesControlPredica`. `LibrosBiblia.js` es el catálogo estático (`librosAntiguo`, `librosNuevo`) e incluye el número de versículos de cada capítulo en campos `capitulo1`, `capitulo2`, …, que alimentan los modales de selección. Los componentes de `Upload/` son scripts de carga masiva de un solo uso, normalmente comentados en `ViewDisplay`.
+**Biblia**: `biblia/{SIGLA}_{capitulo}` (p. ej. `GEN_1`) con `sigla`, `libro`, `capitulo`, `versiculos` (mapa `"1"` → texto) y `chapter_html`. Se consulta con `obtenerVersiculo(sigla, capitulo, numero, tipo, showNotif)` en `FuncionesControlPredica`. `LibrosBiblia.js` es el catálogo estático (`librosAntiguo`, `librosNuevo`) e incluye el número de versículos de cada capítulo en campos `capitulo1`, `capitulo2`, …, que alimentan los modales de selección.
 
 **Prédicas** (sin límite desde el 10 de noviembre de 2026; antes, 5 slots fijos): un documento por prédica en `iglesias/{groupId}/predicas/{id}` = `{ titulo, fecha: "AAAA-MM-DD" | "", serie, base, numeracion, estado: "borrador" | "terminada" | "predicada", piezas[], creado, actualizado }`. Cada pieza conserva la forma de los antiguos `items`: `{ id, tipo, contenido }` con `tipo` `titulo` (un «punto») | `mensaje` | `versiculo` (`contenido` = `{ cita, texto }`). **Las 5 antiguas** (`predica1`..`predica5`, con `items` y sin título) se leen igual (`normalizarPredica`: «Prédica guardada N») y pasan a la forma nueva la primera vez que se guardan (`guardarPredica` escribe sin `merge`). Ya no existe `slots` en el contexto ni su carga en `InicializarEstados`. Ver *Prédica* más abajo.
 

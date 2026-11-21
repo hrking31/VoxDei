@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { esAnchoCompacto, esAnchoReducido, esAnchoSoloIconos, esApaisada, esBaja, esEscritorio, esIPadConTeclado, esTabletaGrande, esTactil, formatoDe } from "./formatoPantalla.js";
+import { afterEach, describe, expect, it } from "vitest";
+import { act, renderHook } from "@testing-library/react";
+import { esAnchoCompacto, esAnchoReducido, esAnchoSoloIconos, esApaisada, useAnchoCompacto, useAnchoReducido, useAnchoSoloIconos, useApaisado, useTabletaGrande, esBaja, esEscritorio, esIPadConTeclado, esTabletaGrande, esTactil, formatoDe } from "./formatoPantalla.js";
 
 describe("el formato de la pantalla del panel", () => {
   it("toda tableta táctil, de cualquier tamaño, es «tableta»: también el iPad Air, el Pro de 11 y el de 12,9 acostado", () => {
@@ -123,5 +124,68 @@ describe("los botones de control de Predicar: solo íconos por debajo de 1200 px
     expect(esAnchoSoloIconos(1199)).toBe(true);
     expect(esAnchoSoloIconos(1200)).toBe(false);
     expect(esAnchoSoloIconos(1366)).toBe(false);
+  });
+});
+
+describe("los ganchos que reaccionan al tamaño de la ventana", () => {
+  const original = { ancho: window.innerWidth, alto: window.innerHeight };
+  afterEach(() => {
+    window.innerWidth = original.ancho;
+    window.innerHeight = original.alto;
+  });
+  const poner = (ancho, alto) => {
+    window.innerWidth = ancho;
+    window.innerHeight = alto;
+  };
+  const cambiar = (ancho, alto) =>
+    act(() => {
+      poner(ancho, alto);
+      window.dispatchEvent(new Event("resize"));
+    });
+
+  it("useApaisado: lee el tamaño al montar y se actualiza al girar", () => {
+    poner(744, 1133);
+    const { result } = renderHook(() => useApaisado());
+    expect(result.current).toBe(false);
+    cambiar(1133, 744);
+    expect(result.current).toBe(true);
+    // También con el aviso de orientación de los dispositivos
+    act(() => {
+      poner(744, 1133);
+      window.dispatchEvent(new Event("orientationchange"));
+    });
+    expect(result.current).toBe(false);
+  });
+
+  it("useTabletaGrande: acostada y de 1180 px en adelante", () => {
+    poner(1133, 744);
+    const { result } = renderHook(() => useTabletaGrande());
+    expect(result.current).toBe(false);
+    cambiar(1180, 820);
+    expect(result.current).toBe(true);
+    cambiar(1024, 1366); // de pie, aunque sea alto
+    expect(result.current).toBe(false);
+  });
+
+  it("useAnchoCompacto, useAnchoSoloIconos y useAnchoReducido cambian en 1180, 1200 y 1600 px", () => {
+    poner(1100, 800);
+    const compacto = renderHook(() => useAnchoCompacto());
+    const soloIconos = renderHook(() => useAnchoSoloIconos());
+    const reducido = renderHook(() => useAnchoReducido());
+    expect([compacto.result.current, soloIconos.result.current, reducido.result.current]).toEqual([true, true, true]);
+    cambiar(1190, 800);
+    expect([compacto.result.current, soloIconos.result.current, reducido.result.current]).toEqual([false, true, true]);
+    cambiar(1200, 800);
+    expect([compacto.result.current, soloIconos.result.current, reducido.result.current]).toEqual([false, false, true]);
+    cambiar(1600, 900);
+    expect([compacto.result.current, soloIconos.result.current, reducido.result.current]).toEqual([false, false, false]);
+  });
+
+  it("al desmontar dejan de escuchar la ventana", () => {
+    poner(1100, 800);
+    const { result, unmount } = renderHook(() => useAnchoCompacto());
+    unmount();
+    cambiar(1700, 900);
+    expect(result.current).toBe(true); // se quedó con el último valor, sin errores
   });
 });

@@ -2862,6 +2862,8 @@ describe("tableta acostada: Pruebas y Predicar con el diseño del computador", (
       // Tocar dentro no lo cierra; tocar un punto tampoco
       fireEvent.pointerDown(within(dialogo).getByText("Resumen de puntos"));
       expect(document.querySelector("[data-puntos-dialogo]")).not.toBeNull();
+      // En la tableta hay barra superior: el diálogo deja su espacio
+      expect(dialogo.className).toContain("top-barra-superior");
       // Tocar fuera lo cierra
       fireEvent.pointerDown(document.body);
       expect(document.querySelector("[data-puntos-dialogo]")).toBeNull();
@@ -2952,6 +2954,41 @@ describe("computador: los mismos puntos de quiebre que las tabletas (1180 px)", 
     fireEvent.click(within(screen.getByRole("complementary", { name: "Mis prédicas" })).getByText("La fe que se atreve"));
     irAPredicar();
     expect(textos()).toEqual(["Volver", "Título", "Texto", "Anuncio", "Ocultar", "Versículos", "Puntos"]);
+  });
+
+  it("la barra de abajo con solo íconos es uniforme: todos los botones de ícono miden lo mismo (w-14 × h-11) y van en una sola fila", () => {
+    montarPC(1100, 800);
+    fireEvent.click(document.querySelector("[data-abrir-cajon]"));
+    fireEvent.click(within(screen.getByRole("complementary", { name: "Mis prédicas" })).getByText("La fe que se atreve"));
+    const fila = screen.getByRole("group", { name: "Agregar al bosquejo" }).parentElement;
+    const barra = fila.parentElement;
+    expect(fila.className).toContain("flex-nowrap");
+    expect(fila.className).toContain("justify-between");
+    const botones = [...barra.querySelectorAll("button, a")];
+    // Los de ícono: todos menos «Prédicas» (con texto) y la flecha de la numeración de Punto
+    const deIcono = botones.filter((b) => !b.hasAttribute("data-abrir-cajon") && !b.hasAttribute("data-numeracion"));
+    expect(deIcono.length).toBeGreaterThanOrEqual(10);
+    for (const b of deIcono) {
+      const clases = b.className.split(" ");
+      expect(clases, b.getAttribute("aria-label") || b.title).toContain("w-14");
+      expect(clases, b.getAttribute("aria-label") || b.title).toContain("h-11");
+    }
+    // Deshacer, Rehacer, Borrar, Duplicar, WhatsApp, Mensaje, Imagen, Versículos, Pruebas y Predicar
+    const nombres = deIcono.map((b) => b.getAttribute("aria-label") || b.getAttribute("title"));
+    ["Deshacer", "Rehacer", "Borrar", "Duplicar", "Compartir por WhatsApp", "Mensaje", "Imagen", "Versículos", "Pruebas", "Predicar"].forEach((n) => expect(nombres).toContain(n));
+  });
+
+  it("el panel de Puntos llega hasta arriba en el computador (no tiene barra superior) y en la tableta deja el espacio de su barra", () => {
+    montarPC(1100, 800);
+    fireEvent.click(document.querySelector("[data-abrir-cajon]"));
+    fireEvent.click(within(screen.getByRole("complementary", { name: "Mis prédicas" })).getByText("La fe que se atreve"));
+    irAPredicar();
+    fireEvent.click(document.querySelector("[data-abrir-puntos]"));
+    expect(document.querySelector("[data-puntos-dialogo]").className).toContain("top-0");
+    expect(document.querySelector("[data-puntos-dialogo]").className).not.toContain("top-barra-superior");
+    fireEvent.pointerDown(document.body);
+    fireEvent.click(document.querySelector('[data-pestana="versiculo"]'));
+    expect(document.querySelector('[data-hoja="versiculo"]').className).toContain("top-0");
   });
 
   it("de 1600 px en adelante (PC completo): el diseño de siempre (lista fija, columna derecha, botones con texto)", () => {

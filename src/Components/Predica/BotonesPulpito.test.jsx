@@ -93,3 +93,26 @@ describe("BotonesPulpito: tableta y celular", () => {
     expect(screen.getByRole("group", { name: "Ir al púlpito" }).className).toContain("w-44");
   });
 });
+
+describe("BotonesPulpito en la barra de abajo de la tableta (barra)", () => {
+  it("con barra: el mismo tamaño que los demás botones de ícono (56 × 44), con su recuadro de color, sin texto", () => {
+    render(<BotonesPulpito compacto soloIconos barra onPruebas={() => {}} onPredicar={() => {}} />);
+    const [pruebas, predicar] = botones();
+    for (const boton of [pruebas, predicar]) {
+      const clases = boton.className.split(" ");
+      expect(clases).toContain("h-11");
+      expect(clases).toContain("w-14");
+      expect(clases).toContain("border");
+      expect(boton.textContent).toBe("");
+    }
+    expect(pruebas.className).toContain("border-app-azul");
+    expect(predicar.className).toContain("border-app-main");
+  });
+
+  it("sin barra, solo íconos sigue siendo el botón bajo y sin recuadro (el del celular)", () => {
+    render(<BotonesPulpito compacto soloIconos onPruebas={() => {}} onPredicar={() => {}} />);
+    const [pruebas] = botones();
+    expect(pruebas.className.split(" ")).toContain("h-9");
+    expect(pruebas.className.split(" ")).not.toContain("border");
+  });
+});
