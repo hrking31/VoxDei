@@ -206,7 +206,7 @@ export default function ControlTicker() {
   };
 
   return (
-    <div className="min-h-dvh bg-linear-to-b from-app-dark/50 to-app-light/50">
+    <div className="min-h-pantalla bg-linear-to-b from-app-dark/50 to-app-light/50">
       <div className="sticky top-0 border-b border-app-main bg-app-light z-10 ">
         <FranjaTurno />
         <h1 className="font-bold text-app-main flex items-center gap-1 px-2">

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { screen } from "@testing-library/react";
 import simboloSvg from "../../assets/voxdei-simbolo.svg";
+import simboloNavidadSvg from "../../assets/voxdei-simbolo-navidad.svg";
 import LogoDeLaIglesia from "./LogoDeLaIglesia.jsx";
 import { montar } from "../Navegacion/pruebas.utils.jsx";
 
@@ -10,7 +11,8 @@ describe("LogoDeLaIglesia", () => {
   it("sin logo de la iglesia usa el de VOXDEI", () => {
     montar(<LogoDeLaIglesia data-prueba />, { auth: sesion, app: { iglesia: null } });
     const img = screen.getByAltText("VOXDEI");
-    expect(img.getAttribute("src")).toBe(simboloSvg);
+    // El normal o el de Navidad, según la época: la prueba no depende de la fecha.
+    expect([simboloSvg, simboloNavidadSvg]).toContain(img.getAttribute("src"));
     expect(img.hasAttribute("data-logo-iglesia")).toBe(false);
   });
 

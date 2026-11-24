@@ -257,6 +257,12 @@ Entra a **Usuarios**, toca el lápiz junto a tu nombre y pulsa **Eliminar mi cue
 
 Aquí queda anotado lo que va cambiando en la aplicación, para que siempre sepas qué es nuevo.
 
+### 24 de noviembre de 2026
+
+- **El logo se viste de Navidad.** Del 1 de diciembre al 6 de enero, el logo de VOXDEI luce una guirnalda de luces que parpadea y nieve que cae sobre la pantalla dorada. Se ve en el inicio de sesión, en la entrada, en la barra lateral y en la pantalla de espera del templo. Cambia solo y el 7 de enero vuelve al logo de siempre; no hay que activar nada. Si tu iglesia subió su propio logo, se queda el suyo. La marca de agua del proyector, la pantalla de carga y las pantallas de error no cambian. Quien tenga activada la opción de «reducir movimiento» en su dispositivo verá las luces quietas y sin nieve cayendo.
+- **El panel también se viste de Navidad.** En las mismas fechas, una guirnalda de pino adorna la parte de arriba de las pantallas, con piñas, bolas doradas, rojas y plateadas, acebo con bayas, un poco de nieve y un lazo rojo en cada punta; y entre sus ramas van enredadas luces de colores que parpadean. Es solo adorno: no se puede tocar ni tapa nada, y se quita sola el 7 de enero.
+- **Cae nieve sobre toda la app y se acumula abajo.** En las mismas fechas caen copos suaves y algunos cristales de nieve sobre las pantallas, de distintos tamaños y velocidades para dar profundidad. Los copos se posan en el borde de abajo y, en unos dos minutos y medio, forman una capa de nieve con relieve de unos 20 píxeles; al recargar la página empieza de cero. No estorba al tocar. **No cae sobre la pantalla del templo**, para no tapar lo que ve la congregación, y se detiene si tienes activada la opción de «reducir movimiento».
+
 ### 20 de noviembre de 2026
 
 - **Menos avisos al buscar versículos.** Al cargar un versículo o un capítulo ya no aparece el aviso «Versículo encontrado»: solo se avisa cuando algo falla (por ejemplo, un versículo que no existe). Vale en Biblia, en el Orden del culto y en el buscador de Prédica.

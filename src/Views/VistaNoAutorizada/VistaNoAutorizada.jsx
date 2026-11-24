@@ -17,7 +17,7 @@ export default function VistaNoAutorizada() {
 
   return (
     <div className="max-w-md mx-auto text-center mt-28 p-4">
-      <Simbolo alt="" className="mx-auto mb-6 h-16 w-16 grayscale brightness-75 opacity-60" />
+      <Simbolo alt="" navidad={false} className="mx-auto mb-6 h-16 w-16 grayscale brightness-75 opacity-60" />
       <h1 className="text-4xl font-bold text-app-error mb-6">
         Acceso denegado
       </h1>

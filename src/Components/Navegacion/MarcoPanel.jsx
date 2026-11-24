@@ -5,6 +5,7 @@ import { useAppContext } from "../Context/AppContext";
 import BarraLateral from "./BarraLateral.jsx";
 import BarraSuperior from "./BarraSuperior.jsx";
 import IconoPestana from "./IconoPestana.jsx";
+import GuirnaldaNavidad from "../Navidad/GuirnaldaNavidad.jsx";
 import PantallaGuia from "../PantallaGuia/PantallaGuia.jsx";
 import { AccionesGuiaContext } from "../PantallaGuia/AccionesGuia.js";
 import { rutaConGuia } from "../PantallaGuia/utilesGuia.js";
@@ -37,6 +38,7 @@ export default function MarcoPanel() {
         <BarraSuperior menuAbierto={menuAbierto} onAbrirMenu={() => setMenuAbierto(true)} />
         <BarraLateral movil abierta={menuAbierto} onCerrar={() => setMenuAbierto(false)} />
         <div className="pt-barra-superior">
+          <GuirnaldaNavidad />
           <Outlet />
         </div>
       </>
@@ -49,6 +51,7 @@ export default function MarcoPanel() {
         <IconoPestana />
         <BarraLateral />
         <div className="min-w-0 flex-1">
+          <GuirnaldaNavidad />
           <Outlet />
         </div>
         {/* Guía de la pantalla del templo: solo en el computador y en las

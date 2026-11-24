@@ -56,6 +56,34 @@
   /* El versículo elegido en Biblia (18-11-2026): sombra proyectada por las letras, sin recuadro ni color, como si estuviera por encima de los demás */
   --drop-shadow-elegido: 0 6px 10px rgb(0 0 0 / 0.55);
 
+  /* Ambiente de Navidad (24-11-2026): guirnalda sobre el panel y nieve en el borde
+     de las tarjetas. La cuarta luz es el dorado de la app (app-main). */
+  --color-app-luz-roja: #ef4b4b;
+  --color-app-luz-verde: #4fd18b;
+  --color-app-luz-crema: #fff1c9;
+  --color-app-cable: #8a6d3b; /* el cable de las luces */
+  --color-app-nieve: #ffffff;
+  --color-app-pino: #1f6b3a; /* franja de pino: agujas */
+  --color-app-pino-claro: #3a9a5b; /* agujas del frente y hojas de acebo */
+  --color-app-pino-oscuro: #134a28; /* la rama y el borde de las hojas */
+  --color-app-pino-brillo: #8ed49a; /* las puntas de las agujas que dan la luz */
+  --color-app-baya: #e0393e; /* bayas del acebo, bola roja y lazo */
+  --color-app-baya-oscura: #8f1f26; /* sombra de la bola roja, del lazo y del nudo */
+  --color-app-pina: #8a5a2e; /* piñas del pino */
+  --color-app-pina-oscura: #4d2f16; /* las escamas de la piña */
+  --color-app-oro-claro: #ffeaa3; /* luz de la bola dorada */
+  --color-app-oro-oscuro: #b8801f; /* sombra de la bola dorada */
+  --color-app-plata-oscura: #7d838b; /* sombra de la bola plateada */
+  --shadow-luz: 0 0 10px 3px currentColor; /* resplandor de cada bombillo */
+  --spacing-guirnalda: 2rem; /* espacio que la guirnalda reserva arriba del contenido (pedido del usuario) */
+  --spacing-pila: 1.5rem; /* alto del lienzo de la nieve acumulada abajo (la capa llega a 20 px) */
+  --spacing-pino: 2.25rem; /* alto del dibujo del pino: 0,25 rem más que el espacio reservado, sobresale hacia abajo; la escala del patrón sale de aquí (ver GuirnaldaNavidad.jsx) */
+  --animate-parpadea-luz: parpadea-luz 2.4s ease-in-out infinite;
+  @keyframes parpadea-luz {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 1; }
+  }
+
   /* Animaciones de la pantalla de entrada (9 de noviembre de 2026) */
   --animate-respira: respira 4s ease-in-out infinite; /* brillo del símbolo */
   --animate-renglon: renglon 3.6s ease-in-out infinite; /* renglones que se proyectan */
@@ -228,6 +256,14 @@ body {
    que siempre, sin que ningún componente tenga que preguntar. */
 :root {
   --alto-barra: 0px;
+  --alto-guirnalda: 0px;
+}
+/* La guirnalda de Navidad ocupa su sitio arriba del contenido (no tapa nada) y las
+   pantallas que miden la ventana entera (h-pantalla) se lo descuentan. No entra en
+   --alto-barra: los encabezados pegajosos se pegan bajo la barra, no bajo la guirnalda,
+   que se va al desplazar. */
+:root:has([data-guirnalda]) {
+  --alto-guirnalda: var(--spacing-guirnalda);
 }
 :root:has([data-barra-superior]) {
   --alto-barra: var(--spacing-barra-superior);
@@ -241,10 +277,10 @@ body {
 /* Alto de pantalla descontando la barra de arriba. Las pantallas del panel que
    miden exactamente la pantalla usan estas en vez de h-svh / min-h-svh. */
 @utility h-pantalla {
-  height: calc(100svh - var(--alto-barra));
+  height: calc(100svh - var(--alto-barra) - var(--alto-guirnalda));
 }
 @utility min-h-pantalla {
-  min-height: calc(100svh - var(--alto-barra));
+  min-height: calc(100svh - var(--alto-barra) - var(--alto-guirnalda));
 }
 /* ---- Pantalla de entrada (/ViewSelector) ---- */
 /* Fondo con un resplandor dorado detrás del símbolo */

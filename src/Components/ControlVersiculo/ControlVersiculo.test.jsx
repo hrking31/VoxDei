@@ -268,9 +268,10 @@ describe("ControlVersiculo: dónde van los botones", () => {
     const ranura = nuevaRanura();
     const { container } = abrir({ ranura });
     const raiz = container.firstElementChild;
-    expect(raiz.className).toContain("h-svh");
+    // h-pantalla: mide la ventana menos la barra de arriba y la guirnalda de Navidad
+    expect(raiz.className).toContain("h-pantalla");
     expect(raiz.className).toContain("overflow-hidden");
-    expect(raiz.className).not.toContain("min-h-dvh");
+    expect(raiz.className).not.toContain("min-h-pantalla");
     const zona = container.querySelector("[data-sin-capitulo]").parentElement.parentElement;
     expect(zona.className).toContain("overflow-y-auto");
     expect(zona.className).toContain("flex-1");
@@ -280,7 +281,7 @@ describe("ControlVersiculo: dónde van los botones", () => {
   it("sin guía (ni celular ni tableta) la página se desplaza como siempre", () => {
     const { container } = abrir({ ranura: null });
     const raiz = container.firstElementChild;
-    expect(raiz.className).toContain("min-h-dvh");
+    expect(raiz.className).toContain("min-h-pantalla");
     expect(raiz.className).not.toContain("overflow-hidden");
     const zona = container.querySelector("[data-sin-capitulo]").parentElement.parentElement;
     expect(zona.className).toContain("contents");

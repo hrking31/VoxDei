@@ -29,7 +29,7 @@ export default class CapturaErrores extends Component {
       <div className="min-h-svh flex items-center justify-center px-4 bg-linear-to-b from-gray-900 to-gray-800">
         <div className="w-full max-w-md bg-gray-900/40 border border-gray-700 shadow-xl p-6 text-center space-y-4">
           {/* El símbolo apagado: «se fue la luz», sin asustar a nadie */}
-          <Simbolo alt="" className="mx-auto h-16 w-16 grayscale brightness-75 opacity-60" />
+          <Simbolo alt="" navidad={false} className="mx-auto h-16 w-16 grayscale brightness-75 opacity-60" />
 
           <h1 className="text-2xl font-bold text-app-main">
             La pantalla se apagó un momento

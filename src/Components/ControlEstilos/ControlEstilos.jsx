@@ -283,6 +283,7 @@ export default function ControlEstilos() {
             {estilos.marcaAgua.visible && (
               <Simbolo
                 alt=""
+                navidad={false}
                 className="h-auto"
                 style={estiloMarcaAgua(
                   estilos,

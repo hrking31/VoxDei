@@ -789,7 +789,7 @@ export default function ControlVersiculos() {
   }
 
   return (
-    <div className={`flex flex-col bg-linear-to-b from-app-dark/50 to-app-light/50 ${enGuia ? "h-svh overflow-hidden" : "min-h-dvh"}`}>
+    <div className={`flex flex-col bg-linear-to-b from-app-dark/50 to-app-light/50 ${enGuia ? "h-pantalla overflow-hidden" : "min-h-pantalla"}`}>
       {/* BLOQUE STICKY */}
       {/* En el computador (con guía) no hay encabezado arriba: la barra de capítulos
           y los botones van a la columna de la derecha (SelectorLibros). */}

@@ -541,6 +541,7 @@ export default function DisplayView() {
       {estilos.marcaAgua.visible && !enEspera && (
         <Simbolo
           alt=""
+          navidad={false}
           className="h-auto"
           style={estiloMarcaAgua(
             estilos,

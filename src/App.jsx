@@ -31,6 +31,7 @@ import InicializarEstados from "./Components/InicializarEstados/InicializarEstad
 import Notificaciones from "./Components/Notificaciones/Notificaciones";
 import AvisoPantalla from "./Components/PantallaTemplo/AvisoPantalla";
 import MarcoPanel from "./Components/Navegacion/MarcoPanel.jsx";
+import NieveCayendo from "./Components/Navidad/NieveCayendo.jsx";
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
       <InicializarEstados />
       <Notificaciones />
       <AvisoPantalla />
+      <NieveCayendo />
       <Routes>
         <Route path="/" element={<Navigate to="/ViewLogin" />} />
         <Route path="/ViewLogin" element={<ViewLogin />} />
