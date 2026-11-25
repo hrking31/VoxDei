@@ -19,7 +19,7 @@ import PilaDeNieve from "./PilaDeNieve.jsx";
 // recargar. Nunca pasa de `ALTO_MAXIMO` px.
 //
 // Cuándo nieva y cuándo no (el proyector, «reducir movimiento») lo decide `hayNieve`
-// (utilesNieve.js), que comparte con `EspacioNieve`, el espacio de 12 px que se
+// (utilesNieve.js), que comparte con `EspacioNieve`, el espacio de 14 px que se
 // reserva abajo en el panel.
 export default function NieveCayendo() {
   const { pathname } = useLocation();

@@ -18,7 +18,6 @@ import {
   TrashIcon,
 } from "@heroicons/react/24/solid";
 import ElegirImagen from "./ElegirImagen.jsx";
-import BotonesHistorial from "./BotonesHistorial.jsx";
 import BuscadorVersiculos from "./BuscadorVersiculos.jsx";
 import { BotonesPulpito } from "./BotonesPulpito.jsx";
 import PanelHoja from "./PanelHoja.jsx";

@@ -3,7 +3,7 @@ import { hayNieve } from "./utilesNieve.js";
 
 // El espacio que la nieve de abajo reserva al final del contenido (Navidad,
 // 24 de noviembre de 2026, pedido del usuario: «lo mismo que arriba con las luces y
-// las ramas, dale un espacio de 12 px»). Ocupa su sitio, para que la capa de nieve
+// las ramas, dale un espacio de 12 px», subido después a 14 px). Ocupa su sitio, para que la capa de nieve
 // no tape lo último de la pantalla. Las pantallas que miden la ventana entera
 // (`h-pantalla` / `min-h-pantalla`) se lo descuentan con `--alto-nieve`, que se
 // activa con el atributo `data-espacio-nieve` de este bloque (ver index.css).

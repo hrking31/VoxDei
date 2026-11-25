@@ -17,7 +17,6 @@ import {
   MagnifyingGlassIcon,
   TagIcon,
   TvIcon,
-  XMarkIcon,
 } from "@heroicons/react/24/solid";
 import { useAppContext } from "../Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext";

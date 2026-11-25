@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bars3Icon, BookOpenIcon, DocumentDuplicateIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/solid";
+import { Bars3Icon, BookOpenIcon, DocumentDuplicateIcon, TrashIcon } from "@heroicons/react/24/solid";
 import { useAnchoCompacto, useAnchoReducido, useApaisado, useFormato, useTabletaGrande } from "../Hooks/formatoPantalla";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
 import { Route, Routes } from "react-router-dom";
 
@@ -26,6 +26,34 @@ const haySuperior = () => document.querySelector("[data-barra-superior]") !== nu
 const hayMenu = () => screen.queryByRole("navigation", { name: "Secciones del panel" }) !== null;
 
 const hayGuia = () => document.querySelector("[data-guia-templo]") !== null;
+
+describe("MarcoPanel en Navidad", () => {
+  const conFecha = (anio, mes, dia) => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(anio, mes, dia, 12));
+  };
+  afterEach(() => vi.useRealTimers());
+
+  it("en computador y en celular pone la guirnalda arriba y el espacio de la nieve abajo, alrededor del contenido", () => {
+    conFecha(2026, 11, 25);
+    for (const app of [{}, { isDesktop: false }]) {
+      const { unmount } = montar(rutas, { app });
+      const contenido = screen.getByText("Contenido de Inicio");
+      const hijos = [...contenido.parentElement.children];
+      expect(hijos[0].hasAttribute("data-guirnalda")).toBe(true);
+      expect(hijos[hijos.length - 1].hasAttribute("data-espacio-nieve")).toBe(true);
+      expect(hijos.indexOf(contenido)).toBeGreaterThan(0);
+      unmount();
+    }
+  });
+
+  it("fuera de temporada no hay guirnalda ni espacio", () => {
+    conFecha(2027, 5, 15);
+    montar(rutas);
+    expect(document.querySelector("[data-guirnalda]")).toBeNull();
+    expect(document.querySelector("[data-espacio-nieve]")).toBeNull();
+  });
+});
 
 describe("MarcoPanel", () => {
   it("la guía del templo sale en el computador, solo en las secciones que proyectan", () => {

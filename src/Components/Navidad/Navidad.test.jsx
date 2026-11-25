@@ -86,8 +86,8 @@ describe("GuirnaldaNavidad", () => {
     // El atributo `data-guirnalda` es lo que activa --alto-guirnalda en index.css
     const css = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), "../../index.css"), "utf8");
     expect(css).toMatch(/:root:has\(\[data-guirnalda\]\)\s*\{\s*--alto-guirnalda: var\(--spacing-guirnalda\)/);
-    expect(css).toMatch(/@utility h-pantalla \{\s*height: calc\(100svh - var\(--alto-barra\) - var\(--alto-guirnalda\)\)/);
-    expect(css).toMatch(/@utility min-h-pantalla \{\s*min-height: calc\(100svh - var\(--alto-barra\) - var\(--alto-guirnalda\)\)/);
+    expect(css).toMatch(/@utility h-pantalla \{\s*height: calc\(100svh - var\(--alto-barra\) - var\(--alto-guirnalda\) - var\(--alto-nieve\)\)/);
+    expect(css).toMatch(/@utility min-h-pantalla \{\s*min-height: calc\(100svh - var\(--alto-barra\) - var\(--alto-guirnalda\) - var\(--alto-nieve\)\)/);
   });
 
   it("las luces alternan los cuatro colores", () => {

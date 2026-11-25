@@ -7,7 +7,7 @@ import { navidadActiva } from "../Logo/utilesNavidad.js";
 // Tampoco con «reducir movimiento» activo.
 const RUTA_PROYECTOR = "/voxdei";
 
-export function prefiereMenosMovimiento() {
+function prefiereMenosMovimiento() {
   return typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 

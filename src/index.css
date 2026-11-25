@@ -77,7 +77,7 @@
   --shadow-luz: 0 0 10px 3px currentColor; /* resplandor de cada bombillo */
   --spacing-guirnalda: 2rem; /* espacio que la guirnalda reserva arriba del contenido (pedido del usuario) */
   --spacing-pila: 1.5rem; /* alto del lienzo de la nieve acumulada abajo (la capa llega a 20 px) */
-  --spacing-nieve: 0.75rem; /* espacio que se reserva abajo del contenido para la nieve: 12 px (pedido del usuario) */
+  --spacing-nieve: 0.875rem; /* espacio que se reserva abajo del contenido para la nieve: 14 px (pedido del usuario; antes 12 px) */
   --spacing-pino: 2.25rem; /* alto del dibujo del pino: 0,25 rem más que el espacio reservado, sobresale hacia abajo; la escala del patrón sale de aquí (ver GuirnaldaNavidad.jsx) */
   --animate-parpadea-luz: parpadea-luz 2.4s ease-in-out infinite;
   @keyframes parpadea-luz {
@@ -267,7 +267,7 @@ body {
 :root:has([data-guirnalda]) {
   --alto-guirnalda: var(--spacing-guirnalda);
 }
-/* Lo mismo abajo: la nieve reserva 12 px al final del contenido (EspacioNieve) */
+/* Lo mismo abajo: la nieve reserva 14 px al final del contenido (EspacioNieve) */
 :root:has([data-espacio-nieve]) {
   --alto-nieve: var(--spacing-nieve);
 }
