@@ -31,17 +31,28 @@ export const esTactil = () => {
   return consulta("(pointer: coarse)") || consulta("(any-pointer: coarse)") || esIPadConTeclado();
 };
 
-export function formatoDe(ancho, tactil = esTactil()) {
+// El lado corto de la pantalla del APARATO, en px CSS (24-11-2026). Vale igual de pie que acostado: iOS siempre da las
+// medidas de pie y Android las intercambia, y el mínimo sirve en los dos casos. 0 si no se sabe (las pruebas, jsdom).
+export const ladoCortoDelDispositivo = () => {
+  if (typeof window === "undefined" || !window.screen) return 0;
+  return Math.min(window.screen.width || 0, window.screen.height || 0);
+};
+
+export function formatoDe(ancho, tactil = esTactil(), ladoCorto = ladoCortoDelDispositivo()) {
+  // Un celular (táctil y de lado corto menor a 744 px: de ahí hacia abajo, y el iPad mini es la tableta más pequeña) es
+  // «celular» también acostado (24-11-2026, pedido del usuario: «la misma vista de cuando está en vertical, pero con
+  // scroll»). Sin esto, acostado mide ~844 px de ancho y se le montaba el diseño de tableta.
+  if (tactil && ladoCorto > 0 && ladoCorto < ANCHO_TABLETA) return "celular";
   if (tactil && ancho >= ANCHO_TABLETA && ancho <= ANCHO_TABLETA_MAXIMO) return "tableta";
   if (ancho >= ANCHO_ESCRITORIO) return "escritorio";
   if (ancho >= ANCHO_TABLETA) return "tableta";
   return "celular";
 }
 
-export const esBaja = (ancho, alto, tactil = esTactil()) => formatoDe(ancho, tactil) === "escritorio" && alto < ALTO_BAJO;
+export const esBaja = (ancho, alto, tactil = esTactil(), ladoCorto) => formatoDe(ancho, tactil, ladoCorto) === "escritorio" && alto < ALTO_BAJO;
 
 // El panel «de escritorio» (barra lateral, columnas): solo el formato escritorio. Antes era `ancho >= 1024`.
-export const esEscritorio = (ancho, tactil = esTactil()) => formatoDe(ancho, tactil) === "escritorio";
+export const esEscritorio = (ancho, tactil = esTactil(), ladoCorto) => formatoDe(ancho, tactil, ladoCorto) === "escritorio";
 
 // Lo lee del contexto (lo actualiza InicializarEstados en cada resize). Si
 // no está (pruebas antiguas), lo deduce de isDesktop.

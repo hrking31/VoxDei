@@ -556,7 +556,7 @@ export default function ControlPredica() {
 
   if (predicas === null) {
     return (
-      <div className="h-pantalla flex flex-col">
+      <div className="h-pantalla flex flex-col" data-sin-espacio-nieve>
         <p className="m-auto text-app-muted">Cargando tus prédicas…</p>
       </div>
     );
@@ -587,7 +587,7 @@ export default function ControlPredica() {
   // ---------- Celular: una pantalla a la vez ----------
   if (celular) {
     return (
-      <div className="h-pantalla flex flex-col bg-app-dark">
+      <div className="h-pantalla flex flex-col bg-app-dark" data-sin-espacio-nieve>
         {medidor}
         {/* Sin FranjaTurno en el celular (14-11-2026, pedido del usuario): el
             servicio y la pantalla ya van en la barra de arriba. */}
@@ -610,7 +610,7 @@ export default function ControlPredica() {
   // que se desliza desde la derecha, encima del bosquejo.
   if (comoTableta && !grande) {
     return (
-      <div className="h-pantalla flex flex-col bg-app-dark">
+      <div className="h-pantalla flex flex-col bg-app-dark" data-sin-espacio-nieve>
         {medidor}
         {/* Sin la franja del turno en la tableta (20-11-2026, pedido del usuario): el servicio y el estado de la
             pantalla ya van en la barra de arriba de la app, como en el celular. */}
@@ -660,7 +660,7 @@ export default function ControlPredica() {
 
   // ---------- Computador: lado a lado ----------
   return (
-    <div className="h-pantalla flex flex-col bg-app-dark">
+    <div className="h-pantalla flex flex-col bg-app-dark" data-sin-espacio-nieve>
       {medidor}
       {/* Sin la barra «Prédica · Preparar / Predicar» (pedido del usuario,
           11-11-2026): «Predicar» va arriba de Mis prédicas y el púlpito

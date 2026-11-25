@@ -119,6 +119,15 @@ Las dos pantallas comparten **`src/Components/Favoritos/FavoritosTexto.jsx`**: e
 
 `numProyectado` es estado local del panel, no un nodo de RTDB: marca cuál de los seis se envió desde esta sesión. Al proyectar el texto del área de escritura se pone en `null`, porque lo que hay en pantalla ya no es ninguno de los favoritos. Una recarga lo pierde, y es deliberado: no vale la pena un nodo nuevo para una marca visual.
 
+### Celular acostado (24 de noviembre de 2026)
+
+Pedido del usuario: **no se bloquea el giro** (una página no puede: iPhone no lo permite y Android solo con la app instalada; se descartó el aviso «Gira tu celular» y el bloqueo con `screen.orientation.lock`), sino que «la vista de un celular acostado sea la misma de cuando está en vertical, pero con scroll». Dos reglas:
+
+- **Formato por el lado corto del aparato** (`formatoPantalla.js`, `ladoCortoDelDispositivo`): un dispositivo táctil con el lado corto de la pantalla menor de 744 px (celulares y tabletas de 7 y 8 pulgadas; el iPad mini, con 744, es la tableta más pequeña) es «celular» **de pie y acostado**. Antes, acostado medía ~844 px y se le montaba el diseño de tableta. `formatoDe(ancho, tactil, ladoCorto)`, `esBaja` y `esEscritorio` aceptan el lado corto como tercer argumento; sin saberlo (jsdom: 0) manda solo el ancho. Un PC con mouse nunca entra.
+- **Scroll en vez de recorte** (`index.css`): `h-pantalla` pasa a `height: auto` con el mismo mínimo en un táctil acostado de menos de 500 px de alto (`(pointer: coarse) and (orientation: landscape) and (max-height: 500px)`), así las ~15 pantallas de alto fijo crecen con su contenido y la página se desplaza. También cubre al celular de pie con el teclado abierto. Una tableta acostada (600 px o más de alto) no entra. Tests: `formatoPantalla.test.js` y `AlturaPantalla.test.js` (lee el CSS).
+
+**Pendiente de revisar en un celular real acostado**: las 36 pantallas que usan puntos de quiebre de Tailwind por ancho (`sm:`, `md:`, `lg:`) siguen activando su variante ancha a 844 px; si alguna se ve mal, se corrige esa pantalla. Se descartó fijar el viewport en el ancho de vertical (ampliaría todo ×2,2 y dejaría ~180 px de alto visibles). Prédica ya usa `formato === "celular"` para su diseño de celular, así que acostado toma ese.
+
 ### Navegación del panel (9 de noviembre de 2026)
 
 Barra lateral en el computador y barra superior con menú en el celular (`src/Components/Navegacion/`: `Secciones.js`, `MarcoPanel.jsx`, `BarraLateral.jsx`, `BarraSuperior.jsx`). Incluye Ayuda, la guía de la pantalla del templo (`Components/PantallaGuia/`), Biblia en el celular, logo en pantallas y los altos del celular (usar `h-pantalla`, no `h-svh`). **Una sección nueva se agrega en `SECCIONES`, su ruta va dentro de `<Route element={<MarcoPanel />}>` en `App.jsx`, y si proyecta, se suma a `PREFIJOS_CON_GUIA`.**

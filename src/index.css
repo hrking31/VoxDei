@@ -77,6 +77,7 @@
   --shadow-luz: 0 0 10px 3px currentColor; /* resplandor de cada bombillo */
   --spacing-guirnalda: 2rem; /* espacio que la guirnalda reserva arriba del contenido (pedido del usuario) */
   --spacing-pila: 1.5rem; /* alto del lienzo de la nieve acumulada abajo (la capa llega a 20 px) */
+  --spacing-nieve: 0.75rem; /* espacio que se reserva abajo del contenido para la nieve: 12 px (pedido del usuario) */
   --spacing-pino: 2.25rem; /* alto del dibujo del pino: 0,25 rem más que el espacio reservado, sobresale hacia abajo; la escala del patrón sale de aquí (ver GuirnaldaNavidad.jsx) */
   --animate-parpadea-luz: parpadea-luz 2.4s ease-in-out infinite;
   @keyframes parpadea-luz {
@@ -257,6 +258,7 @@ body {
 :root {
   --alto-barra: 0px;
   --alto-guirnalda: 0px;
+  --alto-nieve: 0px;
 }
 /* La guirnalda de Navidad ocupa su sitio arriba del contenido (no tapa nada) y las
    pantallas que miden la ventana entera (h-pantalla) se lo descuentan. No entra en
@@ -264,6 +266,21 @@ body {
    que se va al desplazar. */
 :root:has([data-guirnalda]) {
   --alto-guirnalda: var(--spacing-guirnalda);
+}
+/* Lo mismo abajo: la nieve reserva 12 px al final del contenido (EspacioNieve) */
+:root:has([data-espacio-nieve]) {
+  --alto-nieve: var(--spacing-nieve);
+}
+/* Ese espacio toma el color del final del degradado de las pantallas (bg-app-light/50). Las
+   pantallas con columnas de colores distintos abajo (Prédica) llevan `data-sin-espacio-nieve`:
+   ahí no se reserva nada —la pantalla llega al borde y la nieve se pinta encima—, porque un
+   solo color de espacio no puede imitar varias columnas y se notaría la franja. Va después de
+   la regla de arriba, para ganarle (mismo peso). */
+:root:has([data-sin-espacio-nieve]) {
+  --alto-nieve: 0px;
+}
+:root:has([data-sin-espacio-nieve]) [data-espacio-nieve] {
+  display: none;
 }
 :root:has([data-barra-superior]) {
   --alto-barra: var(--spacing-barra-superior);
@@ -276,11 +293,21 @@ body {
 
 /* Alto de pantalla descontando la barra de arriba. Las pantallas del panel que
    miden exactamente la pantalla usan estas en vez de h-svh / min-h-svh. */
+/* Celular acostado (24-11-2026, pedido del usuario: «la misma vista de cuando está en
+   vertical, pero con scroll»): en un táctil con menos de 500 px de alto, las pantallas de
+   alto fijo dejan de recortar. Pasan a alto mínimo: la página crece con su contenido y se
+   desplaza. Una tableta acostada mide 600 px o más de alto y no entra aquí. Un celular de
+   pie con el teclado abierto también (el teclado le quita alto): se desplaza en vez de
+   comprimirse. */
 @utility h-pantalla {
-  height: calc(100svh - var(--alto-barra) - var(--alto-guirnalda));
+  height: calc(100svh - var(--alto-barra) - var(--alto-guirnalda) - var(--alto-nieve));
+  @media (pointer: coarse) and (orientation: landscape) and (max-height: 500px) {
+    height: auto;
+    min-height: calc(100svh - var(--alto-barra) - var(--alto-guirnalda) - var(--alto-nieve));
+  }
 }
 @utility min-h-pantalla {
-  min-height: calc(100svh - var(--alto-barra) - var(--alto-guirnalda));
+  min-height: calc(100svh - var(--alto-barra) - var(--alto-guirnalda) - var(--alto-nieve));
 }
 /* ---- Pantalla de entrada (/ViewSelector) ---- */
 /* Fondo con un resplandor dorado detrás del símbolo */

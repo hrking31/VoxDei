@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
-import { esAnchoCompacto, esAnchoReducido, esAnchoSoloIconos, esApaisada, useAnchoCompacto, useAnchoReducido, useAnchoSoloIconos, useApaisado, useTabletaGrande, esBaja, esEscritorio, esIPadConTeclado, esTabletaGrande, esTactil, formatoDe } from "./formatoPantalla.js";
+import { esAnchoCompacto, esAnchoReducido, esAnchoSoloIconos, esApaisada, useAnchoCompacto, useAnchoReducido, useAnchoSoloIconos, useApaisado, useTabletaGrande, esBaja, esEscritorio, esIPadConTeclado, esTabletaGrande, esTactil, formatoDe, ladoCortoDelDispositivo } from "./formatoPantalla.js";
 
 describe("el formato de la pantalla del panel", () => {
   it("toda tableta táctil, de cualquier tamaño, es «tableta»: también el iPad Air, el Pro de 11 y el de 12,9 acostado", () => {
@@ -33,6 +33,39 @@ describe("el formato de la pantalla del panel", () => {
     expect(formatoDe(1023)).toBe("tableta");
     expect(formatoDe(1024)).toBe("escritorio");
     expect(formatoDe(1366)).toBe("escritorio"); // iPad Pro acostado
+  });
+
+  it("un celular es «celular» también acostado (su lado corto es menor de 744 px)", () => {
+    // [ancho acostado, lado corto del aparato]: iPhone SE, 14, 14 Pro Max, un Android de 7" (~600 px)
+    [[667, 375], [844, 390], [932, 430], [960, 600]].forEach(([ancho, corto]) => {
+      expect(formatoDe(ancho, true, corto), `${ancho}x${corto}`).toBe("celular");
+      expect(esEscritorio(ancho, true, corto)).toBe(false);
+    });
+    // De pie, igual
+    expect(formatoDe(390, true, 390)).toBe("celular");
+  });
+
+  it("el iPad mini y las tabletas mayores no cambian: su lado corto es de 744 px o más", () => {
+    expect(formatoDe(744, true, 744)).toBe("tableta"); // iPad mini de pie
+    expect(formatoDe(1133, true, 744)).toBe("tableta"); // iPad mini acostado
+    expect(formatoDe(1180, true, 820)).toBe("tableta"); // iPad Air acostado
+    expect(formatoDe(1366, true, 1024)).toBe("tableta"); // iPad Pro acostado
+  });
+
+  it("sin pantalla táctil (mouse) o sin saber el lado corto, la regla de siempre", () => {
+    expect(formatoDe(844, false, 390)).toBe("tableta"); // un PC con una ventana angosta no es un celular
+    expect(formatoDe(844, true, 0)).toBe("tableta"); // lado corto desconocido (jsdom)
+    expect(formatoDe(1280, false, 720)).toBe("escritorio");
+  });
+
+  it("ladoCortoDelDispositivo toma el menor de los dos lados de la pantalla y 0 si no se sabe", () => {
+    vi.stubGlobal("screen", { width: 844, height: 390 });
+    expect(ladoCortoDelDispositivo()).toBe(390);
+    vi.stubGlobal("screen", { width: 390, height: 844 });
+    expect(ladoCortoDelDispositivo()).toBe(390);
+    vi.stubGlobal("screen", undefined);
+    expect(ladoCortoDelDispositivo()).toBe(0);
+    vi.unstubAllGlobals();
   });
 
   it("baja: solo el escritorio con menos de 800 de alto (un PC de 1280×720)", () => {

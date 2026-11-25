@@ -6,6 +6,7 @@ import BarraLateral from "./BarraLateral.jsx";
 import BarraSuperior from "./BarraSuperior.jsx";
 import IconoPestana from "./IconoPestana.jsx";
 import GuirnaldaNavidad from "../Navidad/GuirnaldaNavidad.jsx";
+import EspacioNieve from "../Navidad/EspacioNieve.jsx";
 import PantallaGuia from "../PantallaGuia/PantallaGuia.jsx";
 import { AccionesGuiaContext } from "../PantallaGuia/AccionesGuia.js";
 import { rutaConGuia } from "../PantallaGuia/utilesGuia.js";
@@ -40,6 +41,7 @@ export default function MarcoPanel() {
         <div className="pt-barra-superior">
           <GuirnaldaNavidad />
           <Outlet />
+          <EspacioNieve />
         </div>
       </>
     );
@@ -53,6 +55,7 @@ export default function MarcoPanel() {
         <div className="min-w-0 flex-1">
           <GuirnaldaNavidad />
           <Outlet />
+          <EspacioNieve />
         </div>
         {/* Guía de la pantalla del templo: solo en el computador y en las
             secciones que proyectan (Prédica ya trae la suya en el púlpito). */}

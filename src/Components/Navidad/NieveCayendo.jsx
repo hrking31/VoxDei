@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useAppContext } from "../Context/AppContext";
-import { navidadActiva } from "../Logo/utilesNavidad.js";
+import { hayNieve } from "./utilesNieve.js";
 import Snowfall from "./Nieve/Snowfall.jsx";
 import { crearCopos } from "./Nieve/copos.js";
 import { Acumulacion, aportePorCopo } from "./acumulacion.js";
@@ -18,17 +18,12 @@ import PilaDeNieve from "./PilaDeNieve.jsx";
 // `PilaDeNieve.jsx`. Tarda unos dos minutos y medio en llenarse y baja a cero al
 // recargar. Nunca pasa de `ALTO_MAXIMO` px.
 //
-// NO se pinta en la pantalla del templo (`/VOXDEI`): taparía lo que ve la
-// congregación. Tampoco con «reducir movimiento» activo.
-const RUTA_PROYECTOR = "/voxdei";
-
-function prefiereMenosMovimiento() {
-  return typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
+// Cuándo nieva y cuándo no (el proyector, «reducir movimiento») lo decide `hayNieve`
+// (utilesNieve.js), que comparte con `EspacioNieve`, el espacio de 12 px que se
+// reserva abajo en el panel.
 export default function NieveCayendo() {
   const { pathname } = useLocation();
-  if (!navidadActiva() || pathname.toLowerCase() === RUTA_PROYECTOR || prefiereMenosMovimiento()) return null;
+  if (!hayNieve(pathname)) return null;
   return <Nevada />;
 }
 
