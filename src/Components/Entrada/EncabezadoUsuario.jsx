@@ -1,15 +1,15 @@
 import { ArrowLeftStartOnRectangleIcon } from "@heroicons/react/24/solid";
-import LogoDeLaIglesia from "../Logo/LogoDeLaIglesia.jsx";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import { datosDeIglesia } from "../Iglesia/datosIglesia.js";
 import { iniciales } from "./utilesEntrada.js";
 
-// Encabezado de usuario de la pantalla de entrada: foto con anillo dorado,
-// nombre, rol e iglesia; a la derecha, cerrar sesión (con confirmación).
-// Nombre e iglesia van en una línea y se cortan con «…» si no caben; el texto
-// completo sale al pasar el mouse. En el celular, si la iglesia tiene sigla,
-// se muestra la sigla.
+// Encabezado de usuario de la pantalla de entrada (25 de noviembre de 2026, pedido
+// del usuario, estilo de la «opción 3» del lienzo): una fila sin barra ni borde sobre
+// el fondo, con la foto pequeña (anillo dorado) y una sola línea «Nombre · Rol · Iglesia»;
+// a la derecha, cerrar sesión (con confirmación). El nombre se corta con «…» si no
+// cabe; el texto completo sale al pasar el mouse. En el celular, si la iglesia
+// tiene sigla, se muestra la sigla.
 export default function EncabezadoUsuario() {
   const { userData, logout } = useAuth();
   const { iglesia, confirmAction, isDesktop } = useAppContext();
@@ -22,37 +22,38 @@ export default function EncabezadoUsuario() {
   };
 
   return (
-    <header className="flex items-center justify-between gap-3 border-b border-app-border bg-app-light/80 px-3 py-2.5 sm:px-4">
+    <header className="flex items-center justify-between gap-3 px-4 py-3 sm:px-8 sm:py-3">
       <div className="flex min-w-0 items-center gap-3">
         {userData.photo ? (
           <img
             src={userData.photo}
             alt=""
-            className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-app-main ring-offset-2 ring-offset-app-dark"
+            className="h-8 w-8 shrink-0 rounded-full object-cover ring-2 ring-app-main sm:h-12 sm:w-12"
           />
         ) : (
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-app-border text-sm font-bold text-app-texto ring-2 ring-app-main ring-offset-2 ring-offset-app-dark">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-app-main text-xs font-bold text-app-main sm:h-12 sm:w-12 sm:text-base">
             {iniciales(nombre)}
           </span>
         )}
-        <div className="flex min-w-0 flex-col gap-1 leading-tight">
-          <span title={nombre} className="truncate text-sm font-semibold text-app-texto">
+        <p className="flex min-w-0 items-center gap-2 text-sm text-app-muted sm:text-base">
+          <span title={nombre} className="truncate font-semibold text-app-texto">
             {nombre}
           </span>
-          <span className="flex min-w-0 items-center gap-2 text-xs text-app-muted">
-            {userData.role && (
-              <span className="shrink-0 rounded-full border border-app-main/40 bg-app-main/10 px-2 font-bold uppercase tracking-wider text-app-main">
-                {userData.role}
+          {userData.role && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span className="shrink-0">{userData.role}</span>
+            </>
+          )}
+          {nombreIglesia && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span title={datos.nombre} className="truncate">
+                {nombreIglesia}
               </span>
-            )}
-            {nombreIglesia && (
-              <span title={datos.nombre} className="flex min-w-0 items-center gap-1">
-                <LogoDeLaIglesia alt="" className="h-4 w-4 shrink-0 rounded" />
-                <span className="truncate">{nombreIglesia}</span>
-              </span>
-            )}
-          </span>
-        </div>
+            </>
+          )}
+        </p>
       </div>
 
       <button
@@ -60,9 +61,9 @@ export default function EncabezadoUsuario() {
         onClick={cerrarSesion}
         aria-label="Cerrar sesión"
         title="Cerrar sesión"
-        className="flex shrink-0 items-center gap-1.5 rounded-full border border-app-border px-3 py-1.5 text-xs text-app-muted transition hover:border-app-error/60 hover:bg-app-error/10 hover:text-app-error"
+        className="flex min-h-11 shrink-0 items-center gap-1.5 px-2 text-sm text-app-muted transition hover:text-app-error"
       >
-        <ArrowLeftStartOnRectangleIcon className="h-4 w-4" aria-hidden="true" />
+        <ArrowLeftStartOnRectangleIcon className="h-4 w-4 sm:hidden" aria-hidden="true" />
         <span className="hidden sm:inline">Cerrar sesión</span>
       </button>
     </header>

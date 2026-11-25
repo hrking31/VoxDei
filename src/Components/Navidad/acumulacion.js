@@ -28,6 +28,11 @@ export class Acumulacion {
     this.tope = new Float32Array(0);
     /** Se llama cada vez que cambia la pila, para volver a dibujarla. */
     this.alCambiar = null;
+    /** Punto más alto de la pila, en px enteros (hacia arriba). Solo sube. */
+    this.altoActual = 0;
+    /** Se llama con el nuevo `altoActual` cada vez que sube un píxel: el espacio que la
+     *  nieve reserva abajo de la pantalla crece con la pila (ver `EspacioNieve`). */
+    this.alCrecer = null;
     this.redimensionar(ancho);
   }
 
@@ -67,6 +72,13 @@ export class Acumulacion {
       this.alturas[i] = Math.min(this.tope[i], this.alturas[i] + (this.aporte * pesos[k + ALCANCE]) / suma);
     }
     this.relaja(centro - ALCANCE - 3, centro + ALCANCE + 3);
+    let mayor = 0;
+    for (let i = 0; i < this.columnas; i++) if (this.alturas[i] > mayor) mayor = this.alturas[i];
+    const alto = Math.ceil(mayor);
+    if (alto > this.altoActual) {
+      this.altoActual = alto;
+      this.alCrecer?.(alto);
+    }
     this.alCambiar?.();
   }
 

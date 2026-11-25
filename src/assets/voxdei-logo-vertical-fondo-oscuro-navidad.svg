@@ -35,8 +35,6 @@
   <g class="b" style="animation-delay:1.36s"><circle cx="594" cy="251" r="38" fill="#ef4b4b" opacity=".35"/><rect x="586" y="225" width="16" height="16" rx="4" fill="#7a6a3c"/><ellipse cx="594" cy="251" rx="17" ry="22" fill="#ef4b4b"/><ellipse cx="589" cy="244" rx="4" ry="7" fill="#fff" opacity=".7"/></g>
   <g class="b" style="animation-delay:1.70s"><circle cx="675" cy="223" r="38" fill="#4fd18b" opacity=".35"/><rect x="667" y="197" width="16" height="16" rx="4" fill="#7a6a3c"/><ellipse cx="675" cy="223" rx="17" ry="22" fill="#4fd18b"/><ellipse cx="670" cy="216" rx="4" ry="7" fill="#fff" opacity=".7"/></g>
   <g class="b" style="animation-delay:2.04s"><circle cx="756" cy="251" r="38" fill="#fff1c9" opacity=".35"/><rect x="748" y="225" width="16" height="16" rx="4" fill="#7a6a3c"/><ellipse cx="756" cy="251" rx="17" ry="22" fill="#fff1c9"/><ellipse cx="751" cy="244" rx="4" ry="7" fill="#fff" opacity=".7"/></g>
-  <!-- nieve acumulada sobre la pantalla -->
-  <path d="M198 188 Q206 150 240 160 Q268 132 306 158 Q340 138 380 160 Q420 140 462 160 Q510 132 552 160 Q596 138 640 160 Q684 132 724 160 Q760 142 790 162 Q826 152 828 188 Q512 178 198 188 Z" fill="#fff"/>
   <!-- cruz -->
   <g filter="url(#soft6)" opacity=".85" fill="#FFE9B0"><rect x="484" y="300" width="56" height="330" rx="28"/><rect x="400" y="378" width="224" height="54" rx="27"/></g>
   <g fill="#FFF8E6"><rect x="491" y="300" width="42" height="330" rx="21"/><rect x="407" y="384" width="210" height="42" rx="21"/></g>

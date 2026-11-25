@@ -30,7 +30,7 @@ export default function MarcoPanel() {
   // null mientras no haya guía en pantalla.
   const [ranuraGuia, setRanuraGuia] = useState(null);
 
-  if (!user || !userData || !correoVerificado) return <Outlet />;
+  if (!user || !userData || !correoVerificado) return <Outlet />; // esas pantallas llevan su propio EspacioNieve
 
   if (!isDesktop) {
     return (

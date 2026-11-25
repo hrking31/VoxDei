@@ -19,6 +19,7 @@ import {
   AVISO_CLAVE_DEBIL,
   claveValida,
 } from "../../Components/Validaciones/Validaciones.js";
+import EspacioNieve from "../../Components/Navidad/EspacioNieve.jsx";
 
 export default function ViewRegister() {
   const { signup, login, logout, loading, setLoading, setUserData } =
@@ -349,6 +350,7 @@ export default function ViewRegister() {
       </div>
 
       <Footer />
+      <EspacioNieve className="bg-transparent" />
     </div>
   );
 }

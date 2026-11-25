@@ -10,6 +10,7 @@ import Loading from "../../Components/Loading/Loading.jsx";
 import Footer from "../../Components/Footer/Footer.jsx";
 import CampoClave from "../../Components/CampoClave/CampoClave.jsx";
 import { LogoHorizontal } from "../../Components/Logo/Logo.jsx";
+import EspacioNieve from "../../Components/Navidad/EspacioNieve.jsx";
 
 // Borrado de la propia cuenta, exigido por Google Play desde la app y desde
 // una web. Por eso la ruta es pública: sin sesión explica cómo hacerlo (es la
@@ -176,6 +177,7 @@ export default function ViewEliminarCuenta() {
       </div>
 
       <Footer />
+      <EspacioNieve className="bg-transparent" />
     </div>
   );
 }

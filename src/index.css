@@ -77,7 +77,6 @@
   --shadow-luz: 0 0 10px 3px currentColor; /* resplandor de cada bombillo */
   --spacing-guirnalda: 2rem; /* espacio que la guirnalda reserva arriba del contenido (pedido del usuario) */
   --spacing-pila: 1.5rem; /* alto del lienzo de la nieve acumulada abajo (la capa llega a 20 px) */
-  --spacing-nieve: 0.875rem; /* espacio que se reserva abajo del contenido para la nieve: 14 px (pedido del usuario; antes 12 px) */
   --spacing-pino: 2.25rem; /* alto del dibujo del pino: 0,25 rem más que el espacio reservado, sobresale hacia abajo; la escala del patrón sale de aquí (ver GuirnaldaNavidad.jsx) */
   --animate-parpadea-luz: parpadea-luz 2.4s ease-in-out infinite;
   @keyframes parpadea-luz {
@@ -267,9 +266,15 @@ body {
 :root:has([data-guirnalda]) {
   --alto-guirnalda: var(--spacing-guirnalda);
 }
-/* Lo mismo abajo: la nieve reserva 14 px al final del contenido (EspacioNieve) */
+/* Lo mismo abajo, pero proporcional a la nieve (25-11-2026, pedido del usuario): el espacio
+   que la nieve reserva al final del contenido (EspacioNieve) mide lo que el punto más alto de
+   la pila. `NieveCayendo` pone `--alto-pila-actual` en la raíz y lo sube de píxel en píxel
+   (de 0 a 20 px); sin pila vale 0. Así el pie nunca queda alto ni lo tapa la nieve. */
+@utility h-nieve {
+  height: var(--alto-pila-actual, 0px);
+}
 :root:has([data-espacio-nieve]) {
-  --alto-nieve: var(--spacing-nieve);
+  --alto-nieve: var(--alto-pila-actual, 0px);
 }
 /* Ese espacio toma el color del final del degradado de las pantallas (bg-app-light/50). Las
    pantallas con columnas de colores distintos abajo (Prédica) llevan `data-sin-espacio-nieve`:

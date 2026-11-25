@@ -51,39 +51,16 @@ describe("ViewSelector · los dos pasos", () => {
     expect(screen.getByTestId("ruta").textContent).toBe("/ViewInicio");
   });
 
-  it("saluda con el primer nombre y lleva a la Ayuda", () => {
+  it("saluda con el primer nombre", () => {
     entrar();
     expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/, Hernando$/);
-    fireEvent.click(screen.getByRole("button", { name: "¿Primera vez? Ayuda" }));
-    expect(screen.getByTestId("ruta").textContent).toBe("/ViewAyuda");
   });
 
-  it("muestra el estado de la pantalla junto al próximo servicio", () => {
+  it("ya no lleva el pie con el estado de la pantalla, el próximo servicio ni la Ayuda", () => {
     entrar({ pantallaTemplo: "ventana" });
-    expect(screen.getByRole("status", { name: /falta tocar pantalla completa/ }).textContent).toBe("VENTANA");
-  });
-
-  it("el borde del chip es verde si está abierta y gris si está apagada; el ícono y el texto llevan el color del estado", () => {
-    const casos = [
-      ["apagada", "text-app-muted", "Apagada", "text-app-muted"],
-      ["oculta", "text-app-error", "OCULTA", "text-app-error"],
-      ["ventana", "text-app-main", "VENTANA", "text-app-main"],
-      ["maximizada", "text-app-azul", "MAXIMIZADA", "text-app-azul"],
-      ["encendida", "text-app-success", "COMPLETA", "text-app-success"],
-    ];
-    const iconos = new Set();
-    for (const [pantallaTemplo, colorIcono, texto, colorTexto] of casos) {
-      const { unmount } = entrar({ pantallaTemplo });
-      const chip = screen.getByRole("status", { name: /Pantalla del templo/ });
-      const icono = chip.querySelector("svg");
-      expect(chip.className).toContain(pantallaTemplo === "apagada" ? "border-app-border" : "border-app-success");
-      expect(icono.getAttribute("class")).toContain(colorIcono);
-      expect(screen.getByText(texto).className).toBe(colorTexto);
-      iconos.add(icono.innerHTML);
-      unmount();
-    }
-    // Cada estado lleva su propio ícono.
-    expect(iconos.size).toBe(5);
+    expect(screen.queryByRole("status", { name: /Pantalla del templo/ })).toBeNull();
+    expect(screen.queryByText(/Próximo servicio/)).toBeNull();
+    expect(screen.queryByRole("button", { name: "¿Primera vez? Ayuda" })).toBeNull();
   });
 });
 

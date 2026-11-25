@@ -26,9 +26,10 @@ describe("h-pantalla en un celular acostado", () => {
 });
 
 describe("el espacio de la nieve de abajo", () => {
-  it("mide 14 px y se activa cuando el bloque del espacio está en la página", () => {
-    expect(css).toMatch(/--spacing-nieve: 0\.875rem;/);
-    expect(css).toMatch(/:root:has\(\[data-espacio-nieve\]\)\s*\{\s*--alto-nieve: var\(--spacing-nieve\);/);
+  it("mide lo que la pila de nieve (--alto-pila-actual, 0 sin pila) y se activa cuando el bloque está en la página", () => {
+    expect(css).not.toMatch(/--spacing-nieve/);
+    expect(css).toMatch(/@utility h-nieve \{\s*height: var\(--alto-pila-actual, 0px\);/);
+    expect(css).toMatch(/:root:has\(\[data-espacio-nieve\]\)\s*\{\s*--alto-nieve: var\(--alto-pila-actual, 0px\);/);
   });
 
   it("las pantallas marcadas con data-sin-espacio-nieve no lo reservan: lo ponen en cero y lo ocultan, y la regla va después", () => {

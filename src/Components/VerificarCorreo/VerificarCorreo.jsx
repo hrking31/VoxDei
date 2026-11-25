@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { EnvelopeIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
+import EspacioNieve from "../Navidad/EspacioNieve.jsx";
 
 // Pantalla para quien aún no verificó su correo: el dueño y todo su equipo.
 //
@@ -61,7 +62,8 @@ export default function VerificarCorreo() {
   };
 
   return (
-    <div className="min-h-svh flex items-center justify-center px-4 bg-linear-to-b from-gray-900 to-gray-800">
+    <div className="min-h-svh flex flex-col bg-linear-to-b from-gray-900 to-gray-800">
+      <div className="flex flex-1 items-center justify-center px-4">
       <div className="w-full max-w-md bg-gray-900/40 border border-gray-700 shadow-xl p-6 text-center space-y-4">
         <EnvelopeIcon className="w-12 h-12 text-app-main mx-auto" />
 
@@ -127,6 +129,8 @@ export default function VerificarCorreo() {
           </button>
         </div>
       </div>
+      </div>
+      <EspacioNieve className="bg-transparent" />
     </div>
   );
 }

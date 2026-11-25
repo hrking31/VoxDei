@@ -36,6 +36,13 @@ describe("NieveCayendo", () => {
     expect(capa.querySelectorAll("canvas")).toHaveLength(2);
   });
 
+  it("publica la altura de la pila como variable de la raíz (empieza en 0) y la quita al irse", () => {
+    const { unmount } = montar(<NieveCayendo />);
+    expect(document.documentElement.style.getPropertyValue("--alto-pila-actual")).toBe("0px");
+    unmount();
+    expect(document.documentElement.style.getPropertyValue("--alto-pila-actual")).toBe("");
+  });
+
   it("fuera de temporada no pinta nada", () => {
     fijarFecha(2027, 5, 15);
     const { container } = montar(<NieveCayendo />);

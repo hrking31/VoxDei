@@ -257,6 +257,12 @@ Entra a **Usuarios**, toca el lápiz junto a tu nombre y pulsa **Eliminar mi cue
 
 Aquí queda anotado lo que va cambiando en la aplicación, para que siempre sepas qué es nuevo.
 
+### 25 de noviembre de 2026
+
+- **El espacio de la nieve abajo ahora crece con ella.** Antes quedaba un hueco fijo al final de las pantallas, aunque todavía no hubiera nieve acumulada. Ahora empieza en cero y crece junto con la capa de nieve, así el pie de página queda siempre bien colocado respecto a la nieve y esta nunca lo tapa.
+- **La pantalla de entrada se ve más limpia.** Tus datos (foto, nombre, rol e iglesia) ahora van en una sola línea arriba, sin barra, y se quitó el pie con el estado de la pantalla del templo, el próximo servicio y el enlace de Ayuda. La Ayuda sigue en el menú del panel.
+- **La nieve ya no tapa lo último en la entrada, el inicio de sesión y otras pantallas.** El pequeño espacio que se deja abajo para la nieve faltaba en la entrada, el inicio de sesión, el registro, la recuperación de contraseña, la eliminación de cuenta y las pantallas de verificar correo y de perfil no disponible. Ahora todas lo tienen.
+
 ### 24 de noviembre de 2026
 
 - **El celular acostado se ve como en vertical, con desplazamiento.** Si giras tu celular, la aplicación ya no cambia a un diseño de tableta que no cabe: conserva la misma vista de cuando está de pie, y lo que no entra en la pantalla se alcanza deslizando hacia abajo, en lugar de quedar cortado. Las tabletas (del iPad mini hacia arriba) no cambian.

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useAppContext } from "../Context/AppContext";
 import { hayNieve } from "./utilesNieve.js";
@@ -19,8 +19,8 @@ import PilaDeNieve from "./PilaDeNieve.jsx";
 // recargar. Nunca pasa de `ALTO_MAXIMO` px.
 //
 // Cuándo nieva y cuándo no (el proyector, «reducir movimiento») lo decide `hayNieve`
-// (utilesNieve.js), que comparte con `EspacioNieve`, el espacio de 14 px que se
-// reserva abajo en el panel.
+// (utilesNieve.js), que comparte con `EspacioNieve`, el espacio que se reserva
+// abajo en el panel: mide lo que la pila (variable `--alto-pila-actual`, de 0 a 20 px).
 export default function NieveCayendo() {
   const { pathname } = useLocation();
   if (!hayNieve(pathname)) return null;
@@ -35,6 +35,17 @@ function Nevada() {
   const [pila] = useState(
     () => new Acumulacion({ ancho: window.innerWidth, aporte: aportePorCopo({ ancho: window.innerWidth, copos: cantidad, altoVentana: window.innerHeight }) })
   );
+  // El espacio de abajo crece con la pila: se publica su altura como variable de la raíz
+  useEffect(() => {
+    const raiz = document.documentElement.style;
+    const publicar = (px) => raiz.setProperty("--alto-pila-actual", `${px}px`);
+    publicar(pila.altoActual);
+    pila.alCrecer = publicar;
+    return () => {
+      pila.alCrecer = null;
+      raiz.removeProperty("--alto-pila-actual");
+    };
+  }, [pila]);
   // Funciones estables: el motor compara su configuración y una función nueva en cada dibujo la reiniciaría
   const getSuelo = useCallback((x) => pila.alturaEn(x), [pila]);
   const alAterrizar = useCallback((x) => pila.deposita(x), [pila]);

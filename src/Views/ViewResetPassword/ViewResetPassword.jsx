@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../../Components/Context/AppContext";
 import Footer from "../../Components/Footer/Footer.jsx";
 import { MarcaAguaHaz } from "../../Components/Logo/Logo.jsx";
+import EspacioNieve from "../../Components/Navidad/EspacioNieve.jsx";
 
 export default function ViewResetPassword() {
   const [email, setEmail] = useState("");
@@ -87,6 +88,7 @@ export default function ViewResetPassword() {
       </div>
 
       <Footer />
+      <EspacioNieve className="bg-transparent" />
     </div>
   );
 }

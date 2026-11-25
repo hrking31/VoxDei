@@ -6,6 +6,7 @@ import { useAppContext } from "../../Components/Context/AppContext";
 import Footer from "../../Components/Footer/Footer.jsx";
 import CampoClave from "../../Components/CampoClave/CampoClave.jsx";
 import { LogoVertical } from "../../Components/Logo/Logo.jsx";
+import EspacioNieve from "../../Components/Navidad/EspacioNieve.jsx";
 
 export default function ViewLogin() {
   const navigate = useNavigate();
@@ -148,6 +149,7 @@ export default function ViewLogin() {
       </div>
 
       <Footer />
+      <EspacioNieve className="bg-transparent" />
     </div>
   );
 }

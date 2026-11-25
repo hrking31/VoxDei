@@ -40,6 +40,22 @@ describe("Acumulacion", () => {
     expect(mayor).toBeLessThan(2.2);
   });
 
+  it("lleva su punto más alto en px enteros, solo sube, y avisa cuando sube un píxel", () => {
+    const pila = new Acumulacion({ ancho: 400, aporte: 0.4 });
+    pila.alCrecer = vi.fn();
+    expect(pila.altoActual).toBe(0);
+    let anterior = 0;
+    for (let i = 0; i < 400; i++) {
+      pila.deposita(200);
+      expect(pila.altoActual).toBeGreaterThanOrEqual(anterior);
+      anterior = pila.altoActual;
+    }
+    expect(pila.altoActual).toBe(Math.ceil(Math.max(...pila.alturas)));
+    expect(pila.altoActual).toBeLessThanOrEqual(ALTO_MAXIMO);
+    expect(pila.alCrecer).toHaveBeenCalledTimes(pila.altoActual);
+    expect(pila.alCrecer).toHaveBeenLastCalledWith(pila.altoActual);
+  });
+
   it("avisa cada vez que cambia, para volver a dibujarla", () => {
     const pila = new Acumulacion({ ancho: 400 });
     pila.alCambiar = vi.fn();
