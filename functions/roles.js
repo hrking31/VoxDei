@@ -4,16 +4,21 @@
 // funciones son un paquete CommonJS independiente y no comparten build con el
 // frontend. Si cambias los roles allí, cámbialos también aquí.
 //
-// Solo hay dos niveles: Pastor / Pastora (todo) y Operador (proyectar).
+// Tres niveles: Pastor / Pastora (todo), Líder (programa los servicios; añadido
+// el 25 de noviembre de 2026) y Operador (proyectar).
 
 const ROL_PASTOR = "Pastor";
 const ROL_PASTORA = "Pastora";
+const ROL_LIDER = "Líder";
 const ROL_OPERADOR = "Operador";
 
-const ROLES = [ROL_PASTOR, ROL_PASTORA, ROL_OPERADOR];
+const ROLES = [ROL_PASTOR, ROL_PASTORA, ROL_LIDER, ROL_OPERADOR];
 
 // Mandan en la iglesia: gestionan cuentas y contenido.
 const ROLES_PASTORES = [ROL_PASTOR, ROL_PASTORA];
+
+// Pueden programar los servicios (cargos de cada fecha).
+const ROLES_PROGRAMACION = [...ROLES_PASTORES, ROL_LIDER];
 
 // Rol con el que nace todo usuario adicional creado desde ViewUsers.
 const ROL_POR_DEFECTO = ROL_OPERADOR;
@@ -37,10 +42,12 @@ function esPastor(rol) {
 module.exports = {
   ROL_PASTOR,
   ROL_PASTORA,
+  ROL_LIDER,
   ROL_OPERADOR,
   ROL_POR_DEFECTO,
   ROLES,
   ROLES_PASTORES,
+  ROLES_PROGRAMACION,
   normalizarRol,
   esPastor,
 };

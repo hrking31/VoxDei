@@ -129,8 +129,8 @@ export default function PanelNuevaPersona({
             <RequisitosClave clave={nuevo.password} />
           </div>
 
-          {/* El rol solo se elige mientras el dueño pueda dar de alta a su
-              pareja pastoral; después todo lo que se crea es Operador. */}
+          {/* El rol: Operador o Líder; mientras falte la pareja pastoral, el dueño
+              puede elegirla también. */}
           {puedeElegirRol && (
             <div className="flex flex-col gap-1.5">
               <span className="text-xs font-semibold text-app-muted">Rol</span>

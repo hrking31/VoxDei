@@ -10,10 +10,10 @@ describe("Resumen del día", () => {
     });
   });
 
-  it("cuenta regresiva, sin operador asignado", () => {
+  it("cuenta regresiva, sin proyección asignada", () => {
     expect(textoServicio({ modo: "cuenta", nombre: "Oración", cuenta: "2 h 5 min", hora: "19:00" })).toEqual({
       principal: "Oración empieza en 2 h 5 min",
-      detalle: "19:00 · Sin operador asignado",
+      detalle: "19:00 · Sin proyección asignada",
     });
   });
 

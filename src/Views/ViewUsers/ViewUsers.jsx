@@ -14,6 +14,7 @@ import PanelNuevaPersona from "../../Components/Usuarios/PanelNuevaPersona.jsx";
 import { agruparEquipo } from "../../Components/Usuarios/utilesUsuarios.js";
 import {
   ROLES_PASTORES,
+  ROL_LIDER,
   ROL_OPERADOR,
   ROL_POR_DEFECTO,
   esDuenoDeLaIglesia,
@@ -62,11 +63,12 @@ export default function ViewUsers() {
     (u) => normalizarRol(u.role) === rolPareja
   );
 
-  // Mientras falte la pareja, el dueño puede elegir entre ella y Operador.
-  // Una vez está, todo lo que se cree en adelante es Operador y el selector
-  // desaparece.
+  // Todo pastor puede crear Operadores y Líderes (25-11-2026). Mientras falte la
+  // pareja pastoral, el dueño puede elegir además a ella.
   const rolesDisponibles =
-    soyElDueno && !parejaYaExiste ? [rolPareja, ROL_OPERADOR] : [ROL_OPERADOR];
+    soyElDueno && !parejaYaExiste
+      ? [rolPareja, ROL_LIDER, ROL_OPERADOR]
+      : [ROL_LIDER, ROL_OPERADOR];
   const puedeElegirRol = rolesDisponibles.length > 1;
 
   // ¿Puedo eliminar a esta persona? Nunca a mí mismo ni a quien registró la

@@ -4,7 +4,7 @@
 export function textoServicio(contenido) {
   const quien = contenido.operador
     ? `Maneja la pantalla: ${contenido.operador}`
-    : "Sin operador asignado";
+    : "Sin proyección asignada";
 
   switch (contenido.modo) {
     case "enCurso":

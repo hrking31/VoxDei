@@ -6,20 +6,25 @@
 // `.info/serverTimeOffset`), no la del celular, que puede estar adelantada.
 //
 // Un servicio es como una alarma del celular:
-//   { nombre, inicio: "08:00", fin: "10:00", dias: [0], fecha: null,
-//     operadorUid, operadorNombre, activo }
+//   { nombre, inicio: "08:00", fin: "10:00", dias: [0], fecha: null, activo }
+// El servicio se repite, así que NO lleva operador (25-11-2026): quién sirve cada
+// fecha se decide en la programación (programacion.js): los cargos con `proyecta`
+// dan el turno ese día.
 // `dias` usa la numeración de Date.getDay() (0 = domingo … 6 = sábado). Si está
 // vacío, el servicio es de una sola vez y vale solo en `fecha` ("AAAA-MM-DD").
 //
 // Reglas (acordadas con el usuario el 23 de octubre de 2026):
-// - Pastor y pastora proyectan siempre.
-// - Con un servicio en curso, proyecta su operador. Si dos se cruzan, manda el
-//   que empezó más tarde.
+// - Pastor, pastora y líder proyectan siempre.
+// - Con un servicio en curso, proyecta quien tenga ese día un cargo que proyecta
+//   (Conductor, Proyección...), según la programación. Si dos servicios se
+//   cruzan, manda el que empezó más tarde.
 // - Sin servicio, proyecta quien tenga el ensayo. Un ensayo termina al pulsar
 //   «Terminar», al empezar cualquier servicio o a las HORAS_ENSAYO.
-// - Sin servicio ni ensayo, solo pastor y pastora.
+// - Sin servicio ni ensayo, o con un servicio sin nadie asignado, solo pastor,
+//   pastora y líder.
 
-import { esPastor } from "../Roles/Roles.js";
+import { puedeProgramar } from "../Roles/Roles.js";
+import { asignadosConTurno, idProgramacion } from "./programacion.js";
 
 export const HORAS_ENSAYO = 3;
 const MS_ENSAYO = HORAS_ENSAYO * 60 * 60 * 1000;
@@ -50,14 +55,14 @@ export function fechaISO(fecha) {
 }
 
 // ¿El servicio ocurre ese día (sin mirar la hora)?
-function ocurreEl(servicio, fecha) {
+export function ocurreEl(servicio, fecha) {
   if (servicio.activo === false) return false;
   if (servicio.dias?.length) return servicio.dias.includes(fecha.getDay());
   return servicio.fecha === fechaISO(fecha);
 }
 
 // Momento exacto (ms) en que el servicio empieza el día indicado.
-function inicioEnMs(servicio, fecha) {
+export function inicioEnMs(servicio, fecha) {
   const minutos = aMinutos(servicio.inicio);
   const d = new Date(fecha);
   d.setHours(Math.floor(minutos / 60), minutos % 60, 0, 0);
@@ -95,21 +100,28 @@ export function ensayoVigente(ensayo, servicios, ahoraMs) {
   return !empezoAlgunServicio(servicios, ensayo.inicio, ahoraMs);
 }
 
-// Turno actual:
-//   { tipo: "servicio", uid, nombre, servicio }
-//   { tipo: "ensayo", uid, nombre, hasta }
+// Turno actual (`uids`: puede haber varias personas en un cargo; `uid` es la primera y
+// `nombre` la lista, para lo que muestra la franja):
+//   { tipo: "servicio", uid, uids, nombre, servicio }   (sin nadie: uid null, uids [])
+//   { tipo: "ensayo", uid, uids, nombre, hasta }
 //   { tipo: "libre" }
-export function turnoActual(servicios, ensayo, ahoraMs) {
+//
+// `programacion` es el mapa { [servicioId_AAAA-MM-DD]: documento } y `cargos` el
+// catálogo; sin ellos nadie queda asignado y solo proyectan los que mandan.
+export function turnoActual(servicios, ensayo, ahoraMs, programacion = {}, cargos = []) {
   const enCurso = serviciosEnCurso(servicios, ahoraMs);
 
   if (enCurso.length) {
     const servicio = enCurso.reduce((elegido, s) =>
       aMinutos(s.inicio) > aMinutos(elegido.inicio) ? s : elegido
     );
+    const prog = programacion?.[idProgramacion(servicio.id, fechaISO(new Date(ahoraMs)))];
+    const asignados = asignadosConTurno(prog, cargos);
     return {
       tipo: "servicio",
-      uid: servicio.operadorUid || null,
-      nombre: servicio.operadorNombre || "",
+      uid: asignados[0]?.uid || null,
+      uids: asignados.map((a) => a.uid),
+      nombre: asignados.map((a) => a.nombre).join(", "),
       servicio,
     };
   }
@@ -118,6 +130,7 @@ export function turnoActual(servicios, ensayo, ahoraMs) {
     return {
       tipo: "ensayo",
       uid: ensayo.uid,
+      uids: [ensayo.uid],
       nombre: ensayo.nombre || "",
       hasta: ensayo.inicio + MS_ENSAYO,
     };
@@ -126,29 +139,16 @@ export function turnoActual(servicios, ensayo, ahoraMs) {
   return { tipo: "libre" };
 }
 
-export function puedeProyectar(turno, userData, uid) {
-  if (esPastor(userData)) return true;
-  return turno.tipo !== "libre" && Boolean(uid) && turno.uid === uid;
+// ¿Esta persona tiene el turno? `uids` es la lista; `uid` queda por si llega un turno
+// armado a mano (los ejemplos de la Ayuda).
+export function tieneElTurno(turno, uid) {
+  if (!uid || turno.tipo === "libre") return false;
+  return Array.isArray(turno.uids) ? turno.uids.includes(uid) : turno.uid === uid;
 }
 
-// Texto corto de los días de un servicio: "L M X J V", "Domingo",
-// "Todos los días" o la fecha si es de una sola vez.
-export function textoDias(servicio) {
-  const dias = servicio.dias || [];
-  if (!dias.length) {
-    if (!servicio.fecha) return "Sin fecha";
-    const [a, m, d] = servicio.fecha.split("-").map(Number);
-    return new Date(a, m - 1, d).toLocaleDateString("es", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-    });
-  }
-  if (dias.length === 7) return "Todos los días";
-  if (dias.length === 1) return DIAS.find((d) => d.num === dias[0])?.largo;
-  return DIAS.filter((d) => dias.includes(d.num))
-    .map((d) => d.corto)
-    .join(" ");
+export function puedeProyectar(turno, userData, uid) {
+  if (puedeProgramar(userData)) return true;
+  return tieneElTurno(turno, uid);
 }
 
 // Hora en formato 12 h para mostrar: "08:00" → "8:00 a. m."

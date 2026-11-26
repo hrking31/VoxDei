@@ -5,25 +5,33 @@
 // usuarios que él cree después heredan ese groupId y solo ven los datos de su
 // propia iglesia.
 //
-// Solo hay dos niveles (15 de agosto de 2026):
+// Tres niveles (el Líder se añadió el 25 de noviembre de 2026):
 //   Pastor / Pastora  → todos los permisos, incluida la gestión de cuentas
-//   Operador          → maneja la proyección; nada de cuentas ni de prédicas
+//   Líder             → programa los servicios (asigna los cargos de cada
+//                       domingo) y proyecta siempre; nada de cuentas ni de prédicas
+//   Operador          → maneja la proyección cuando le toca; nada de cuentas
+//                       ni de prédicas
 //
 // Se eliminaron "administrador" (nivel intermedio que no se usaba) y el nombre
 // "Asistente", sustituido por "Operador" porque describe lo que hace.
 
 export const ROL_PASTOR = "Pastor";
 export const ROL_PASTORA = "Pastora";
+export const ROL_LIDER = "Líder";
 export const ROL_OPERADOR = "Operador";
 
 // Todos los roles válidos de la aplicación.
-export const ROLES = [ROL_PASTOR, ROL_PASTORA, ROL_OPERADOR];
+export const ROLES = [ROL_PASTOR, ROL_PASTORA, ROL_LIDER, ROL_OPERADOR];
 
 // Mandan en la iglesia: gestionan cuentas, prédicas y todo lo demás.
 export const ROLES_PASTORES = [ROL_PASTOR, ROL_PASTORA];
 
+// Pueden programar los servicios: asignar los cargos de cada fecha y editar el
+// catálogo de cargos. Los crea solo un pastor o pastora.
+export const ROLES_PROGRAMACION = [...ROLES_PASTORES, ROL_LIDER];
+
 // Pueden manejar el proyector: ticker, mensajes, versículos, imágenes, estilos.
-export const ROLES_PROYECCION = [...ROLES_PASTORES, ROL_OPERADOR];
+export const ROLES_PROYECCION = [...ROLES_PROGRAMACION, ROL_OPERADOR];
 
 // Rol con el que nace cualquier usuario adicional de la iglesia.
 export const ROL_POR_DEFECTO = ROL_OPERADOR;
@@ -59,6 +67,11 @@ export function tieneRol(userData, rolesPermitidos = []) {
 // ¿Es pastor o pastora? Es lo que habilita gestionar cuentas y prédicas.
 export function esPastor(userData) {
   return tieneRol(userData, ROLES_PASTORES);
+}
+
+// ¿Puede programar los servicios? Pastor, pastora y líder.
+export function puedeProgramar(userData) {
+  return tieneRol(userData, ROLES_PROGRAMACION);
 }
 
 // ¿Es la cuenta que registró la iglesia? Su uid es el groupId, así que las

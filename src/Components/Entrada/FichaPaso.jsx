@@ -9,7 +9,7 @@ export default function FichaPaso({ numero, titulo, lineas, relleno = false, onC
     <button
       type="button"
       onClick={onClick}
-      className={`group relative flex w-full flex-1 flex-col gap-2.5 rounded-2xl border-2 border-app-main p-3 text-center transition hover:-translate-y-0.5 hover:shadow-barra ${
+      className={`group relative flex w-full flex-1 max-sm:pantalla-baja:flex-none flex-col gap-2.5 rounded-2xl border-2 border-app-main p-3 text-center transition hover:-translate-y-0.5 hover:shadow-barra ${
         relleno ? "bg-app-main" : "bg-transparent"
       }`}
     >
@@ -20,7 +20,7 @@ export default function FichaPaso({ numero, titulo, lineas, relleno = false, onC
           {numero}
         </span>
       )}
-      <span className="block h-24 sm:h-48 lg:h-60">{children}</span>
+      <span className="block h-24 max-sm:pantalla-baja:h-16 max-sm:pantalla-muy-baja:h-12 sm:h-48 lg:h-60">{children}</span>
       {/* Centrado, como los botones de la entrada de siempre */}
       <span
         className={`flex items-center justify-center gap-2 px-1 text-xl font-bold lg:text-2xl ${relleno ? "text-app-dark" : "text-app-texto"}`}

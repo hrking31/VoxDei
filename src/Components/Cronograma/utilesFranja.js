@@ -1,5 +1,5 @@
-import { esPastor } from "../Roles/Roles.js";
-import { puedeProyectar, textoHora } from "./UtilesCronograma.js";
+import { puedeProgramar } from "../Roles/Roles.js";
+import { puedeProyectar, textoHora, tieneElTurno } from "./UtilesCronograma.js";
 
 // Qué dice la franja del turno (FranjaTurno) a quien está mirando, sin React ni
 // Firebase. La usan la franja de verdad y los ejemplos de la Ayuda, así que lo
@@ -22,8 +22,9 @@ const hora = (ms) =>
 //   completo: la frase entera, para el `title`
 //   botones:  los del ensayo que te tocan ("iniciar" | "tomar" | "terminar")
 export function estadoFranja(turno, userData, uid) {
-  const pastor = esPastor(userData);
-  const esMio = Boolean(turno.uid) && turno.uid === uid;
+  // Manda quien programa (pastor, pastora y líder): proyecta siempre
+  const pastor = puedeProgramar(userData);
+  const esMio = tieneElTurno(turno, uid);
   const puedo = puedeProyectar(turno, userData, uid);
   const rol = (userData?.role || "pastor").toLowerCase();
 
@@ -31,7 +32,7 @@ export function estadoFranja(turno, userData, uid) {
   if (turno.tipo === "servicio") {
     const s = turno.servicio;
     titulo = !turno.uid
-      ? "Servicio sin operador asignado"
+      ? "Servicio sin proyección asignada"
       : esMio
         ? "Tu turno"
         : `Turno de ${turno.nombre}`;

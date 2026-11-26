@@ -45,3 +45,18 @@ describe("el espacio de la nieve de abajo", () => {
     for (const raiz of raices) expect(raiz).toContain("data-sin-espacio-nieve");
   });
 });
+
+describe("la entrada en celulares de poco alto", () => {
+  it("define las variantes de alto, y la «muy baja» va después para ganarle a la «baja»", () => {
+    expect(css).toMatch(/@custom-variant pantalla-baja \(@media \(max-height: 780px\)\);/);
+    expect(css).toMatch(/@custom-variant pantalla-muy-baja \(@media \(max-height: 680px\)\);/);
+    expect(css.indexOf("@custom-variant pantalla-muy-baja")).toBeGreaterThan(css.indexOf("@custom-variant pantalla-baja"));
+  });
+});
+
+describe("el espacio de la nieve crece sin saltos", () => {
+  it("--alto-pila-actual está registrada como longitud y la raíz le da una transición", () => {
+    expect(css).toMatch(/@property --alto-pila-actual \{\s*syntax: "<length>";\s*inherits: true;\s*initial-value: 0px;\s*\}/);
+    expect(css).toMatch(/:root \{\s*transition: --alto-pila-actual \d+(\.\d+)?s linear;/);
+  });
+});

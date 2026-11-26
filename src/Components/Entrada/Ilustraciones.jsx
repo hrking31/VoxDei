@@ -20,7 +20,7 @@ export function IlustracionProyectar() {
 export function IlustracionAdministrar() {
   return (
     <span aria-hidden="true" className="relative grid h-full place-items-center overflow-hidden rounded-xl bg-app-noche">
-      <span className="flex h-14 w-9 flex-col gap-1 rounded-lg border-2 border-app-border bg-app-light p-1.5">
+      <span className="flex h-14 w-9 flex-col gap-1 max-sm:pantalla-muy-baja:scale-75 rounded-lg border-2 border-app-border bg-app-light p-1.5">
         <i className="block h-1 w-full rounded bg-app-border motion-safe:animate-tecleo" />
         <i className="block h-1 w-3/5 rounded bg-app-border retraso-1 motion-safe:animate-tecleo" />
         <i className="block h-1 w-4/5 rounded bg-app-border retraso-2 motion-safe:animate-tecleo" />

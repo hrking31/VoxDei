@@ -2,15 +2,18 @@
 import { describe, expect, it } from "vitest";
 import { createRequire } from "node:module";
 import {
+  ROL_LIDER,
   ROL_OPERADOR,
   ROL_PASTOR,
   ROL_PASTORA,
   ROL_POR_DEFECTO,
   ROLES,
   ROLES_PASTORES,
+  ROLES_PROGRAMACION,
   ROLES_PROYECCION,
   esDuenoDeLaIglesia,
   esPastor,
+  puedeProgramar,
   normalizarRol,
   rolDeLaPareja,
   tieneRol,
@@ -52,6 +55,21 @@ describe("Roles", () => {
     expect(esPastor(null)).toBe(false);
   });
 
+  it("el líder programa y proyecta, pero no es pastor", () => {
+    expect(ROLES).toEqual([ROL_PASTOR, ROL_PASTORA, ROL_LIDER, ROL_OPERADOR]);
+    expect(normalizarRol(" líder ")).toBe(ROL_LIDER);
+    expect(puedeProgramar({ role: "líder" })).toBe(true);
+    expect(esPastor({ role: ROL_LIDER })).toBe(false);
+    expect(ROLES_PROGRAMACION).toEqual([ROL_PASTOR, ROL_PASTORA, ROL_LIDER]);
+    expect(ROLES_PROYECCION).toEqual([...ROLES_PROGRAMACION, ROL_OPERADOR]);
+    for (const [rol, esperado] of [[ROL_PASTOR, true], [ROL_PASTORA, true], [ROL_LIDER, true], [ROL_OPERADOR, false]]) {
+      expect(puedeProgramar({ role: rol })).toBe(esperado);
+    }
+    expect(puedeProgramar(null)).toBe(false);
+    expect(tieneRol({ role: ROL_LIDER }, ROLES_PROYECCION)).toBe(true);
+    expect(tieneRol({ role: ROL_LIDER }, ROLES_PASTORES)).toBe(false);
+  });
+
   it("el dueño es quien tiene su uid como groupId", () => {
     expect(esDuenoDeLaIglesia({ uid: "a", groupId: "a" })).toBe(true);
     expect(esDuenoDeLaIglesia({ uid: "b", groupId: "a" })).toBe(false);
@@ -72,6 +90,8 @@ describe("Roles", () => {
   it("el servidor tiene los mismos roles que la app", () => {
     expect(servidor.ROLES).toEqual(ROLES);
     expect(servidor.ROLES_PASTORES).toEqual(ROLES_PASTORES);
+    expect(servidor.ROLES_PROGRAMACION).toEqual(ROLES_PROGRAMACION);
+    expect(servidor.ROL_LIDER).toBe(ROL_LIDER);
     expect(servidor.ROL_POR_DEFECTO).toBe(ROL_POR_DEFECTO);
     for (const rol of ["pastor", " PASTORA ", "Operador", "otro", ""]) {
       expect(servidor.normalizarRol(rol)).toBe(normalizarRol(rol));

@@ -104,6 +104,24 @@ describe("ViewUsers", () => {
     await waitFor(() => expect(document.querySelector("[data-panel-nueva-persona]")).toBeNull());
   });
 
+  it("el pastor puede crear un Líder, y el selector ofrece Líder y Operador aunque la pareja ya exista", async () => {
+    servidor.crear.mockClear();
+    await abrir(dueno);
+    fireEvent.click(document.querySelector("[data-anadir-persona]"));
+    const panel = document.querySelector("[data-panel-nueva-persona]");
+    expect(within(panel).getByRole("radio", { name: "Líder" })).toBeTruthy();
+    expect(within(panel).getByRole("radio", { name: "Operador" })).toBeTruthy();
+
+    fireEvent.change(within(panel).getByPlaceholderText("Nombre de la persona"), { target: { name: "name", value: "Raúl Soto" } });
+    fireEvent.click(within(panel).getByRole("radio", { name: "Masculino" }));
+    fireEvent.change(within(panel).getByPlaceholderText("correo@ejemplo.com"), { target: { name: "email", value: "raul@iglesia.org" } });
+    fireEvent.change(within(panel).getByPlaceholderText("Contraseña"), { target: { name: "password", value: "ClaveSegura12!" } });
+    fireEvent.click(within(panel).getByRole("radio", { name: "Líder" }));
+    fireEvent.click(within(panel).getByRole("button", { name: "Crear usuario" }));
+
+    await waitFor(() => expect(servidor.crear).toHaveBeenCalledWith(expect.objectContaining({ role: "Líder", name: "Raúl Soto" })));
+  });
+
   it("con campos vacíos avisa y no llama al servidor", async () => {
     servidor.crear.mockClear();
     const { app } = await abrir(dueno);

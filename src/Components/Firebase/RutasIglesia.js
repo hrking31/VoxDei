@@ -41,6 +41,12 @@ export const REPERTORIO_ACTUAL = "actual";
 // pastora (firestore.rules); la lee toda la iglesia. Ver Cronograma/.
 export const CRONOGRAMA = "cronograma";
 
+// Cargos del servicio (Conductor, Proyección, Alabanza...) y la programación de cada
+// fecha: quién sirve en qué cargo (25-11-2026). La programación vive en
+// iglesias/{groupId}/programacion/{servicioId}_{AAAA-MM-DD}. Escriben pastor, pastora y líder.
+export const CARGOS = "cargos";
+export const PROGRAMACION = "programacion";
+
 // Orden del culto: los pasos que se proyectan uno tras otro con «Siguiente».
 // Un solo documento con el array `pasos`; lo escribe cualquiera de la iglesia
 // (regla general de iglesias/{groupId}). Ver OrdenCulto/.

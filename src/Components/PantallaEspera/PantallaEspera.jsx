@@ -12,7 +12,7 @@ import { contenidoEspera } from "./utilesEspera.js";
 // Los colores son los de *Estilos y colores*, como el resto de la proyección.
 // `tamanos` son los tamaños base de ControlDisplay según el tipo de pantalla.
 export default function PantallaEspera({ tamanos }) {
-  const { servicios, desfaseReloj, estilos } = useAppContext();
+  const { servicios, desfaseReloj, estilos, programacion, cargos } = useAppContext();
   const { userData } = useAuth();
   const [ahora, setAhora] = useState(() => Date.now() + desfaseReloj);
 
@@ -24,7 +24,7 @@ export default function PantallaEspera({ tamanos }) {
     return () => clearInterval(temporizador);
   }, [desfaseReloj]);
 
-  const contenido = contenidoEspera(servicios, ahora);
+  const contenido = contenidoEspera(servicios, ahora, programacion, cargos);
   const sombra = `0 2px 8px rgba(0,0,0,${estilos.legibilidad.sombra / 100})`;
   const texto = {
     color: estilos.texto.color,

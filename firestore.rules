@@ -29,6 +29,12 @@ service cloud.firestore {
       return miPerfil().role in ['Pastor', 'Pastora'];
     }
 
+    // Programa los servicios (asigna los cargos de cada fecha): pastor, pastora
+    // y líder (25 de noviembre de 2026).
+    function soyPastorOLider() {
+      return miPerfil().role in ['Pastor', 'Pastora', 'Líder'];
+    }
+
     // El dueño es quien registró la iglesia: su uid ES el groupId.
     function soyElDueno() {
       return autenticado() && request.auth.uid == miGroupId();
@@ -52,10 +58,15 @@ service cloud.firestore {
     // regla permita, así que un match propio más estricto no le quitaría al
     // operador el permiso que ya le da este. Lo mismo `perfil` (nombre, sigla
     // y logo de la iglesia, desde el 9 de noviembre de 2026).
+    //
+    // `cargos` (catálogo de funciones: Conductor, Proyección...) y `programacion`
+    // (quién sirve en cada fecha) los escriben además los líderes (25-11-2026).
     match /iglesias/{groupId}/{coleccion}/{documento=**} {
       allow read: if esMiIglesia(groupId);
       allow write: if esMiIglesia(groupId) &&
-        (!(coleccion in ['cronograma', 'perfil']) || soyPastor());
+        (!(coleccion in ['cronograma', 'perfil', 'cargos', 'programacion']) ||
+         (coleccion in ['cronograma', 'perfil'] && soyPastor()) ||
+         (coleccion in ['cargos', 'programacion'] && soyPastorOLider()));
     }
 
     // ---- Usuarios ----

@@ -41,6 +41,10 @@ export function AppProvider({ children }) {
   // entre el reloj del dispositivo y el del servidor. Los llena
   // InicializarEstados; useTurno los combina.
   const [servicios, setServicios] = useState([]);
+  // Cargos del servicio (catálogo) y programación de las próximas fechas, como mapa
+  // { [servicioId_AAAA-MM-DD]: documento } (25-11-2026; ver Cronograma/programacion.js).
+  const [cargos, setCargos] = useState([]);
+  const [programacion, setProgramacion] = useState({});
   const [ensayo, setEnsayo] = useState(null);
   const [desfaseReloj, setDesfaseReloj] = useState(0);
   const [notif, setNotif] = useState({
@@ -122,6 +126,10 @@ export function AppProvider({ children }) {
         setAuthUser,
         servicios,
         setServicios,
+        cargos,
+        setCargos,
+        programacion,
+        setProgramacion,
         ensayo,
         setEnsayo,
         desfaseReloj,

@@ -18,7 +18,7 @@ const INTERVALO_MS = 30 * 1000;
 // del servidor (no la del dispositivo: ver desfaseReloj).
 export function useTurno() {
   const { user, userData } = useAuth();
-  const { servicios, ensayo, desfaseReloj, showNotif } = useAppContext();
+  const { servicios, ensayo, desfaseReloj, showNotif, programacion, cargos } = useAppContext();
   const [ahora, setAhora] = useState(() => Date.now() + desfaseReloj);
 
   useEffect(() => {
@@ -32,8 +32,8 @@ export function useTurno() {
   // al reloj. Un ensayo recién iniciado lleva la hora del servidor, que puede
   // ir hasta 30 s por delante de `ahora`; ensayoVigente lo da por bueno igual.
   const turno = useMemo(
-    () => turnoActual(servicios, ensayo, ahora),
-    [servicios, ensayo, ahora]
+    () => turnoActual(servicios, ensayo, ahora, programacion, cargos),
+    [servicios, ensayo, ahora, programacion, cargos]
   );
 
   const puedoProyectar = puedeProyectar(turno, userData, user?.uid);

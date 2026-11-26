@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { onSnapshot } from "firebase/firestore";
+import { onSnapshot, query, where } from "firebase/firestore";
 import { database } from "../../Components/Firebase/Firebase";
 import {
   colIglesia,
@@ -9,6 +9,8 @@ import {
   CONFIGURACION,
   ESTILOS,
   CRONOGRAMA,
+  CARGOS,
+  PROGRAMACION,
   PERFIL,
   PERFIL_DATOS,
   BIBLIA_ELEGIDA,
@@ -24,6 +26,7 @@ import { ref, onValue } from "firebase/database";
 import { useAppContext } from "../../Components/Context/AppContext";
 import { useAuth } from "../../Components/Context/AuthContext";
 import { esBaja, esEscritorio, formatoDe } from "../Hooks/formatoPantalla";
+import { fechaISO } from "../Cronograma/UtilesCronograma.js";
 
 export default function InicializarEstados() {
   const { user, userData, loading } = useAuth();
@@ -46,6 +49,8 @@ export default function InicializarEstados() {
     setVelocidadTicker,
     setEstilos,
     setServicios,
+    setCargos,
+    setProgramacion,
     setEnsayo,
     setDesfaseReloj,
   } = useAppContext();
@@ -216,6 +221,29 @@ export default function InicializarEstados() {
       }
     );
 
+    // Cargos del servicio y programación de las fechas que vienen (desde ayer, para
+    // cubrir un servicio que cruza la medianoche): con ellos useTurno sabe quién tiene
+    // el cargo que proyecta en cada servicio.
+    const cargosEscucha = onSnapshot(
+      colIglesia(groupId, CARGOS),
+      (snapshot) => setCargos(snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      (error) => console.error("Error al cargar los cargos:", error)
+    );
+    const ayer = new Date();
+    ayer.setDate(ayer.getDate() - 1);
+    const desde = fechaISO(ayer);
+    const programacionEscucha = onSnapshot(
+      query(colIglesia(groupId, PROGRAMACION), where("fecha", ">=", desde)),
+      (snapshot) => {
+        const mapa = {};
+        snapshot.docs.forEach((d) => {
+          mapa[d.id] = { id: d.id, ...d.data() };
+        });
+        setProgramacion(mapa);
+      },
+      (error) => console.error("Error al cargar la programación:", error)
+    );
+
     const turnoEnsayo = onValue(
       ref(database, `turnoEnsayo/${groupId}`),
       (snapshot) => setEnsayo(snapshot.val())
@@ -229,9 +257,13 @@ export default function InicializarEstados() {
 
     return () => {
       cronograma();
+      cargosEscucha();
+      programacionEscucha();
       turnoEnsayo();
       desfase();
       setServicios([]);
+      setCargos([]);
+      setProgramacion({});
       setEnsayo(null);
       loadTickers();
       loadMessage();

@@ -1,6 +1,8 @@
+import { asignadosConTurno, idProgramacion } from "../Cronograma/programacion.js";
 import {
   DIAS,
   aMinutos,
+  fechaISO,
   proximoServicio,
   serviciosEnCurso,
   textoCuentaRegresiva,
@@ -16,19 +18,26 @@ export const HORAS_CUENTA_REGRESIVA = 6;
 //   { modo: "cuenta", nombre, hora, cuenta }          faltan pocas horas
 //   { modo: "fecha", nombre, hora, dia }              falta más
 //   { modo: "nada" }                                  no hay servicios
-export function contenidoEspera(servicios, ahoraMs) {
+//
+// `operador` es quien tiene ese día un cargo que proyecta (Conductor, Proyección...),
+// según la programación; sin ella, queda vacío.
+export function contenidoEspera(servicios, ahoraMs, programacion = {}, cargos = []) {
+  const quienes = (servicio, ms) => {
+    const prog = programacion?.[idProgramacion(servicio.id, fechaISO(new Date(ms)))];
+    return asignadosConTurno(prog, cargos).map((a) => a.nombre).join(", ");
+  };
   const enCurso = serviciosEnCurso(servicios || [], ahoraMs);
   if (enCurso.length) {
     // Si se cruzan dos, manda el que empezó más tarde (misma regla del turno).
     const actual = enCurso.reduce((a, b) => (aMinutos(b.inicio) > aMinutos(a.inicio) ? b : a));
-    return { modo: "enCurso", nombre: actual.nombre || "Servicio", operador: actual.operadorNombre || "" };
+    return { modo: "enCurso", nombre: actual.nombre || "Servicio", operador: quienes(actual, ahoraMs) };
   }
 
   const proximo = proximoServicio(servicios, ahoraMs);
   if (!proximo) return { modo: "nada" };
 
   const nombre = proximo.servicio.nombre || "Servicio";
-  const operador = proximo.servicio.operadorNombre || "";
+  const operador = quienes(proximo.servicio, proximo.inicio);
   const hora = textoHora(proximo.servicio.inicio);
   const falta = proximo.inicio - ahoraMs;
 

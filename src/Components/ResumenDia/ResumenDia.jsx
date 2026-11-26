@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onSnapshot } from "firebase/firestore";
-import { CalendarDaysIcon, MusicalNoteIcon, QueueListIcon } from "@heroicons/react/24/solid";
+import {
+  CalendarDaysIcon,
+  MusicalNoteIcon,
+  QueueListIcon,
+} from "@heroicons/react/24/solid";
 import { useAuth } from "../Context/AuthContext";
 import { useAppContext } from "../Context/AppContext";
 import { useTurno } from "../Hooks/useTurno.js";
@@ -15,6 +19,7 @@ import {
 import { contenidoEspera } from "../PantallaEspera/utilesEspera.js";
 import { cambiarEspera } from "../PantallaEspera/accionesEspera.js";
 import EstadoPantalla from "../Entrada/EstadoPantalla.jsx";
+import MiProgramacion from "./MiProgramacion.jsx";
 import { cantidad, textoServicio } from "./utilesResumen.js";
 
 // Resumen del día: lo que hay que saber al llegar al templo, cada cosa con
@@ -23,7 +28,14 @@ import { cantidad, textoServicio } from "./utilesResumen.js";
 export default function ResumenDia() {
   const navigate = useNavigate();
   const { userData } = useAuth();
-  const { servicios, desfaseReloj, visibleEspera, showNotif } = useAppContext();
+  const {
+    servicios,
+    desfaseReloj,
+    visibleEspera,
+    showNotif,
+    programacion,
+    cargos,
+  } = useAppContext();
   const { exigirTurno } = useTurno();
   const groupId = userData.groupId;
 
@@ -44,12 +56,12 @@ export default function ResumenDia() {
     const orden = onSnapshot(
       docIglesia(groupId, ORDEN_CULTO, ORDEN_ACTUAL),
       (snap) => setPasos(snap.data()?.pasos?.length || 0),
-      () => setPasos(0)
+      () => setPasos(0),
     );
     const repertorio = onSnapshot(
       docIglesia(groupId, REPERTORIO, REPERTORIO_ACTUAL),
       (snap) => setCanciones(snap.data()?.canciones?.length || 0),
-      () => setCanciones(0)
+      () => setCanciones(0),
     );
     return () => {
       orden();
@@ -57,7 +69,9 @@ export default function ResumenDia() {
     };
   }, [groupId]);
 
-  const servicio = textoServicio(contenidoEspera(servicios, ahora));
+  const servicio = textoServicio(
+    contenidoEspera(servicios, ahora, programacion, cargos),
+  );
 
   const alternarEspera = async () => {
     if (!exigirTurno()) return;
@@ -65,7 +79,10 @@ export default function ResumenDia() {
       await cambiarEspera(groupId, !visibleEspera);
     } catch (error) {
       console.error("Error con la pantalla de espera:", error);
-      showNotif("error", "No se pudo cambiar la pantalla de espera. Revisa tu conexión.");
+      showNotif(
+        "error",
+        "No se pudo cambiar la pantalla de espera. Revisa tu conexión.",
+      );
     }
   };
 
@@ -86,16 +103,28 @@ export default function ResumenDia() {
         }
         detalle={servicio.detalle}
       >
-        <Boton onClick={() => navigate("/ViewCronograma")}>Ir a Cronograma</Boton>
+        <Boton onClick={() => navigate("/ViewCronograma")}>
+          Ir a Cronograma
+        </Boton>
         <Boton onClick={alternarEspera} pulsado={Boolean(visibleEspera)}>
-          {visibleEspera ? "Quitar la pantalla de espera" : "Mostrar la pantalla de espera"}
+          {visibleEspera
+            ? "Quitar la pantalla de espera"
+            : "Mostrar la pantalla de espera"}
         </Boton>
       </Tarjeta>
+
+      <MiProgramacion ahora={ahora} />
 
       <Tarjeta
         titulo="Orden del culto"
         Icono={QueueListIcon}
-        principal={pasos === null ? "Cargando…" : pasos ? `${cantidad(pasos, "paso", "pasos")} listos` : "Sin preparar"}
+        principal={
+          pasos === null
+            ? "Cargando…"
+            : pasos
+              ? `${cantidad(pasos, "paso", "pasos")} listos`
+              : "Sin preparar"
+        }
         detalle="Durante el culto, un solo botón: «Siguiente»."
       >
         <Boton onClick={() => navigate("/ViewCulto")}>
@@ -106,7 +135,13 @@ export default function ResumenDia() {
       <Tarjeta
         titulo="Canciones de hoy"
         Icono={MusicalNoteIcon}
-        principal={canciones === null ? "Cargando…" : canciones ? cantidad(canciones, "canción", "canciones") : "Ninguna todavía"}
+        principal={
+          canciones === null
+            ? "Cargando…"
+            : canciones
+              ? cantidad(canciones, "canción", "canciones")
+              : "Ninguna todavía"
+        }
         detalle="La lista que se usa en el Orden del culto."
       >
         <Boton onClick={() => navigate("/ViewCanciones")}>Ir a Canciones</Boton>
@@ -115,7 +150,14 @@ export default function ResumenDia() {
   );
 }
 
-function Tarjeta({ titulo, Icono, principal, detalle, ancha = false, children }) {
+function Tarjeta({
+  titulo,
+  Icono,
+  principal,
+  detalle,
+  ancha = false,
+  children,
+}) {
   return (
     <section
       aria-label={titulo}

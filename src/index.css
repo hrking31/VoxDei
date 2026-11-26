@@ -314,6 +314,22 @@ body {
 @utility min-h-pantalla {
   min-height: calc(100svh - var(--alto-barra) - var(--alto-guirnalda) - var(--alto-nieve));
 }
+/* Celulares de poco alto (25-11-2026): la entrada encoge sus medidas para caber sin scroll.
+   `pantalla-muy-baja` se define después, para ganarle a `pantalla-baja` cuando valen las dos.
+   Se usan siempre con `max-sm:` delante: un celular acostado ya se desplaza (ver h-pantalla). */
+/* El espacio que reserva la nieve abajo (--alto-pila-actual) crece sin dar saltos (25-11-2026):
+   registrada como longitud y con transición en la raíz, el navegador interpola entre un píxel y el
+   siguiente, así el pie y las alturas de pantalla que cuelgan de ella se deslizan en vez de brincar. */
+@property --alto-pila-actual {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+:root {
+  transition: --alto-pila-actual 3s linear;
+}
+@custom-variant pantalla-baja (@media (max-height: 780px));
+@custom-variant pantalla-muy-baja (@media (max-height: 680px));
 /* ---- Pantalla de entrada (/ViewSelector) ---- */
 /* Fondo con un resplandor dorado detrás del símbolo */
 @utility fondo-entrada {

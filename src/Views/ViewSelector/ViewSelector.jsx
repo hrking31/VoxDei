@@ -38,13 +38,13 @@ export default function ViewSelector() {
     <div className="min-h-svh flex flex-col fondo-entrada text-app-texto">
       <EncabezadoUsuario />
 
-      <main className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-6 sm:gap-12 sm:py-16">
+      <main className="flex flex-1 flex-col items-center justify-start gap-6 px-4 pb-6 pt-2 max-sm:pantalla-baja:gap-3 max-sm:pantalla-baja:pb-3 sm:justify-center sm:gap-12 sm:py-16">
         <div className="flex flex-col items-center gap-2 text-center sm:gap-3">
-          <span className="relative h-16 w-16 sm:h-24 sm:w-24">
+          <span className="relative h-16 w-16 max-sm:pantalla-baja:h-12 max-sm:pantalla-baja:w-12 sm:h-24 sm:w-24">
             <span aria-hidden="true" className="absolute -inset-5 rounded-full brillo-oro motion-safe:animate-respira" />
-            <LogoDeLaIglesia alt="" className="relative h-16 w-16 sm:h-24 sm:w-24" />
+            <LogoDeLaIglesia alt="" className="relative h-16 w-16 max-sm:pantalla-baja:h-12 max-sm:pantalla-baja:w-12 sm:h-24 sm:w-24" />
           </span>
-          <h1 className="text-2xl font-bold sm:text-4xl lg:text-5xl">
+          <h1 className="text-2xl font-bold max-sm:pantalla-muy-baja:text-xl sm:text-4xl lg:text-5xl">
             {saludoSegunHora()}, {primerNombre(userData.name)}
           </h1>
           <p className="text-sm text-app-muted sm:text-base lg:text-lg">
@@ -53,7 +53,7 @@ export default function ViewSelector() {
         </div>
 
         <div
-          className={`flex w-full flex-col items-stretch gap-3 sm:flex-row sm:gap-12 ${
+          className={`flex w-full flex-col items-stretch gap-8 max-sm:my-auto max-sm:pantalla-baja:flex-1 max-sm:pantalla-baja:justify-around max-sm:pantalla-baja:gap-3 sm:flex-row sm:gap-12 ${
             conProyectar ? "max-w-3xl sm:max-w-5xl lg:max-w-6xl" : "max-w-sm"
           }`}
         >

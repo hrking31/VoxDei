@@ -48,3 +48,28 @@ describe("estadoFranja: el color va de acuerdo a quien mira", () => {
     expect(para(servicioLaura, pastor).completo).toBe("Turno de Laura · 14:00 – 16:00. Puedes proyectar como pastor.");
   });
 });
+
+describe("estadoFranja: el líder y el servicio sin proyección asignada", () => {
+  const lider = { uid: "l", userData: { role: "Líder" } };
+  const sinNadie = { tipo: "servicio", uid: null, uids: [], nombre: "", servicio: { inicio: "14:00", fin: "16:00" } };
+  const conDos = { tipo: "servicio", uid: "laura", uids: ["laura", "luis"], nombre: "Laura, Luis", servicio: { inicio: "14:00", fin: "16:00" } };
+
+  it("el líder proyecta siempre y no necesita iniciar un ensayo", () => {
+    expect(para(libre, lider)).toMatchObject({ puedo: true, botones: [] });
+    expect(para(sinNadie, lider).puedo).toBe(true);
+    expect(para(ensayoLuis, lider).botones).toEqual(["terminar"]);
+    expect(para(libre, lider).explicacion).toBe("Puedes proyectar como líder.");
+  });
+
+  it("un servicio sin nadie en proyección lo dice, y el operador no puede proyectar", () => {
+    expect(para(sinNadie, luis)).toMatchObject({ puedo: false, titulo: "Servicio sin proyección asignada · 14:00 – 16:00" });
+  });
+
+  it("con varias personas en proyección, todas ven «Tu turno» y los demás, la lista", () => {
+    expect(para(conDos, luis).titulo).toMatch(/^Tu turno/);
+    expect(para(conDos, laura).titulo).toMatch(/^Tu turno/);
+    const otro = { uid: "otro", userData: { role: "Operador" } };
+    expect(para(conDos, otro)).toMatchObject({ puedo: false, titulo: "Turno de Laura, Luis · 14:00 – 16:00" });
+  });
+});
+

@@ -137,7 +137,7 @@ exports.crearUsuarioAdmin = onCall(async (request) => {
     );
   }
 
-  // Solo se aceptan los tres roles de la aplicación; cualquier otra cosa que
+  // Solo se aceptan los cuatro roles de la aplicación (Pastor, Pastora, Líder y Operador); cualquier otra cosa que
   // llegue del cliente se rechaza.
   if (!ROLES.includes(role)) {
     throw new HttpsError("invalid-argument", `Rol no válido: ${role}`);
@@ -427,4 +427,58 @@ exports.eliminarMiCuenta = onCall({ timeoutSeconds: 300 }, async (request) => {
       "No se pudo terminar de eliminar la cuenta. Inténtalo de nuevo.",
     );
   }
+});
+
+// «Confirmo» / «No puedo» (25-11-2026): cada persona responde por SU cargo en una fecha.
+// Va por función y no por las reglas de Firestore porque `programacion` solo la escriben
+// pastor, pastora y líder, y abrirla a todos dejaría a cualquiera asignarse un cargo que
+// proyecta. Aquí solo se cambia el `estado` de quien llama, y solo si ya está asignado.
+exports.responderTurno = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "Debes iniciar sesión.");
+  }
+  const { id, cargoId, estado } = request.data || {};
+  if (
+    typeof id !== "string" ||
+    typeof cargoId !== "string" ||
+    !id ||
+    !cargoId ||
+    id.includes("/") ||
+    cargoId.includes(".") ||
+    cargoId.includes("/") ||
+    !["confirmado", "no_puede", "pendiente"].includes(estado)
+  ) {
+    throw new HttpsError("invalid-argument", "Datos incompletos.");
+  }
+
+  const usuario = await db.collection("users").doc(request.auth.uid).get();
+  const groupId = usuario.exists ? usuario.data().groupId : null;
+  if (!groupId) {
+    throw new HttpsError(
+      "failed-precondition",
+      "Tu usuario no pertenece a ninguna iglesia.",
+    );
+  }
+
+  const ref = db.doc(`iglesias/${groupId}/programacion/${id}`);
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const personas = snap.exists ? snap.data().asignaciones?.[cargoId] : null;
+    if (
+      !Array.isArray(personas) ||
+      !personas.some((p) => p.uid === request.auth.uid)
+    ) {
+      throw new HttpsError(
+        "permission-denied",
+        "No tienes ese cargo en esa fecha.",
+      );
+    }
+    tx.update(ref, {
+      [`asignaciones.${cargoId}`]: personas.map((p) =>
+        p.uid === request.auth.uid ? { ...p, estado } : p,
+      ),
+      actualizado: FieldValue.serverTimestamp(),
+    });
+  });
+  return { ok: true };
 });

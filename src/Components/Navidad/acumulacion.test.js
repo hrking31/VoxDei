@@ -40,7 +40,7 @@ describe("Acumulacion", () => {
     expect(mayor).toBeLessThan(2.2);
   });
 
-  it("lleva su punto más alto en px enteros, solo sube, y avisa cuando sube un píxel", () => {
+  it("lleva su altura promedio en px enteros, solo sube, y avisa cuando sube un píxel", () => {
     const pila = new Acumulacion({ ancho: 400, aporte: 0.4 });
     pila.alCrecer = vi.fn();
     expect(pila.altoActual).toBe(0);
@@ -50,7 +50,8 @@ describe("Acumulacion", () => {
       expect(pila.altoActual).toBeGreaterThanOrEqual(anterior);
       anterior = pila.altoActual;
     }
-    expect(pila.altoActual).toBe(Math.ceil(Math.max(...pila.alturas)));
+    const promedio = pila.alturas.reduce((a, b) => a + b, 0) / pila.columnas;
+    expect(pila.altoActual).toBe(Math.round(promedio));
     expect(pila.altoActual).toBeLessThanOrEqual(ALTO_MAXIMO);
     expect(pila.alCrecer).toHaveBeenCalledTimes(pila.altoActual);
     expect(pila.alCrecer).toHaveBeenLastCalledWith(pila.altoActual);
